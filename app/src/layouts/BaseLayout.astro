@@ -1,7 +1,9 @@
 ---
 import "@styles/global.css";
+import LogoutBtn from "@components/auth/LogoutBtn.astro";
 
 const url = Astro.url;
+const showLogout = url.pathname !== "/login";
 
 const title =
   url.pathname === "/"
@@ -19,6 +21,11 @@ const title =
     <title>{title}</title>
   </head>
   <body>
+    {showLogout && (
+      <header class="flex justify-end p-4">
+        <LogoutBtn />
+      </header>
+    )}
     <slot />
   </body>
 </html>
