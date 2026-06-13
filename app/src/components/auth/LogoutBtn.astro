@@ -11,12 +11,14 @@ const { redirect = "/login" } = Astro.props;
 const safeRedirect = sanitizeRedirect(redirect);
 ---
 
-<div class="@container inline-flex flex-col items-stretch">
+<div
+  class="@container inline-flex flex-col items-stretch"
+  x-data="logoutBtn()"
+  data-redirect={safeRedirect}
+>
   <IconBtn
     ariaLabel="Logout"
-    x-data="logoutBtn()"
     @click="logout"
-    data-redirect={safeRedirect}
     :disabled="loading"
     :aria-busy="loading"
   >

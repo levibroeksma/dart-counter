@@ -19,7 +19,7 @@ describe("logoutBtn", () => {
     document.body.appendChild(button);
 
     const component = logoutBtn() as ReturnType<typeof logoutBtn> & {
-      $el: HTMLButtonElement;
+      $el: HTMLElement;
       logout: () => Promise<void>;
     };
     component.$el = button;

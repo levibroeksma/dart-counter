@@ -5,7 +5,7 @@ import { t } from "@lib/shared/i18n";
 interface LogoutBtnState {
   loading: boolean;
   error: string;
-  $el: HTMLButtonElement;
+  $el: HTMLElement;
   logout(): Promise<void>;
 }
 
@@ -17,7 +17,7 @@ export function logoutBtn(): LogoutBtnState {
     loading: false,
     error: "",
 
-    $el: undefined as unknown as HTMLButtonElement,
+    $el: undefined as unknown as HTMLElement,
 
     async logout(this: LogoutBtnState) {
       this.loading = true;
