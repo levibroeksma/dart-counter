@@ -5,16 +5,18 @@
   --color-surface-page: oklch(0.13 0.01 260);
   --color-surface-card: oklch(0.18 0.01 260);
   --color-surface-input: oklch(0.22 0.01 260);
+  
 
   /* Text */
   --color-text-primary: oklch(0.95 0 0);
   --color-text-muted: oklch(0.65 0.01 260);
 
   /* Interactive */
-  --color-accent: oklch(0.62 0.19 145);
-  --color-accent-hover: oklch(0.55 0.19 145);
+  --color-accent: oklch(68.5% 0.169 237.323);
+  --color-accent-hover: oklch(62.7% 0.169 237.323);
 
   /* Feedback */
   --color-error: oklch(0.65 0.2 25);
-  --color-border: oklch(0.28 0.01 260);
+  --color-border: oklch(82.8% 0.111 230.318 / 0.2);
+
 }

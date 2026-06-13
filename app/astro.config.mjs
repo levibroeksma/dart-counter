@@ -13,4 +13,7 @@ export default defineConfig({
   integrations: [
     alpinejs({ entrypoint: "/src/lib/client/alpine/app.factory" }),
   ],
+  devToolbar: {
+    enabled: false,
+  },
 });
