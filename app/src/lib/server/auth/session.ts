@@ -19,5 +19,5 @@ export const sessionOptions: SessionOptions = {
 };
 
 export async function getSession(cookies: AstroCookies) {
-  return getIronSession<SessionData>(cookies, sessionOptions);
+  return getIronSession<SessionData>(cookies as never, sessionOptions);
 }

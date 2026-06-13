@@ -19,13 +19,15 @@ describe("session", () => {
 
   it("sets 30-day maxAge", () => {
     expect(SESSION_MAX_AGE_SECONDS).toBe(60 * 60 * 24 * 30);
-    expect(sessionOptions.cookieOptions.maxAge).toBe(SESSION_MAX_AGE_SECONDS);
+    const cookieOptions = sessionOptions.cookieOptions!;
+    expect(cookieOptions.maxAge).toBe(SESSION_MAX_AGE_SECONDS);
   });
 
   it("configures secure httpOnly sameSite=lax cookie", () => {
-    expect(sessionOptions.cookieOptions.httpOnly).toBe(true);
-    expect(sessionOptions.cookieOptions.sameSite).toBe("lax");
-    expect(sessionOptions.cookieOptions.secure).toBe(false);
+    const cookieOptions = sessionOptions.cookieOptions!;
+    expect(cookieOptions.httpOnly).toBe(true);
+    expect(cookieOptions.sameSite).toBe("lax");
+    expect(cookieOptions.secure).toBe(false);
   });
 
   it("uses dart-counter-session cookie name", () => {
