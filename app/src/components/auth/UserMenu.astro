@@ -1,0 +1,47 @@
+---
+import IconBtn from "@components/ui/IconBtn.astro";
+import LogoutBtn from "@components/auth/LogoutBtn.astro";
+import profileIcon from "@icons/profile.svg?raw";
+import accountSettingsIcon from "@icons/account-settings.svg?raw";
+---
+
+<div
+  class="@container relative inline-flex flex-col items-end"
+  x-data="userMenu()"
+  @keydown.escape.window="close()"
+  @click.outside="close()"
+>
+  <IconBtn
+    ariaLabel="User menu"
+    type="button"
+    @click="toggle()"
+    :aria-expanded="open"
+    aria-haspopup="menu"
+  >
+    <span set:html={profileIcon} />
+  </IconBtn>
+
+  <div
+    x-show="open"
+    x-cloak
+    role="menu"
+    class="absolute top-full right-0 z-10 mt-2 min-w-48 rounded-lg border border-border bg-surface-card py-1 shadow-lg"
+  >
+    <a
+      href="/settings"
+      role="menuitem"
+      class="text-text-primary hover:bg-surface-input flex items-center gap-2 px-3 py-2 text-sm"
+    >
+      <span
+        class="inline-block text-xl leading-none [&_svg]:block"
+        set:html={accountSettingsIcon}
+        aria-hidden="true"
+      />
+      Account settings
+    </a>
+
+    <div role="none" class="px-1 py-1">
+      <LogoutBtn />
+    </div>
+  </div>
+</div>
