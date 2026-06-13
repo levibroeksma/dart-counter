@@ -18,25 +18,23 @@ const safeRedirect = sanitizeRedirect(redirect);
 >
   <IconBtn
     ariaLabel="Logout"
+    class="w-full justify-start gap-2 px-3 py-2 text-sm"
     @click="logout"
     :disabled="loading"
     :aria-busy="loading"
   >
     <span x-show="!loading" x-cloak set:html={logoutIcon} />
-    <span
-      x-show="loading"
-      x-cloak
-      class="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-400 border-t-transparent"
-      aria-hidden="true"
-    />
+    <span x-show="loading" x-cloak class="spinner" aria-hidden="true"></span>
+    <span x-show="!loading" x-cloak class="shrink-0">Log out</span>
   </IconBtn>
 
   <p
     x-show="error"
     x-text="error"
     x-cloak
-    class="text-error mt-1 text-xs"
+    class="text-error mt-1 px-3 text-xs"
     role="alert"
     aria-live="polite"
-  ></p>
+  >
+  </p>
 </div>

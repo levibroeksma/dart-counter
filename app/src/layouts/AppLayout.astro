@@ -5,5 +5,7 @@ import AppHeader from "@components/layout/AppHeader.astro";
 
 <BaseLayout>
   <AppHeader />
-  <slot />
+  <div class="flex flex-1 flex-col">
+    <slot />
+  </div>
 </BaseLayout>

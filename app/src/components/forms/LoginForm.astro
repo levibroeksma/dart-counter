@@ -6,14 +6,12 @@ import { sanitizeRedirect } from "@lib/shared/utils/redirect";
 const redirect = sanitizeRedirect(Astro.url.searchParams.get("redirect"));
 ---
 
-<article
-  class="@container w-full max-w-sm rounded-lg border border-border bg-surface-card p-6 @sm:p-8"
->
+<article class="card @container w-full max-w-sm p-6 @sm:p-8">
   <header class="space-y-2">
     <h1 id="login-heading" class="text-text-primary @sm:text-xl font-semibold">
       Dart Counter
     </h1>
-    <p class="text-text-muted @sm:text-sm">
+    <p class="text-text-muted @sm:text-sm leading-relaxed">
       Welcome to your personalized dart counter app, tracking your every step
       of progress towards a higher average.
     </p>

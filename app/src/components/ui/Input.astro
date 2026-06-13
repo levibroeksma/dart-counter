@@ -20,8 +20,10 @@ const {
 } = Astro.props;
 ---
 
-<div class="space-y-1">
-  <label for={id} class="text-text-muted @sm:text-sm block">{label}</label>
+<div class="space-y-1.5">
+  <label for={id} class="text-text-muted @sm:text-sm block font-medium"
+    >{label}</label
+  >
   <input
     {id}
     {name}
@@ -29,6 +31,6 @@ const {
     autocomplete={autocomplete}
     required={required}
     x-model={xModel}
-    class="w-full border-b border-border bg-surface-input px-3 py-2 text-text-primary"
+    class="input-field"
   />
 </div>

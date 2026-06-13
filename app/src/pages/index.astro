@@ -3,7 +3,18 @@ import AppLayout from "@layouts/AppLayout.astro";
 ---
 
 <AppLayout>
-  <main class="p-4">
-    <h1>Home</h1>
+  <main class="mx-auto w-full max-w-2xl flex-1 p-4 @sm:p-6">
+    <header class="mb-6 space-y-1">
+      <h1 class="text-text-primary text-2xl font-semibold">Home</h1>
+      <p class="text-text-muted text-sm">
+        Your dart counter dashboard will live here.
+      </p>
+    </header>
+
+    <section class="card p-5">
+      <p class="text-text-muted text-sm leading-relaxed">
+        Start a new game or review your stats once scoring features are added.
+      </p>
+    </section>
   </main>
 </AppLayout>

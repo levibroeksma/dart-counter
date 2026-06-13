@@ -24,23 +24,29 @@ import accountSettingsIcon from "@icons/account-settings.svg?raw";
   <div
     x-show="open"
     x-cloak
+    x-transition:enter="transition ease-out duration-150"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-out duration-100"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
     role="menu"
-    class="absolute top-full right-0 z-10 mt-2 min-w-48 rounded-lg border border-border bg-surface-card py-1 shadow-lg"
+    class="menu-panel shadow-menu absolute top-full right-0 z-10 mt-2 min-w-48 rounded-lg border border-border bg-surface-elevated py-1"
   >
     <a
       href="/settings"
       role="menuitem"
-      class="text-text-primary hover:bg-surface-input flex items-center gap-2 px-3 py-2 text-sm"
+      class="menu-item-hover text-text-primary flex items-center gap-2 px-3 py-2 text-sm"
     >
       <span
-        class="inline-block text-xl leading-none [&_svg]:block"
+        class="inline-block [&_svg]:block [&_svg]:size-5"
         set:html={accountSettingsIcon}
         aria-hidden="true"
       />
       Account settings
     </a>
 
-    <div role="none" class="px-1 py-1">
+    <div role="none" class="border-border border-t px-1 py-1">
       <LogoutBtn />
     </div>
   </div>
