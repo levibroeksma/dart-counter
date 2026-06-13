@@ -10,6 +10,9 @@ describe("errors.constants", () => {
     expect(MessageCode.MISSING_FIELDS).toBe("MISSING_FIELDS");
     expect(MessageCode.SERVER_CONFIG).toBe("SERVER_CONFIG");
     expect(MessageCode.NETWORK_ERROR).toBe("NETWORK_ERROR");
+    expect(MessageCode.INVALID_DISPLAY_NAME).toBe("INVALID_DISPLAY_NAME");
+    expect(MessageCode.UNAUTHORIZED).toBe("UNAUTHORIZED");
+    expect(MessageCode.SERVER_ERROR).toBe("SERVER_ERROR");
   });
 
   it("has a message for every code", () => {
@@ -32,6 +35,15 @@ describe("errors.constants", () => {
     );
     expect(errorMessages[MessageCode.NETWORK_ERROR]).toBe(
       "Unable to connect. Please try again."
+    );
+    expect(errorMessages[MessageCode.INVALID_DISPLAY_NAME]).toBe(
+      "Display name must be 2–20 characters"
+    );
+    expect(errorMessages[MessageCode.UNAUTHORIZED]).toBe(
+      "You must be logged in"
+    );
+    expect(errorMessages[MessageCode.SERVER_ERROR]).toBe(
+      "Something went wrong. Please try again."
     );
   });
 });

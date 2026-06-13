@@ -1,0 +1,21 @@
+---
+import AppLayout from "@layouts/AppLayout.astro";
+import DisplayNameSetting from "@components/settings/DisplayNameSetting.astro";
+import { getPreferences } from "@lib/server/data/preferences";
+
+let initialDisplayName = "";
+
+try {
+  const prefs = await getPreferences();
+  initialDisplayName = prefs.displayName ?? "";
+} catch {
+  initialDisplayName = "";
+}
+---
+
+<AppLayout>
+  <main class="p-4">
+    <h1 class="text-text-primary mb-6 text-2xl font-semibold">Settings</h1>
+    <DisplayNameSetting initialDisplayName={initialDisplayName} />
+  </main>
+</AppLayout>

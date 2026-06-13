@@ -1,11 +1,9 @@
 ---
-import BaseLayout from "@layouts/BaseLayout.astro";
-import LogoutBtn from "@components/auth/LogoutBtn.astro";
+import AppLayout from "@layouts/AppLayout.astro";
 ---
 
-<BaseLayout title="Home">
-  <h1>Home</h1>
-  <div class="flex justify-end">
-    <LogoutBtn redirect="/login" />
-  </div>
-</BaseLayout>
+<AppLayout>
+  <main class="p-4">
+    <h1>Home</h1>
+  </main>
+</AppLayout>

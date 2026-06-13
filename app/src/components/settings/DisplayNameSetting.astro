@@ -1,0 +1,71 @@
+---
+import Input from "@components/ui/Input.astro";
+import IconBtn from "@components/ui/IconBtn.astro";
+import saveIcon from "@icons/save.svg?raw";
+import editIcon from "@icons/edit.svg?raw";
+
+interface Props {
+  initialDisplayName?: string;
+}
+
+const { initialDisplayName = "" } = Astro.props;
+const xDataExpression = `displayNameSetting(${JSON.stringify(initialDisplayName)})`;
+---
+
+<section
+  class="@container max-w-md space-y-4"
+  x-data={xDataExpression}
+  aria-labelledby="display-name-heading"
+>
+  <h2 id="display-name-heading" class="text-text-primary font-semibold">
+    Display name
+  </h2>
+
+  <div x-show="mode === 'view'" x-cloak class="flex items-center gap-2">
+    <p class="text-text-primary flex-1" x-text="displayName"></p>
+    <IconBtn ariaLabel="Edit display name" type="button" @click="startEdit()">
+      <span set:html={editIcon} />
+    </IconBtn>
+  </div>
+
+  <div
+    x-show="mode === 'empty' || mode === 'edit'"
+    x-cloak
+    class="flex items-end gap-2"
+  >
+    <div class="flex-1">
+      <Input
+        id="display-name"
+        name="displayName"
+        label="Display name"
+        type="text"
+        autocomplete="nickname"
+        x-model="draft"
+      />
+    </div>
+    <IconBtn
+      ariaLabel="Save display name"
+      type="button"
+      @click="save()"
+      :disabled="loading"
+      :aria-busy="loading"
+    >
+      <span x-show="!loading" x-cloak set:html={saveIcon} />
+      <span
+        x-show="loading"
+        x-cloak
+        class="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-400 border-t-transparent"
+        aria-hidden="true"
+      />
+    </IconBtn>
+  </div>
+
+  <p
+    x-show="error"
+    x-text="error"
+    x-cloak
+    class="text-error text-sm"
+    role="alert"
+    aria-live="polite"
+  />
+</section>
