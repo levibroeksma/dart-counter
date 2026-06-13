@@ -3,6 +3,9 @@ export const MessageCode = {
   MISSING_FIELDS: "MISSING_FIELDS",
   SERVER_CONFIG: "SERVER_CONFIG",
   NETWORK_ERROR: "NETWORK_ERROR",
+  INVALID_DISPLAY_NAME: "INVALID_DISPLAY_NAME",
+  UNAUTHORIZED: "UNAUTHORIZED",
+  SERVER_ERROR: "SERVER_ERROR",
 } as const;
 
 export type MessageCode = (typeof MessageCode)[keyof typeof MessageCode];
@@ -12,4 +15,7 @@ export const errorMessages: Record<MessageCode, string> = {
   [MessageCode.MISSING_FIELDS]: "Username and password are required",
   [MessageCode.SERVER_CONFIG]: "Server configuration error",
   [MessageCode.NETWORK_ERROR]: "Unable to connect. Please try again.",
+  [MessageCode.INVALID_DISPLAY_NAME]: "Display name must be 2–20 characters",
+  [MessageCode.UNAUTHORIZED]: "You must be logged in",
+  [MessageCode.SERVER_ERROR]: "Something went wrong. Please try again.",
 };

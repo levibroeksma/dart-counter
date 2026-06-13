@@ -1,11 +1,18 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import type { ApiSuccess, ApiError, ApiResponse } from "@lib/shared/api/types";
+import type {
+  ApiSuccess,
+  ApiError,
+  ApiResponse,
+  PreferencesSuccess,
+} from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 
 describe("ApiResponse types", () => {
-  it("ApiSuccess has ok: true only", () => {
-    const success: ApiSuccess = { ok: true };
-    expectTypeOf(success.ok).toEqualTypeOf<true>();
+  it("ApiSuccess includes bare ok and preferences payload", () => {
+    const bare: ApiSuccess = { ok: true };
+    const prefs: PreferencesSuccess = { ok: true, displayName: "Alex" };
+    expectTypeOf(bare.ok).toEqualTypeOf<true>();
+    expectTypeOf(prefs.displayName).toEqualTypeOf<string | undefined>();
   });
 
   it("ApiError has ok: false and code", () => {
@@ -17,8 +24,9 @@ describe("ApiResponse types", () => {
   it("ApiResponse is a union of success and error", () => {
     const responses: ApiResponse[] = [
       { ok: true },
+      { ok: true, displayName: "Alex" },
       { ok: false, code: MessageCode.INVALID_CREDENTIALS },
     ];
-    expect(responses).toHaveLength(2);
+    expect(responses).toHaveLength(3);
   });
 });
