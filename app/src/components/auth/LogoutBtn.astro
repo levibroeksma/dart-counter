@@ -1,0 +1,46 @@
+---
+import logoutIcon from "@icons/logout.svg?raw";
+import { sanitizeRedirect } from "@lib/shared/utils/redirect";
+
+interface Props {
+  redirect?: string;
+}
+
+const { redirect = "/login" } = Astro.props;
+const safeRedirect = sanitizeRedirect(redirect);
+---
+
+<div class="@container inline-flex flex-col items-end">
+  <button
+    type="button"
+    x-data="logoutBtn()"
+    @click="logout"
+    data-redirect={safeRedirect}
+    :disabled="loading"
+    :aria-busy="loading"
+    aria-label="Logout"
+    class="rounded p-2 text-sky-400 hover:text-sky-300 focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:outline-none disabled:opacity-50"
+  >
+    <span
+      x-show="!loading"
+      x-cloak
+      class="inline-block text-xl leading-none [&_svg]:block"
+      set:html={logoutIcon}
+    />
+    <span
+      x-show="loading"
+      x-cloak
+      class="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-400 border-t-transparent"
+      aria-hidden="true"
+    ></span>
+  </button>
+
+  <p
+    x-show="error"
+    x-text="error"
+    x-cloak
+    class="text-error mt-1 text-xs"
+    role="alert"
+    aria-live="polite"
+  ></p>
+</div>
