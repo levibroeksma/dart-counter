@@ -1,0 +1,34 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  type?: "text" | "password" | "email";
+  autocomplete?: string;
+  required?: boolean;
+  "x-model"?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  type = "text",
+  autocomplete,
+  required,
+  "x-model": xModel,
+} = Astro.props;
+---
+
+<div class="space-y-1">
+  <label for={id} class="text-text-muted @sm:text-sm block">{label}</label>
+  <input
+    {id}
+    {name}
+    {type}
+    autocomplete={autocomplete}
+    required={required}
+    x-model={xModel}
+    class="w-full border-b border-border bg-surface-input px-3 py-2 text-text-primary"
+  />
+</div>

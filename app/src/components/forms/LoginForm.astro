@@ -1,0 +1,64 @@
+---
+import Input from "@components/ui/Input.astro";
+import PrimaryBtn from "@components/ui/PrimaryBtn.astro";
+import { sanitizeRedirect } from "@lib/shared/utils/redirect";
+
+const redirect = sanitizeRedirect(Astro.url.searchParams.get("redirect"));
+---
+
+<article
+  class="@container w-full max-w-sm rounded-lg border border-border bg-surface-card p-6 @sm:p-8"
+>
+  <header class="space-y-2">
+    <h1 id="login-heading" class="text-text-primary @sm:text-xl font-semibold">
+      Dart Counter
+    </h1>
+    <p class="text-text-muted @sm:text-sm">
+      Welcome to your personalized dart counter app, tracking your every step
+      of progress towards a higher average.
+    </p>
+  </header>
+
+  <form
+    class="mt-6 space-y-4"
+    x-data="loginForm()"
+    @submit.prevent="submit"
+    data-redirect={redirect}
+    aria-labelledby="login-heading"
+  >
+    <fieldset class="space-y-4 border-0 p-0">
+      <legend class="sr-only">Sign in</legend>
+
+      <Input
+        id="username"
+        name="username"
+        label="Username"
+        type="text"
+        autocomplete="username"
+        required
+        x-model="username"
+      />
+
+      <Input
+        id="password"
+        name="password"
+        label="Password"
+        type="password"
+        autocomplete="current-password"
+        required
+        x-model="password"
+      />
+    </fieldset>
+
+    <PrimaryBtn>Login</PrimaryBtn>
+
+    <p
+      x-show="error"
+      x-text="error"
+      x-cloak
+      class="text-error text-sm"
+      role="alert"
+      aria-live="polite"
+    ></p>
+  </form>
+</article>

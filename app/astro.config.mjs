@@ -1,15 +1,19 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig } from "astro/config";
+import tailwindcss from "@tailwindcss/vite";
+import alpinejs from "@astrojs/alpinejs";
+import netlify from "@astrojs/netlify";
 
-import tailwindcss from '@tailwindcss/vite';
-
-import alpinejs from '@astrojs/alpinejs';
-
-// https://astro.build/config
 export default defineConfig({
+  output: "server",
+  adapter: netlify(),
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
   },
-
-  integrations: [alpinejs()]
+  integrations: [
+    alpinejs({ entrypoint: "/src/lib/client/alpine/app.factory" }),
+  ],
+  devToolbar: {
+    enabled: false,
+  },
 });

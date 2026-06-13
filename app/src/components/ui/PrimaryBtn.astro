@@ -1,0 +1,13 @@
+<button
+  type="submit"
+  :disabled="loading"
+  :aria-busy="loading"
+  class="relative w-full rounded-full bg-accent px-4 py-2 text-text-primary hover:bg-accent-hover disabled:opacity-70"
+>
+  <span x-show="!loading" x-cloak><slot /></span>
+  <span
+    x-show="loading"
+    x-cloak
+    class="inline-block h-5 w-5 animate-spin rounded-full border-2 border-text-primary border-t-transparent"
+    aria-hidden="true"></span>
+</button>
