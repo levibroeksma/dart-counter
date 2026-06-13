@@ -63,8 +63,11 @@ describe("loginForm", () => {
   });
 
   it("redirects on successful login", async () => {
-    delete (window as { location?: Location }).location;
-    window.location = { href: "" } as Location;
+    Object.defineProperty(window, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
 
     vi.mocked(fetch).mockResolvedValue({
       json: async () => ({ ok: true }),
