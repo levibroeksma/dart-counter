@@ -1,0 +1,33 @@
+---
+interface Props {
+  ariaLabel: string;
+  type?: "button" | "submit";
+  href?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  ariaLabel,
+  type = "button",
+  href,
+  class: extraClass = "",
+  ...rest
+} = Astro.props;
+
+const baseClass =
+  "inline-flex items-center justify-center rounded p-2 text-xl leading-none text-sky-400 hover:text-sky-300 focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:outline-none disabled:opacity-50 [&_svg]:block";
+const className = `${baseClass} ${extraClass}`.trim();
+---
+
+{
+  href ? (
+    <a href={href} aria-label={ariaLabel} class={className} {...rest}>
+      <slot />
+    </a>
+  ) : (
+    <button type={type} aria-label={ariaLabel} class={className} {...rest}>
+      <slot />
+    </button>
+  )
+}
