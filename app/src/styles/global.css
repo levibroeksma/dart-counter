@@ -1,22 +1,214 @@
 @import "tailwindcss";
 
+/*
+ * Semantic tokens → utilities via @theme inline (Tailwind v4).
+ * Runtime light/dark values live on :root — not nested in @theme.
+ * @see https://tailwindcss.com/docs/theme#referencing-other-variables
+ */
+@theme inline {
+  --color-surface-page: var(--surface-page);
+  --color-surface-card: var(--surface-card);
+  --color-surface-input: var(--surface-input);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-error: var(--error);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --shadow-card: var(--app-shadow-card);
+  --shadow-menu: var(--app-shadow-menu);
+}
+
+/* Static design tokens — override Tailwind defaults where needed */
 @theme {
-  /* Surfaces */
-  --color-surface-page: oklch(0.13 0.01 260);
-  --color-surface-card: oklch(0.18 0.01 260);
-  --color-surface-input: oklch(0.22 0.01 260);
-  
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
 
-  /* Text */
-  --color-text-primary: oklch(0.95 0 0);
-  --color-text-muted: oklch(0.65 0.01 260);
+/* Runtime theme palette (slate surfaces + sky accents) */
+:root {
+  color-scheme: light;
 
-  /* Interactive */
-  --color-accent: oklch(68.5% 0.169 237.323);
-  --color-accent-hover: oklch(62.7% 0.169 237.323);
+  --surface-page: var(--color-slate-50);
+  --surface-card: var(--color-white);
+  --surface-input: var(--color-slate-100);
+  --surface-elevated: var(--color-white);
+  --text-primary: var(--color-slate-900);
+  --text-muted: var(--color-slate-500);
+  --accent: var(--color-sky-600);
+  --accent-hover: var(--color-sky-700);
+  --accent-foreground: var(--color-white);
+  --error: var(--color-red-600);
+  --border: var(--color-slate-200);
+  --ring: color-mix(in srgb, var(--color-sky-500) 40%, transparent);
+  --app-shadow-card: 0 1px 3px
+    color-mix(in srgb, var(--color-slate-900) 10%, transparent);
+  --app-shadow-menu: 0 4px 16px
+    color-mix(in srgb, var(--color-slate-900) 10%, transparent);
 
-  /* Feedback */
-  --color-error: oklch(0.65 0.2 25);
-  --color-border: oklch(82.8% 0.111 230.318 / 0.2);
+  --duration-fast: 160ms;
+  --duration-ui: 200ms;
+}
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --surface-page: var(--color-slate-950);
+    --surface-card: var(--color-slate-900);
+    --surface-input: var(--color-slate-800);
+    --surface-elevated: var(--color-slate-900);
+    --text-primary: var(--color-slate-50);
+    --text-muted: var(--color-slate-400);
+    --accent: var(--color-sky-500);
+    --accent-hover: var(--color-sky-400);
+    --accent-foreground: var(--color-white);
+    --error: var(--color-red-400);
+    --border: var(--color-slate-800);
+    --ring: color-mix(in srgb, var(--color-sky-400) 45%, transparent);
+    --app-shadow-card: 0 1px 3px
+      color-mix(in srgb, var(--color-black) 40%, transparent);
+    --app-shadow-menu: 0 4px 16px
+      color-mix(in srgb, var(--color-black) 40%, transparent);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --surface-page: var(--color-slate-50);
+  --surface-card: var(--color-white);
+  --surface-input: var(--color-slate-100);
+  --surface-elevated: var(--color-white);
+  --text-primary: var(--color-slate-900);
+  --text-muted: var(--color-slate-500);
+  --accent: var(--color-sky-600);
+  --accent-hover: var(--color-sky-700);
+  --accent-foreground: var(--color-white);
+  --error: var(--color-red-600);
+  --border: var(--color-slate-200);
+  --ring: color-mix(in srgb, var(--color-sky-500) 40%, transparent);
+  --app-shadow-card: 0 1px 3px
+    color-mix(in srgb, var(--color-slate-900) 10%, transparent);
+  --app-shadow-menu: 0 4px 16px
+    color-mix(in srgb, var(--color-slate-900) 10%, transparent);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface-page: var(--color-slate-950);
+  --surface-card: var(--color-slate-900);
+  --surface-input: var(--color-slate-800);
+  --surface-elevated: var(--color-slate-900);
+  --text-primary: var(--color-slate-50);
+  --text-muted: var(--color-slate-400);
+  --accent: var(--color-sky-500);
+  --accent-hover: var(--color-sky-400);
+  --accent-foreground: var(--color-white);
+  --error: var(--color-red-400);
+  --border: var(--color-slate-800);
+  --ring: color-mix(in srgb, var(--color-sky-400) 45%, transparent);
+  --app-shadow-card: 0 1px 3px
+    color-mix(in srgb, var(--color-black) 40%, transparent);
+  --app-shadow-menu: 0 4px 16px
+    color-mix(in srgb, var(--color-black) 40%, transparent);
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-surface-page text-text-primary font-sans;
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  .btn-press {
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .btn-press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .icon-btn-hover {
+      transition:
+        color var(--duration-ui) var(--ease-out),
+        background-color var(--duration-ui) var(--ease-out);
+    }
+
+    .icon-btn-hover:hover:not(:disabled) {
+      @apply text-accent-hover bg-surface-input;
+    }
+
+    .menu-item-hover {
+      transition: background-color var(--duration-fast) var(--ease-out);
+    }
+
+    .menu-item-hover:hover {
+      @apply bg-surface-input;
+    }
+  }
+
+  .input-field {
+    @apply w-full rounded-md border border-border bg-surface-input px-3 py-2 text-text-primary;
+    transition:
+      border-color var(--duration-ui) var(--ease-out),
+      box-shadow var(--duration-ui) var(--ease-out);
+  }
+
+  .input-field:focus {
+    @apply border-accent outline-none;
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+
+  .card {
+    @apply rounded-xl border border-border bg-surface-card shadow-card;
+  }
+
+  .spinner {
+    @apply inline-block h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent;
+  }
+
+  .menu-panel {
+    transform-origin: top right;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .btn-press:active:not(:disabled) {
+    transform: none;
+  }
 }

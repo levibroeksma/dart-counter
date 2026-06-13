@@ -13,7 +13,7 @@ const xDataExpression = `displayNameSetting(${JSON.stringify(initialDisplayName)
 ---
 
 <section
-  class="@container max-w-md space-y-4"
+  class="card @container max-w-md space-y-4 p-5"
   x-data={xDataExpression}
   aria-labelledby="display-name-heading"
 >
@@ -22,7 +22,7 @@ const xDataExpression = `displayNameSetting(${JSON.stringify(initialDisplayName)
   </h2>
 
   <div x-show="mode === 'view'" x-cloak class="flex items-center gap-2">
-    <p class="text-text-primary flex-1" x-text="displayName"></p>
+    <p class="text-text-primary flex-1 text-base" x-text="displayName"></p>
     <IconBtn ariaLabel="Edit display name" type="button" @click="startEdit()">
       <span set:html={editIcon} />
     </IconBtn>
@@ -37,7 +37,7 @@ const xDataExpression = `displayNameSetting(${JSON.stringify(initialDisplayName)
       <Input
         id="display-name"
         name="displayName"
-        label="Display name"
+        label=""
         type="text"
         autocomplete="nickname"
         x-model="draft"
@@ -51,12 +51,7 @@ const xDataExpression = `displayNameSetting(${JSON.stringify(initialDisplayName)
       :aria-busy="loading"
     >
       <span x-show="!loading" x-cloak set:html={saveIcon} />
-      <span
-        x-show="loading"
-        x-cloak
-        class="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-400 border-t-transparent"
-        aria-hidden="true"
-      />
+      <span x-show="loading" x-cloak class="spinner" aria-hidden="true"></span>
     </IconBtn>
   </div>
 
@@ -67,5 +62,6 @@ const xDataExpression = `displayNameSetting(${JSON.stringify(initialDisplayName)
     class="text-error text-sm"
     role="alert"
     aria-live="polite"
-  />
+  >
+  </p>
 </section>
