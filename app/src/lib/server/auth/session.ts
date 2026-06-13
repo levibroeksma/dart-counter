@@ -1,5 +1,8 @@
 import type { AstroCookies } from "astro";
 import { getIronSession, type SessionOptions } from "iron-session";
+import { bootstrapEnv } from "@lib/server/bootstrap-env";
+
+bootstrapEnv();
 
 export interface SessionData {
   isLoggedIn: boolean;

@@ -1,4 +1,7 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
+import { bootstrapEnv } from "@lib/server/bootstrap-env";
+
+bootstrapEnv();
 
 /**
  * Assert required auth env vars are present. Throws MessageCode.SERVER_CONFIG if not.
