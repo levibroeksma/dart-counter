@@ -22,14 +22,16 @@ Add a dynamic routing architecture so users can select a game from the home page
 4. Click "Start playing" — saves config via API
 5. Navigate to `/games/{slug}` — per-game play page (dummy content)
 
-| Item | Value |
-|---|---|
-| Stack | Astro 6, Tailwind CSS 4, Alpine.js 3, TypeScript |
-| Hosting | Netlify (SSR Functions + Blobs) |
-| Config routes | `/games/settings-{slug}` |
-| Play routes | `/games/{slug}` |
-| Storage | Netlify Blobs (data layer abstracted for future DB swap) |
+
+| Item          | Value                                                         |
+| ------------- | ------------------------------------------------------------- |
+| Stack         | Astro 6, Tailwind CSS 4, Alpine.js 3, TypeScript              |
+| Hosting       | Netlify (SSR Functions + Blobs)                               |
+| Config routes | `/games/settings-{slug}`                                      |
+| Play routes   | `/games/{slug}`                                               |
+| Storage       | Netlify Blobs (data layer abstracted for future DB swap)      |
 | Prototype UIs | Dummy per-game content only — prove flow, not real game logic |
+
 
 ---
 
@@ -40,7 +42,7 @@ Two layers with a clear boundary:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Code (compile-time)                                    │
-│  Component registry: slug → Settings.astro / Play.astro │
+│  Component registry: slug → SettingsForm.astro / Play.astro │
 │  (UI must live in code — Astro can't load from blobs)   │
 └─────────────────────────────────────────────────────────┘
                           ↕ slug lookup
@@ -55,11 +57,13 @@ Two layers with a clear boundary:
 
 ### Blob stores
 
-| Store | Key pattern | Contents |
-|---|---|---|
-| `game-types` | `catalog` | Array: `{ slug, displayName, sortOrder, enabled }` |
-| `user-game-stats` | `{userId}` | `{ playCounts: Record<slug, number> }` |
-| `game-sessions` | `{userId}:{slug}` | User's saved config before play |
+
+| Store             | Key pattern       | Contents                                           |
+| ----------------- | ----------------- | -------------------------------------------------- |
+| `game-types`      | `catalog`         | Array: `{ slug, displayName, sortOrder, enabled }` |
+| `user-game-stats` | `{userId}`        | `{ playCounts: Record<slug, number> }`             |
+| `game-sessions`   | `{userId}:{slug}` | User's saved config before play                    |
+
 
 ### Data layer contract
 
@@ -93,10 +97,12 @@ All consumers call `lib/server/data/games.ts` only. Blob access is internal (`ga
 
 ## 3. URL structure
 
-| Phase | URL example | Astro file |
-|---|---|---|
+
+| Phase  | URL example           | Astro file                          |
+| ------ | --------------------- | ----------------------------------- |
 | Config | `/games/settings-501` | `pages/games/settings-[game].astro` |
-| Play | `/games/501` | `pages/games/[game].astro` |
+| Play   | `/games/501`          | `pages/games/[game].astro`          |
+
 
 Path helpers in `lib/shared/games/paths.ts`:
 
@@ -131,13 +137,13 @@ app/src/
 │   ├── GamePlayShell.astro                  ← Shared play layout
 │   ├── Toast.astro                          ← Error toast from ?error= param
 │   ├── 501/
-│   │   ├── Settings.astro
+│   │   ├── SettingsForm.astro
 │   │   └── Play.astro
 │   ├── ten-up-one-down/
-│   │   ├── Settings.astro
+│   │   ├── SettingsForm.astro
 │   │   └── Play.astro
 │   └── 121/
-│       ├── Settings.astro
+│       ├── SettingsForm.astro
 │       └── Play.astro
 │
 └── lib/
@@ -154,7 +160,7 @@ app/src/
 ### Adding a new game later
 
 1. Add entry to blob catalog (or extend seed)
-2. Create `components/games/{slug}/Settings.astro` + `Play.astro`
+2. Create `components/games/{slug}/SettingsForm.astro` + `Play.astro`
 3. Register components in `components.ts`
 
 No new route files required.
@@ -173,7 +179,7 @@ Shared config page wrapper:
 
 - Game display name (from blob catalog)
 - Back link → `/games`
-- Slot for per-game `Settings.astro`
+- Slot for per-game `SettingsForm.astro`
 - "Start playing" button: `PUT /api/games/{slug}/config` → navigate to `playPath(slug)`
 
 ### `GamePlayShell.astro`
@@ -186,7 +192,7 @@ Shared play page wrapper:
 
 ### Per-game dummy components
 
-Each `Settings.astro`: unique placeholder text + one dummy input field.  
+Each `SettingsForm.astro`: unique placeholder text + one dummy input field.  
 Each `Play.astro`: "Playing {displayName}" + slug identifier.  
 Enough to visually distinguish games and prove the flow.
 
@@ -218,11 +224,13 @@ Play page
 
 ### SSR vs API access
 
-| Consumer | Data access |
-|---|---|
+
+| Consumer                                     | Data access                             |
+| -------------------------------------------- | --------------------------------------- |
 | `index.astro`, `games.astro`, dynamic routes | Direct `lib/server/data/games.ts` (SSR) |
-| Settings "Start" button (client) | `PUT /api/games/{slug}/config` |
-| Future client needs | `GET /api/games` |
+| Settings "Start" button (client)             | `PUT /api/games/{slug}/config`          |
+| Future client needs                          | `GET /api/games`                        |
+
 
 SSR pages do not call their own API routes — same pattern as `settings.astro` → `getPreferences()`.
 
@@ -236,7 +244,7 @@ type GameConfig = {
 };
 ```
 
-Per-game `Settings.astro` owns its `settings` field shape. The shared type stays generic until real per-game schemas are defined.
+Per-game `SettingsForm.astro` owns its `settings` field shape. The shared type stays generic until real per-game schemas are defined.
 
 ### Types
 
@@ -275,13 +283,15 @@ Response pattern matches existing API routes (`ApiResponse` from `@lib/shared/ap
 
 ## 8. Error handling
 
-| Scenario | Behavior |
-|---|---|
-| Unknown/disabled slug on settings or play route | Redirect → `/games?error=unknown-game` |
-| Slug in catalog but no UI component registered | Redirect → `/games?error=unavailable-game` |
-| API config save fails (network/500) | Inline error on settings page; user stays on page |
-| Blob read fails on SSR page | Empty catalog / empty config; page still renders |
-| Unauthenticated API call | `401` + `{ ok: false, code: UNAUTHORIZED }` |
+
+| Scenario                                        | Behavior                                          |
+| ----------------------------------------------- | ------------------------------------------------- |
+| Unknown/disabled slug on settings or play route | Redirect → `/games?error=unknown-game`            |
+| Slug in catalog but no UI component registered  | Redirect → `/games?error=unavailable-game`        |
+| API config save fails (network/500)             | Inline error on settings page; user stays on page |
+| Blob read fails on SSR page                     | Empty catalog / empty config; page still renders  |
+| Unauthenticated API call                        | `401` + `{ ok: false, code: UNAUTHORIZED }`       |
+
 
 ### Toast behavior
 
@@ -308,13 +318,15 @@ Settings page inline save failure uses existing `NETWORK_ERROR` / `SERVER_ERROR`
 
 ## 9. Testing
 
-| Layer | Tests |
-|---|---|
-| `lib/shared/games/paths.ts` | `settingsPath("501")` → `/games/settings-501`, `playPath("501")` → `/games/501` |
-| `lib/server/data/games.ts` | Seed on empty store, `getGameBySlug`, `getQuickStartGames` fallback when no stats |
-| `lib/shared/games/components.ts` | Registry resolves known slugs; returns undefined for unknown |
-| `pages/api/games/[slug]/config.ts` | Auth, validation, save/read round-trip (mock blobs) |
-| `lib/client/alpine/games/toast.ts` | Shows message from `?error=`, cleans URL on dismiss |
+
+| Layer                              | Tests                                                                             |
+| ---------------------------------- | --------------------------------------------------------------------------------- |
+| `lib/shared/games/paths.ts`        | `settingsPath("501")` → `/games/settings-501`, `playPath("501")` → `/games/501`   |
+| `lib/server/data/games.ts`         | Seed on empty store, `getGameBySlug`, `getQuickStartGames` fallback when no stats |
+| `lib/shared/games/components.ts`   | Registry resolves known slugs; returns undefined for unknown                      |
+| `pages/api/games/[slug]/config.ts` | Auth, validation, save/read round-trip (mock blobs)                               |
+| `lib/client/alpine/games/toast.ts` | Shows message from `?error=`, cleans URL on dismiss                               |
+
 
 ### Manual verification checklist
 
@@ -341,12 +353,15 @@ Settings page inline save failure uses existing `NETWORK_ERROR` / `SERVER_ERROR`
 
 ## 11. Decisions log
 
-| Decision | Choice | Rationale |
-|---|---|---|
-| URL pattern | `/games/settings-{slug}` + `/games/{slug}` | User preference; settings prefix keeps play URLs short |
-| Game catalog storage | Netlify Blobs via data layer | Consistent with preferences; swappable for DB |
-| UI components | Code registry + per-game folders | Astro requires compile-time components |
-| Unknown slug | Redirect + toast, not 404 | User preference |
-| URL after error | Clean `/games` after toast dismisses | User preference |
-| Home Quick Start | Stats-driven with catalog fallback | Future-ready; prototype uses first N |
-| Prototype game count | 3 (`501`, `ten-up-one-down`, `121`) | User preference |
+
+| Decision             | Choice                                     | Rationale                                              |
+| -------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| URL pattern          | `/games/settings-{slug}` + `/games/{slug}` | User preference; settings prefix keeps play URLs short |
+| Game catalog storage | Netlify Blobs via data layer               | Consistent with preferences; swappable for DB          |
+| UI components        | Code registry + per-game folders           | Astro requires compile-time components                 |
+| Unknown slug         | Redirect + toast, not 404                  | User preference                                        |
+| URL after error      | Clean `/games` after toast dismisses       | User preference                                        |
+| Home Quick Start     | Stats-driven with catalog fallback         | Future-ready; prototype uses first N                   |
+| Prototype game count | 3 (`501`, `ten-up-one-down`, `121`)        | User preference                                        |
+
+
