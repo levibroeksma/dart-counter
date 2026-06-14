@@ -1,0 +1,29 @@
+{
+  "folders": [
+    {
+      "name": "app",
+      "path": "./app",
+    },
+    {
+      "name": "root",
+      "path": "./",
+    },
+  ],
+  "settings": {
+    "files.exclude": {
+      "app": true,
+    },
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "workbench.editorAssociations": {
+      "*.svg": "default",
+    },
+  },
+}
