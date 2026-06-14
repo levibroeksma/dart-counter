@@ -6,6 +6,8 @@ export const MessageCode = {
   INVALID_DISPLAY_NAME: "INVALID_DISPLAY_NAME",
   UNAUTHORIZED: "UNAUTHORIZED",
   SERVER_ERROR: "SERVER_ERROR",
+  UNKNOWN_GAME: "UNKNOWN_GAME",
+  UNAVAILABLE_GAME: "UNAVAILABLE_GAME",
 } as const;
 
 export type MessageCode = (typeof MessageCode)[keyof typeof MessageCode];
@@ -18,4 +20,6 @@ export const errorMessages: Record<MessageCode, string> = {
   [MessageCode.INVALID_DISPLAY_NAME]: "Display name must be 2–20 characters",
   [MessageCode.UNAUTHORIZED]: "You must be logged in",
   [MessageCode.SERVER_ERROR]: "Something went wrong. Please try again.",
+  [MessageCode.UNKNOWN_GAME]: "That game does not exist.",
+  [MessageCode.UNAVAILABLE_GAME]: "That game is not available yet.",
 };
