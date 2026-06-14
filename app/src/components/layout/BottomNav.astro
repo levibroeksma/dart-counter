@@ -1,0 +1,17 @@
+---
+// Components
+import NavBtn from "@components/layout/NavBtn.astro";
+
+// Icons
+import homeIcon from "@icons/home.svg?raw";
+import statsIcon from "@icons/stats.svg?raw";
+---
+
+<nav class="grid grid-cols-2 border-t border-border p-4">
+  <NavBtn href="/">
+    <span set:html={homeIcon} />
+  </NavBtn>
+  <NavBtn href="/statistics">
+    <span set:html={statsIcon} />
+  </NavBtn>
+</nav>
