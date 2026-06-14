@@ -1,20 +1,50 @@
 ---
+// Layouts
 import AppLayout from "@layouts/AppLayout.astro";
+
+// Components
+import Card from "@components/ui/Card.astro";
+import GameCard from "@components/games/GameCard.astro";
+import { getQuickStartGames } from "@lib/server/data/games";
+import { getSession } from "@lib/server/auth/session";
+import type { GameType } from "@lib/shared/games/types";
+
+const session = await getSession(Astro.cookies);
+const userId = session.username ?? "default";
+let quickStartGames: GameType[] = [];
+
+try {
+  quickStartGames = await getQuickStartGames(userId, 2);
+} catch {
+  quickStartGames = [];
+}
 ---
 
 <AppLayout>
-  <main class="mx-auto w-full max-w-2xl flex-1 p-4 @sm:p-6">
-    <header class="mb-6 space-y-1">
-      <h1 class="text-text-primary text-2xl font-semibold">Home</h1>
-      <p class="text-text-muted text-sm">
-        Your dart counter dashboard will live here.
-      </p>
-    </header>
-
-    <section class="card p-5">
-      <p class="text-text-muted text-sm leading-relaxed">
-        Start a new game or review your stats once scoring features are added.
-      </p>
+  <main class="mx-auto w-full max-w-2xl flex-1 p-4 @sm:p-6 space-y-12">
+    <section class="grid grid-cols-2 gap-x-4 gap-y-6">
+      <div class="col-span-2 flex justify-between items-center gap-4">
+        <h2 class="text-text-muted text-2xl font-semibold">Statistics</h2>
+        <div class="bg-text-muted/20 pt-px w-full"></div>
+      </div>
+      <Card />
+      <Card />
+      <Card />
+      <Card />
+    </section>
+    <section class="grid grid-cols-2 gap-x-4 gap-y-6">
+      <article class="col-span-2 space-y-2">
+        <div class="flex justify-between items-center gap-4">
+          <h2 class="text-text-muted text-2xl font-semibold shrink-0">
+            Quick Start
+          </h2>
+          <div class="bg-text-muted/20 pt-px w-full"></div>
+        </div>
+        <p class="text-text-muted text-sm">
+          Select one of your favorite games to get started.
+        </p>
+      </article>
+      {quickStartGames.map((game) => <GameCard game={game} />)}
     </section>
   </main>
 </AppLayout>
