@@ -1,0 +1,31 @@
+---
+import PrimaryBtn from "@components/ui/PrimaryBtn.astro";
+import { playPath } from "@lib/shared/games/paths";
+import type { GameType } from "@lib/shared/games/types";
+
+interface Props {
+  game: GameType;
+}
+
+const { game } = Astro.props;
+const playUrl = playPath(game.slug);
+---
+
+<main
+  class="mx-auto w-full max-w-2xl flex-1 p-4 @sm:p-6"
+  x-data={`gameSettingsShell('${game.slug}', '${playUrl}')`}
+>
+  <header class="mb-6 space-y-1">
+    <a href="/games" class="text-text-muted text-sm hover:text-text-primary">
+      ← Back to games
+    </a>
+    <h1 class="text-text-primary text-2xl font-semibold">{game.displayName}</h1>
+    <p class="text-text-muted text-sm">Configure your game settings.</p>
+  </header>
+
+  <form id="game-settings-form" class="space-y-4" @submit.prevent="start()">
+    <slot />
+    <p x-show="error" x-text="error" x-cloak class="text-sm text-red-400" role="alert"></p>
+    <PrimaryBtn type="submit">Start playing</PrimaryBtn>
+  </form>
+</main>
