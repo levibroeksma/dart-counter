@@ -70,6 +70,13 @@ function createContext(body: unknown): APIContext {
 
 describe("POST /api/games/ten-up-one-down/session/round", () => {
   beforeEach(() => {
+    mockGetSession.mockReset();
+    mockGetTuodSession.mockReset();
+    mockSaveTuodSession.mockReset();
+    mockDeleteTuodSession.mockReset();
+    mockGetPlayerStats.mockReset();
+    mockSavePlayerStats.mockReset();
+
     mockGetSession.mockResolvedValue(authState);
     mockGetTuodSession.mockResolvedValue(structuredClone(activeSession));
     mockSaveTuodSession.mockResolvedValue(undefined);
@@ -113,6 +120,26 @@ describe("POST /api/games/ten-up-one-down/session/round", () => {
     expect(mockSavePlayerStats).toHaveBeenCalledTimes(1);
     expect(mockSaveTuodSession).toHaveBeenCalledTimes(1);
     expect(mockDeleteTuodSession).not.toHaveBeenCalled();
+  });
+
+  it("completes and deletes session when timerExpired is true", async () => {
+    const timedSession = {
+      ...structuredClone(activeSession),
+      settings: { endMode: "timed" as const, playtimeSeconds: 60 },
+      timeRemainingSeconds: 0,
+    };
+    mockGetTuodSession.mockResolvedValue(timedSession);
+
+    const response = await POST(
+      createContext({ round: validRound, timerExpired: true })
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.ok).toBe(true);
+    expect(data.completed).toBe(true);
+    expect(mockDeleteTuodSession).toHaveBeenCalledTimes(1);
+    expect(mockSaveTuodSession).not.toHaveBeenCalled();
   });
 
   it("rejects invalid round payload", async () => {

@@ -146,6 +146,11 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
         this.session.state.currentTarget,
         this.buildInput()
       );
+      const timerExpired =
+        this.timerExpired ||
+        (this.session.settings.endMode === "timed" &&
+          this.session.timeRemainingSeconds !== null &&
+          this.session.timeRemainingSeconds <= 0);
 
       this.loading = true;
       this.error = "";
@@ -153,7 +158,7 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
         const response = await fetch("/api/games/ten-up-one-down/session/round", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(round),
+          body: JSON.stringify({ round, timerExpired }),
         });
         const data = (await response.json()) as ApiResponse;
 

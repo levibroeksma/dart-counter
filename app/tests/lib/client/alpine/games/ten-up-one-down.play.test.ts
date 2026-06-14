@@ -107,6 +107,19 @@ describe("tenUpOneDownPlay", () => {
       "/api/games/ten-up-one-down/session/round",
       expect.objectContaining({ method: "POST" })
     );
+    const submitBody = JSON.parse(
+      (vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit).body as string
+    );
+    expect(submitBody).toEqual(
+      expect.objectContaining({
+        round: expect.objectContaining({
+          roundNumber: 1,
+          targetAtStart: 41,
+          finished: true,
+        }),
+        timerExpired: false,
+      })
+    );
     expect(play.session.state.currentTarget).toBe(51);
     expect(play.step).toBe("outcome");
   });
@@ -131,17 +144,22 @@ describe("tenUpOneDownPlay", () => {
     );
   });
 
-  it("init and pause handle timed countdown", () => {
+  it("pauses and resumes timed countdown", () => {
     vi.useFakeTimers();
     const play = tenUpOneDownPlay(structuredClone(timedSession));
 
     play.init();
-    vi.advanceTimersByTime(2000);
-    expect(play.session.timeRemainingSeconds).toBe(58);
+    vi.advanceTimersByTime(5000);
+    expect(play.session.timeRemainingSeconds).toBe(55);
 
     play.togglePause();
     expect(play.session.state.status).toBe("paused");
-    vi.advanceTimersByTime(2000);
-    expect(play.session.timeRemainingSeconds).toBe(58);
+    vi.advanceTimersByTime(5000);
+    expect(play.session.timeRemainingSeconds).toBe(55);
+
+    play.togglePause();
+    expect(play.session.state.status).toBe("active");
+    vi.advanceTimersByTime(5000);
+    expect(play.session.timeRemainingSeconds).toBe(50);
   });
 });

@@ -25,6 +25,29 @@ function jsonResponse(body: ApiResponse, status: number): Response {
   });
 }
 
+type RoundSubmissionPayload =
+  | TenUpOneDownRoundRecord
+  | {
+      round: TenUpOneDownRoundRecord;
+      timerExpired?: boolean;
+    };
+
+/**
+ * Normalize accepted POST payload shape for round submissions.
+ */
+function parseRoundSubmission(payload: RoundSubmissionPayload): {
+  round: TenUpOneDownRoundRecord;
+  timerExpired: boolean;
+} {
+  if ("round" in payload) {
+    return {
+      round: payload.round,
+      timerExpired: payload.timerExpired === true,
+    };
+  }
+  return { round: payload, timerExpired: false };
+}
+
 export const POST: APIRoute = async ({ request, cookies }) => {
   const auth = await getSession(cookies);
   if (!auth.isLoggedIn || !auth.username) {
@@ -36,12 +59,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return jsonResponse({ ok: false, code: MessageCode.NO_ACTIVE_SESSION }, 404);
   }
 
-  let round: TenUpOneDownRoundRecord;
+  let submission: RoundSubmissionPayload;
   try {
-    round = await request.json();
+    submission = await request.json();
   } catch {
     return jsonResponse({ ok: false, code: MessageCode.MISSING_FIELDS }, 400);
   }
+  const { round, timerExpired } = parseRoundSubmission(submission);
 
   const validation = validateRoundRecord(round);
   if (!validation.valid) {
@@ -60,6 +84,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     applyRoundToStats(stats, round);
     session.state = applyRoundToState(session.state, round, session.settings);
     session.roundHistory.push(round);
+    const timedModeExpired =
+      session.settings.endMode === "timed" &&
+      (timerExpired ||
+        (session.timeRemainingSeconds !== null &&
+          session.timeRemainingSeconds <= 0));
+    if (timedModeExpired) {
+      session.state.status = "completed";
+    }
 
     await savePlayerDartStats(auth.username, stats);
     if (session.state.status === "completed") {
