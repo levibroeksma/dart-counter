@@ -6,6 +6,7 @@ import { displayNameSetting } from "@lib/client/alpine/settings/display-name.set
 import { gameToast } from "@lib/client/alpine/games/toast";
 import { gameSettingsShell } from "@lib/client/alpine/games/game-settings.shell";
 import { tenUpOneDownSettings } from "@lib/client/alpine/games/ten-up-one-down.settings";
+import { tenUpOneDownPlay } from "@lib/client/alpine/games/ten-up-one-down.play";
 
 export default (Alpine: Alpine) => {
   Alpine.data("loginForm", loginForm);
@@ -15,4 +16,5 @@ export default (Alpine: Alpine) => {
   Alpine.data("gameToast", gameToast);
   Alpine.data("gameSettingsShell", gameSettingsShell);
   Alpine.data("tenUpOneDownSettings", tenUpOneDownSettings);
+  Alpine.data("tenUpOneDownPlay", tenUpOneDownPlay);
 };
