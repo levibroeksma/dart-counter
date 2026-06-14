@@ -1,11 +1,17 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
 import AppHeader from "@components/layout/AppHeader.astro";
+import BottomNav from "@components/layout/BottomNav.astro";
+
+const url = Astro.url;
+const pageTitle =
+  url.pathname === "/" ? "Dart Counter" : `${url.pathname.slice(1)}`;
 ---
 
 <BaseLayout>
-  <AppHeader />
+  <AppHeader pageTitle={pageTitle} />
   <div class="flex flex-1 flex-col">
     <slot />
   </div>
+  <BottomNav />
 </BaseLayout>
