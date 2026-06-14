@@ -6,6 +6,7 @@ bootstrapEnv();
 
 export interface SessionData {
   isLoggedIn: boolean;
+  username?: string;
 }
 
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;

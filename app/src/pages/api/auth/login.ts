@@ -48,6 +48,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   const session = await getSession(cookies);
   session.isLoggedIn = true;
+  session.username = username;
   await session.save();
 
   return jsonResponse({ ok: true }, 200);
