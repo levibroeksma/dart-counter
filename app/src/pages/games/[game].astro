@@ -1,0 +1,42 @@
+---
+import AppLayout from "@layouts/AppLayout.astro";
+import GamePlayShell from "@components/games/GamePlayShell.astro";
+import {
+  getGameBySlug,
+  incrementPlayCount,
+} from "@lib/server/data/games";
+import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
+import { getSession } from "@lib/server/auth/session";
+
+const { game: slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/games?error=unknown-game");
+}
+
+const game = await getGameBySlug(slug);
+if (!game) {
+  return Astro.redirect("/games?error=unknown-game");
+}
+
+if (!hasGameComponents(slug)) {
+  return Astro.redirect("/games?error=unavailable-game");
+}
+
+const session = await getSession(Astro.cookies);
+if (session.isLoggedIn && session.username) {
+  try {
+    await incrementPlayCount(session.username, slug);
+  } catch {
+    // Non-fatal for prototype
+  }
+}
+
+const Play = getPlayComponent(slug)!;
+---
+
+<AppLayout>
+  <GamePlayShell game={game}>
+    <Play displayName={game.displayName} slug={game.slug} />
+  </GamePlayShell>
+</AppLayout>

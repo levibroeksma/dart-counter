@@ -1,0 +1,17 @@
+---
+import Card from "@components/ui/Card.astro";
+import { settingsPath } from "@lib/shared/games/paths";
+import type { GameType } from "@lib/shared/games/types";
+
+interface Props {
+  game: GameType;
+}
+
+const { game } = Astro.props;
+---
+
+<Card>
+  <a href={settingsPath(game.slug)} class="block text-text-primary font-medium">
+    {game.displayName}
+  </a>
+</Card>

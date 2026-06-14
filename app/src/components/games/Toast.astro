@@ -1,0 +1,11 @@
+<div
+  x-data="gameToast()"
+  x-init="init()"
+  x-show="visible"
+  x-cloak
+  role="alert"
+  aria-live="polite"
+  class="fixed bottom-20 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-surface-elevated px-4 py-3 text-sm text-text-primary shadow-card"
+>
+  <span x-text="message"></span>
+</div>

@@ -1,0 +1,32 @@
+---
+import AppLayout from "@layouts/AppLayout.astro";
+import GameSettingsShell from "@components/games/GameSettingsShell.astro";
+import { getGameBySlug } from "@lib/server/data/games";
+import {
+  getSettingsFormComponent,
+  hasGameComponents,
+} from "@lib/shared/games/components";
+
+const { game: slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/games?error=unknown-game");
+}
+
+const game = await getGameBySlug(slug);
+if (!game) {
+  return Astro.redirect("/games?error=unknown-game");
+}
+
+if (!hasGameComponents(slug)) {
+  return Astro.redirect("/games?error=unavailable-game");
+}
+
+const SettingsForm = getSettingsFormComponent(slug)!;
+---
+
+<AppLayout>
+  <GameSettingsShell game={game}>
+    <SettingsForm />
+  </GameSettingsShell>
+</AppLayout>

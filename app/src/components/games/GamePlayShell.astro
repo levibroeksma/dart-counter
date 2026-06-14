@@ -1,0 +1,23 @@
+---
+import { settingsPath } from "@lib/shared/games/paths";
+import type { GameType } from "@lib/shared/games/types";
+
+interface Props {
+  game: GameType;
+}
+
+const { game } = Astro.props;
+---
+
+<main class="mx-auto w-full max-w-2xl flex-1 p-4 @sm:p-6">
+  <header class="mb-6 space-y-1">
+    <a
+      href={settingsPath(game.slug)}
+      class="text-text-muted text-sm hover:text-text-primary"
+    >
+      ← Back to settings
+    </a>
+    <h1 class="text-text-primary text-2xl font-semibold">{game.displayName}</h1>
+  </header>
+  <slot />
+</main>

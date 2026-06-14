@@ -4,7 +4,10 @@ import { POST } from "../../../src/pages/api/auth/login";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 
 const mockSave = vi.fn();
-const mockSession = { isLoggedIn: false, save: mockSave };
+const mockSession: { isLoggedIn: boolean; username?: string; save: typeof mockSave } = {
+  isLoggedIn: false,
+  save: mockSave,
+};
 
 vi.mock("@lib/server/auth/session", () => ({
   getSession: vi.fn(async () => mockSession),
@@ -25,6 +28,7 @@ describe("POST /api/auth/login", () => {
   beforeEach(() => {
     mockSave.mockClear();
     mockSession.isLoggedIn = false;
+    delete mockSession.username;
     process.env.AUTH_USERNAME = "testuser";
     process.env.AUTH_PASSWORD = "testpass";
     process.env.SESSION_SECRET = "test-secret-that-is-at-least-32-chars-long";
@@ -37,6 +41,7 @@ describe("POST /api/auth/login", () => {
     expect(response.status).toBe(200);
     expect(data).toEqual({ ok: true });
     expect(mockSession.isLoggedIn).toBe(true);
+    expect(mockSession.username).toBe("testuser");
     expect(mockSave).toHaveBeenCalledOnce();
   });
 

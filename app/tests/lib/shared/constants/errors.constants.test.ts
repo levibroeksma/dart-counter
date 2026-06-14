@@ -13,6 +13,8 @@ describe("errors.constants", () => {
     expect(MessageCode.INVALID_DISPLAY_NAME).toBe("INVALID_DISPLAY_NAME");
     expect(MessageCode.UNAUTHORIZED).toBe("UNAUTHORIZED");
     expect(MessageCode.SERVER_ERROR).toBe("SERVER_ERROR");
+    expect(MessageCode.UNKNOWN_GAME).toBe("UNKNOWN_GAME");
+    expect(MessageCode.UNAVAILABLE_GAME).toBe("UNAVAILABLE_GAME");
   });
 
   it("has a message for every code", () => {
@@ -44,6 +46,12 @@ describe("errors.constants", () => {
     );
     expect(errorMessages[MessageCode.SERVER_ERROR]).toBe(
       "Something went wrong. Please try again."
+    );
+    expect(errorMessages[MessageCode.UNKNOWN_GAME]).toBe(
+      "That game does not exist."
+    );
+    expect(errorMessages[MessageCode.UNAVAILABLE_GAME]).toBe(
+      "That game is not available yet."
     );
   });
 });

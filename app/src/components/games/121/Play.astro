@@ -1,0 +1,12 @@
+---
+interface Props {
+  displayName: string;
+  slug: string;
+}
+const { displayName, slug } = Astro.props;
+---
+<section class="card space-y-2">
+  <p class="text-text-primary">Playing {displayName}</p>
+  <p class="text-text-muted text-sm">Game slug: {slug}</p>
+  <p class="text-text-muted text-sm">[121 play UI placeholder]</p>
+</section>
