@@ -1,0 +1,17 @@
+---
+interface Props {
+  href: string;
+}
+
+const { href }: Props = Astro.props;
+let className = "icon-btn-hover btn-press inline-flex items-center justify-center rounded-md p-2 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 [&_svg]:block [&_svg]:size-6";
+if (Astro.url.pathname === href) {
+  className += " text-accent";
+} else {
+  className += " text-text-muted hover:text-accent";
+}
+---
+
+<a href={href}  class={className}>
+  <slot />
+</a>
