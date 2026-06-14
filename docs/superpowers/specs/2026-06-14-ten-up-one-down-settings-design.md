@@ -4,7 +4,9 @@
 
 **Date:** 2026-06-14  
 **Branch:** TBD  
-**Scope:** Settings form requirements, typed settings, game session model, round tracking, global player stats, undo — for the `ten-up-one-down` game mode
+**Scope:** Settings form, typed settings, game session model, play UI (inline round-entry wizard), round tracking, global player stats, undo — for the `ten-up-one-down` game mode
+
+**UI reference:** `app/src/components/games/ten-up-one-down/Play.astro` (raw prototype — positive flow)
 
 ---
 
@@ -31,8 +33,8 @@ Define the data model and requirements for **Ten Up One Down** so a game can be 
 1. `/games/settings-ten-up-one-down` — configure end mode (rounds or timed); form always shows defaults
 2. If in-progress session exists → prompt: resume or abandon & start new
 3. Start → create game session (settings + initial state) → `/games/ten-up-one-down`
-4. Play — one modal submission per round (success/failure + tracking fields)
-5. Optional undo last round (unlimited consecutive)
+4. Play — inline wizard per round (success/failure + tracking fields); Submit persists round
+5. Optional undo last submitted round (unlimited consecutive)
 6. Game ends → session deleted; settings not remembered for next game
 
 | Item | Value |
@@ -41,6 +43,7 @@ Define the data model and requirements for **Ten Up One Down** so a game can be 
 | Storage | Netlify Blobs via data layer (swappable for DB later) |
 | Settings persistence | Active game session only — not saved for new games |
 | Stats persistence | Global per player, across all game modes |
+| Round entry UX | Inline wizard in main controls panel (not a modal) |
 
 ---
 
@@ -66,7 +69,7 @@ Define the data model and requirements for **Ten Up One Down** so a game can be 
 | `successDelta` | `+10` |
 | `failureDelta` | `−1` |
 | `doubleOutRequired` | `true` |
-| `bogeyNumbers` | shared module (see §8) |
+| `bogeyNumbers` | shared module (see §11) |
 
 ### Settings type (discriminated union)
 
@@ -107,13 +110,15 @@ Play page
   → load active session (no session → redirect to settings)
   → render from session.state + session.roundHistory
 
-Round submit (modal confirm)
+Round submit (inline wizard Submit)
+  → buildRoundRecord(wizardInput) on client
   → POST session/round
       → validate round record
       → resolve target adjustment
       → append to roundHistory
       → update global player stats
       → persist session
+  → reset wizard to step 1; update target card + progress bar
 
 Undo last round
   → DELETE session/round/last
@@ -140,6 +145,7 @@ Game completed or abandoned
 app/src/lib/shared/darts/
   bogeys.ts                    ← BOGEY_NUMBERS, isBogey(), nearestNonBogey()
   doubles.ts                   ← DoubleTarget, ALL_DOUBLES
+  checkouts.ts                 ← getCheckoutHint(target) — lookup map
 
 app/src/lib/shared/stats/
   double-stats.ts              ← applyRoundToStats(), revertRoundFromStats()
@@ -149,10 +155,21 @@ app/src/lib/shared/games/ten-up-one-down/
   constants.ts                 ← game rules (startingTarget, min/max, deltas)
   settings.ts                  ← TenUpOneDownSettings type
   validation.ts                ← validateTenUpOneDownSettings()
-  round.ts                     ← TenUpOneDownRoundRecord, validateRoundRecord()
+  round.ts                     ← RoundRecord, deriveSuccessAttempts(), deriveFailureAttempts(), buildRoundRecord(), validateRoundRecord()
   state.ts                     ← TenUpOneDownGameState, createInitialGameState()
   target.ts                    ← resolveTargetAfterRound() (+ bogey, bounds)
   session.ts                   ← TenUpOneDownSession type
+
+app/src/lib/client/alpine/games/
+  ten-up-one-down.play.ts      ← wizard step state, back nav, submit, undo, timer
+
+app/src/components/games/ten-up-one-down/
+  Play.astro                   ← shell layout; mounts Alpine factory
+  TargetCard.astro             ← target score + checkout hint
+  RoundProgress.astro          ← round counter / countdown + pause
+  RoundEntryWizard.astro       ← inline wizard step templates
+  DartCountPicker.astro        ← reusable 1/2/3 (or 0/1/2/3) pill row
+  DoubleGrid.astro             ← D1–D20 + Bull from ALL_DOUBLES
 
 app/src/lib/server/data/
   ten-up-one-down-session.ts   ← get/save/delete session
@@ -204,11 +221,11 @@ type TenUpOneDownGameState = {
 
 ---
 
-## 6. Round tracking
+## 6. Round tracking (data model)
 
 ### Interaction model
 
-User interacts **once per round** (not per dart). After selecting success or failure on the play screen, a **modal** opens for remaining tracking fields. Nothing is persisted until modal confirm. Cancel discards modal state.
+User interacts **once per round** (not per dart). The play screen uses an **inline wizard** in the main controls panel — steps replace panel content with slide transitions. Nothing is persisted until **Submit**. Wizard step-back is allowed before Submit; the bottom **Go back** bar undoes the last **submitted** round only.
 
 ### Round record
 
@@ -234,25 +251,40 @@ type TenUpOneDownRoundRecord = {
 };
 ```
 
-### Entry flows
+### Derivation helpers (UI → record)
 
-**Success path (modal):**
+The UI collects wizard fields; helpers produce `doubleAttempts` before POST.
 
+**Success** — user picks `onDouble` (1–3) and `finishedOnDouble`:
+
+```ts
+function deriveSuccessAttempts(
+  onDouble: 1 | 2 | 3,
+  finishedOnDouble: DoubleTarget
+): DoubleAttempt[] {
+  return [
+    ...Array(onDouble - 1).fill({ double: finishedOnDouble, hit: false }),
+    { double: finishedOnDouble, hit: true },
+  ];
+}
 ```
-finished: true
-  → dartsUsed (1 | 2 | 3)
-  → doubleAttempts in order (each miss + final hit)
-  → confirm
-```
 
-**Failure path (modal):**
+| `onDouble` | Result |
+|---|---|
+| 1 | 1× hit on `finishedOnDouble` |
+| 2 | 1× miss + 1× hit on same double |
+| 3 | 2× miss + 1× hit on same double |
 
-```
-finished: false
-  → dartsUsed (1 | 2 | 3)
-  → doubleAttempts in order (all misses; empty if 0 double attempts)
-  → busted (yes | no)
-  → confirm
+**Failure** — user picks `onDouble` (0–3) and optionally `doubleAttempted`:
+
+```ts
+function deriveFailureAttempts(
+  onDouble: 0 | 1 | 2 | 3,
+  doubleAttempted: DoubleTarget | null
+): DoubleAttempt[] {
+  if (onDouble === 0 || !doubleAttempted) return [];
+  return Array(onDouble).fill({ double: doubleAttempted, hit: false });
+}
 ```
 
 ### Validation rules
@@ -263,10 +295,10 @@ finished: false
 | Failure | all `hit: false` (or empty array) |
 | Attempt count | `doubleAttempts.length ≤ dartsUsed` |
 | Setup darts | `dartsUsed − doubleAttempts.length` (implicit, not stored) |
-| `dartsOnDouble ≤ dartsUsed` | setup darts excluded from double attempts |
+| `onDouble ≤ dartsUsed` | setup darts excluded from double attempts |
 | `busted` | failure only; stats-only — both busted and non-busted failure apply target −1 |
 
-### Target resolution (after confirm)
+### Target resolution (after Submit)
 
 1. **Success:** `currentTarget + 10`
 2. **Failure:** `currentTarget − 1`
@@ -286,19 +318,93 @@ finished: false
 
 ---
 
-## 7. Pause & timer (timed mode only)
+## 7. Play screen layout
+
+Reference: `Play.astro` prototype.
+
+```
+┌─────────────────────────────────┐
+│  Ten Up One Down                │  ← title
+├─────────────────────────────────┤
+│  TARGET                         │
+│  41                             │  ← session.state.currentTarget
+│  [ 9  D16 ]                     │  ← checkout hint (lookup map)
+├─────────────────────────────────┤
+│  Round 3 of 10                  │  ← rounds mode
+│  Round 3 · 12:34  [⏸ Pause]  │  ← timed mode (countdown, not up)
+├─────────────────────────────────┤
+│  [ Inline wizard — §8 / §9 ]    │  ← main controls panel
+├─────────────────────────────────┤
+│  [↩ Go back]                    │  ← undo last submitted round
+└─────────────────────────────────┘
+```
+
+- Fixed shell; only wizard panel content changes per step
+- Slide transition: dart-count steps slide out → double grid slides in (per prototype)
+- **Wizard back:** step-level navigation before Submit
+- **Go back bar:** round-level undo after Submit
+
+### Round progress bar
+
+| Mode | Display |
+|---|---|
+| Rounds | `Round N of M` |
+| Timed | `Round N · MM:SS` countdown + inline pause/resume toggle |
+
+Timer counts **down** from `playtimeSeconds`. Pause freezes countdown and disables wizard controls.
+
+---
+
+## 8. Inline wizard — success flow
+
+| Step | UI | Validation |
+|---|---|---|
+| 1 | `Target hit?` → **Yes** / No | — |
+| 2 | `Darts used:` 1 / 2 / 3 | required |
+| 3 | `Darts on double:` 1 / 2 / 3 | required; `onDouble ≤ dartsUsed` |
+| → | Steps 2–3 slide out | both selected |
+| 4 | `Finished on double:` D1–D20 + Bull grid (`DoubleGrid`) | required |
+| 5 | **Submit** | enabled when step 4 complete |
+
+**Wizard back:** any step → previous (4→3→2→1→ Yes/No).
+
+**On Submit:** `buildRoundRecord()` → POST round → reset wizard to step 1 → update target card + progress.
+
+---
+
+## 9. Inline wizard — failure flow
+
+| Step | UI | Validation |
+|---|---|---|
+| 1 | `Target hit?` → Yes / **No** | — |
+| 2 | `Darts thrown:` 1 / 2 / 3 | required |
+| 3 | `Darts on double:` 0 / 1 / 2 / 3 | required; `onDouble ≤ dartsUsed` |
+| 4a | If `onDouble > 0` → `Double attempted:` grid | required |
+| → | Steps 2–4a slide out (same as success) | |
+| 4b | If `onDouble === 0` → skip double grid | — |
+| 5 | `Busted?` Yes / No | required |
+| 6 | **Submit** | enabled when complete |
+
+**Wizard back:** same as success.
+
+**On Submit:** derive attempts via `deriveFailureAttempts()` → POST round → target −1 → reset wizard. `busted` is stats-only.
+
+---
+
+## 10. Pause & timer (timed mode only)
 
 | Rule | Detail |
 |---|---|
 | Availability | Timed mode only; rounds mode has no pause |
-| Pause | `status → "paused"`: timer frozen, input blocked |
-| Resume | `status → "active"`: timer continues from `timeRemainingSeconds` |
+| Display | `Round N · MM:SS` countdown + pause toggle in progress bar |
+| Pause | `status → "paused"`: timer frozen, wizard controls disabled |
+| Resume | `status → "active"`: timer continues; wizard state preserved |
 | Timer scope | Total session countdown (`playtimeSeconds`) |
 | Timer runs | Only while `status === "active"` |
 
 ---
 
-## 8. Shared dart modules
+## 11. Shared dart modules
 
 Reusable across current and future game modes.
 
@@ -321,11 +427,23 @@ export type DoubleTarget = /* D1–D20 + Bull */;
 export const ALL_DOUBLES: readonly DoubleTarget[] = [/* 21 values */];
 ```
 
+### `lib/shared/darts/checkouts.ts`
+
+```ts
+type CheckoutRoute = { segments: string[] }; // e.g. ["9", "D16"]
+
+export function getCheckoutHint(target: number): CheckoutRoute | null;
+```
+
+- Lookup map keyed by target score
+- Target card renders segments when entry exists
+- Hide hint row when no entry (e.g. bogey targets)
+
 ---
 
-## 9. Global player stats
+## 12. Global player stats
 
-Stats are **global per player**, aggregated across all game modes. Updated after each round confirm; rolled back on undo.
+Stats are **global per player**, aggregated across all game modes. Updated after each round Submit; rolled back on undo.
 
 ```ts
 type PlayerDoubleStats = Record<DoubleTarget, { attempts: number; successes: number }>;
@@ -350,22 +468,53 @@ Each `doubleAttempts` entry increments `attempts`; entries with `hit: true` incr
 
 ---
 
-## 10. Undo (go back)
+## 13. Undo (go back)
 
 | Rule | Detail |
 |---|---|
 | Scope | Last submitted round only |
 | Repeat | Unlimited consecutive undos |
+| UI | Bottom bar with undo icon + "Go back" label |
 | On undo | Remove last `roundHistory` entry |
 | | Revert `currentTarget` to removed round's `targetAtStart` |
 | | Roll back that round's contribution from global player stats |
 | | Decrement `currentRound` |
 | | If `status === "completed"` → restore `"active"` and timer state if applicable |
-| Re-submit | Normal modal flow from reverted state |
+| Re-submit | Normal inline wizard from reverted state |
+
+Distinct from wizard step-back (pre-Submit, in-panel only).
 
 ---
 
-## 11. API routes
+## 14. Components & wizard state
+
+| Component | Responsibility |
+|---|---|
+| `Play.astro` | Shell layout; mounts `tenUpOneDownPlay(session)` |
+| `TargetCard.astro` | Target score + checkout hint |
+| `RoundProgress.astro` | Round counter or countdown + pause |
+| `RoundEntryWizard.astro` | Inline wizard step templates |
+| `DartCountPicker.astro` | Reusable pill row (1/2/3 or 0/1/2/3) |
+| `DoubleGrid.astro` | D1–D20 + Bull from `ALL_DOUBLES` |
+| `ten-up-one-down.play.ts` | Wizard step state, back nav, submit, undo, timer |
+
+### Wizard step enum
+
+```ts
+type WizardStep =
+  | "outcome"       // Target hit? Yes / No
+  | "dartsUsed"
+  | "onDouble"
+  | "doubleSelect"  // success: finishedOnDouble; failure: doubleAttempted
+  | "busted"        // failure only
+  | "submit";
+```
+
+Alpine factory registered in `app.factory.ts`. No `<script>` in `.astro` components.
+
+---
+
+## 15. API routes
 
 Auth required on all routes. Pattern matches existing `ApiResponse`.
 
@@ -385,20 +534,23 @@ Shared isomorphic validators in `lib/shared/games/ten-up-one-down/`:
 
 - `validateTenUpOneDownSettings()` — client (before create) and server (on POST session)
 - `validateRoundRecord()` — client (before submit) and server (on POST round)
+- `deriveSuccessAttempts()` / `deriveFailureAttempts()` — unit-tested derivation
 
 ---
 
-## 12. Testing
+## 16. Testing
 
 | Layer | Covers |
 |---|---|
 | `lib/shared/darts/bogeys.ts` | isBogey, nearestNonBogey, tie-break direction |
 | `lib/shared/darts/doubles.ts` | ALL_DOUBLES completeness |
+| `lib/shared/darts/checkouts.ts` | getCheckoutHint for known targets |
 | `lib/shared/stats/double-stats.ts` | apply + revert round stats |
+| `lib/shared/games/ten-up-one-down/round.ts` | deriveSuccessAttempts, deriveFailureAttempts, buildRoundRecord, validation |
 | `lib/shared/games/ten-up-one-down/validation.ts` | settings bounds, endMode branches |
-| `lib/shared/games/ten-up-one-down/round.ts` | round record validation rules |
 | `lib/shared/games/ten-up-one-down/target.ts` | +10/−1, bogey snap, min clamp, max completion |
 | `lib/shared/games/ten-up-one-down/state.ts` | createInitialGameState for both modes |
+| `lib/client/alpine/games/ten-up-one-down.play.ts` | wizard steps, back nav, submit, undo, pause |
 | Session API routes | create, load, abandon, round submit, undo, auth |
 | Undo | consecutive undos, stats rollback, completed → active restore |
 
@@ -410,19 +562,20 @@ npm run check  →  npm test  →  npm run build
 
 ---
 
-## 13. Out of scope
+## 17. Out of scope
 
-- Play UI layout and modal styling (separate from this spec's data requirements)
+- Game-completed summary screen (session ends; redirect TBD in implementation plan)
 - Per-game-mode stats views (stats are stored globally; display is future work)
 - Multi-player support
 - Configurable starting target
 - Per-dart score entry (e.g. T20 + T19 + D12 notation)
+- Sequential multi-double picker (different doubles per attempt in one round)
 - Migrating 501 / 121 to session-based model
 - Removing legacy `PUT /api/games/{slug}/config` for other games
 
 ---
 
-## 14. Decisions log
+## 18. Decisions log
 
 | # | Topic | Decision |
 |---|---|---|
@@ -432,18 +585,22 @@ npm run check  →  npm test  →  npm run build
 | 4 | Round count bounds | 1–100, default 10 |
 | 5 | Playtime bounds | 5–30 minutes, default 10 minutes |
 | 6 | End mode | `rounds` or `timed` (mutually exclusive) |
-| 7 | Timed mode | Total session countdown |
+| 7 | Timed mode | Total session countdown (counts down) |
 | 8 | Timer expiry | Finish current round normally, then completed |
-| 9 | Pause | Timed mode only |
+| 9 | Pause | Timed mode only; inline in progress bar |
 | 10 | Min target breach | Clamp to 2 |
 | 11 | Max target | Successful checkout on 170 → completed |
 | 12 | Bogey landing | Snap to nearest non-bogey; tie → adjustment direction |
 | 13 | Busted | Stats-only; same −1 as non-busted failure |
-| 14 | Round interaction | One submission per round via modal |
-| 15 | Double attempts | Each attempt tracked individually (misses + hit) |
-| 16 | Double targets | D1–D20 + Bull (shared module) |
-| 17 | Bogey numbers | Shared module for reuse across game modes |
-| 18 | Stats scope | Global per player, all game modes |
-| 19 | Favorite/worst double | No minimum attempt threshold |
-| 20 | In-progress on settings | Prompt: resume or abandon & start new |
-| 21 | Undo | Last round only; unlimited consecutive undos |
+| 14 | Round entry UX | Inline wizard in controls panel (not modal) |
+| 15 | Success double attempts | Derived from `onDouble` + `finishedOnDouble` (same double) |
+| 16 | Failure double attempts | Derived from `onDouble` + `doubleAttempted` (same double) |
+| 17 | Double targets | D1–D20 + Bull (shared module) |
+| 18 | Bogey numbers | Shared module for reuse across game modes |
+| 19 | Checkout hints | Lookup map per target; shared `checkouts.ts` |
+| 20 | Stats scope | Global per player, all game modes |
+| 21 | Favorite/worst double | No minimum attempt threshold |
+| 22 | In-progress on settings | Prompt: resume or abandon & start new |
+| 23 | Undo (Go back bar) | Last submitted round; unlimited consecutive |
+| 24 | Wizard back | Step back allowed before Submit |
+| 25 | Timed progress bar | `Round N · MM:SS` + pause toggle |
