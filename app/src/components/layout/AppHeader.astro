@@ -1,27 +1,20 @@
 ---
 // Components
 import UserMenu from "@components/auth/UserMenu.astro";
-import IconBtn from "@components/ui/IconBtn.astro";
 
-// Icons
-import homeIcon from "@icons/home.svg?raw";
+interface Props {
+  pageTitle: string;
+}
 
-// Variables
-const isHomePage = Astro.url.pathname === "/";
+const { pageTitle }: Props = Astro.props;
 ---
 
 <header
   role="banner"
-  class="border-border bg-surface-page/80 sticky top-0 z-20 flex justify-between border-b p-4 backdrop-blur-sm"
+  class="bg-surface-page/80 sticky top-0 z-20 flex justify-between items-center p-4 backdrop-blur-sm"
 >
-  {
-    isHomePage ? (
-      <div class="text-text-primary text-2xl font-semibold" />
-    ) : (
-      <IconBtn ariaLabel="Home" type="button" href="/">
-        <span set:html={homeIcon} />
-      </IconBtn>
-    )
-  }
+  <h1 class="text-text-primary text-2xl font-semibold capitalize">
+    {pageTitle}
+  </h1>
   <UserMenu />
 </header>
