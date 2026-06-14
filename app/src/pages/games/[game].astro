@@ -1,11 +1,13 @@
 ---
-import AppLayout from "@layouts/AppLayout.astro";
+import GameLayout from "@layouts/GameLayout.astro";
 import GamePlayShell from "@components/games/GamePlayShell.astro";
 import {
   getGameBySlug,
   incrementPlayCount,
 } from "@lib/server/data/games";
+import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
+import { settingsPath } from "@lib/shared/games/paths";
 import { getSession } from "@lib/server/auth/session";
 
 const { game: slug } = Astro.params;
@@ -32,11 +34,24 @@ if (session.isLoggedIn && session.username) {
   }
 }
 
+const tenUpOneDownSession =
+  slug === "ten-up-one-down" && session.isLoggedIn && session.username
+    ? await getTenUpOneDownSession(session.username)
+    : null;
+
+if (slug === "ten-up-one-down" && !tenUpOneDownSession) {
+  return Astro.redirect(settingsPath(slug));
+}
+
 const Play = getPlayComponent(slug)!;
 ---
 
-<AppLayout>
+<GameLayout>
   <GamePlayShell game={game}>
-    <Play displayName={game.displayName} slug={game.slug} />
+    {slug === "ten-up-one-down" ? (
+      <Play displayName={game.displayName} session={tenUpOneDownSession} />
+    ) : (
+      <Play displayName={game.displayName} slug={game.slug} />
+    )}
   </GamePlayShell>
-</AppLayout>
+</GameLayout>

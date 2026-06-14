@@ -1,12 +1,50 @@
 ---
+import UndoIcon from "@icons/undo.svg";
+import IconBtn from "@components/ui/IconBtn.astro";
+import RoundEntryWizard from "./RoundEntryWizard.astro";
+import RoundProgress from "./RoundProgress.astro";
+import TargetCard from "./TargetCard.astro";
+import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
+
 interface Props {
   displayName: string;
-  slug: string;
+  session: TenUpOneDownSession;
 }
-const { displayName, slug } = Astro.props;
+const { displayName, session } = Astro.props;
+const sessionJson = JSON.stringify(session).replace(/</g, "\\u003c");
 ---
-<section class="card space-y-2">
-  <p class="text-text-primary">Playing {displayName}</p>
-  <p class="text-text-muted text-sm">Game slug: {slug}</p>
-  <p class="text-text-muted text-sm">[Ten Up One Down play UI placeholder]</p>
+
+<section
+  class="flex-1 flex flex-col gap-4"
+  x-data={`tenUpOneDownPlay(${sessionJson})`}
+  x-init="init()"
+>
+  <div class="flex justify-evenly py-2">
+    <h2 class="text-2xl font-bold">
+      {displayName}
+    </h2>
+  </div>
+
+  <TargetCard target={session.state.currentTarget} />
+  <RoundProgress />
+
+  <article class="bg-border h-fit flex-1 rounded-lg border border-slate-700 p-6 shadow-card">
+    <RoundEntryWizard />
+  </article>
+
+  <article class="bg-border h-fit rounded-lg border border-slate-700 p-2 shadow-card">
+    <IconBtn
+      ariaLabel="Go back a round"
+      class="flex items-center justify-center gap-2"
+      :disabled="session.roundHistory.length === 0 || loading"
+      @click="undo()"
+    >
+      <UndoIcon class="size-6 text-text-muted" />
+      <span class="text-sm text-text-muted font-mono uppercase tracking-wider">
+        Go back
+      </span>
+    </IconBtn>
+  </article>
+
+  <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
 </section>
