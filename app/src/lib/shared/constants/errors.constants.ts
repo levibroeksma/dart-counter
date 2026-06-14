@@ -8,6 +8,7 @@ export const MessageCode = {
   SERVER_ERROR: "SERVER_ERROR",
   UNKNOWN_GAME: "UNKNOWN_GAME",
   UNAVAILABLE_GAME: "UNAVAILABLE_GAME",
+  INVALID_GAME_SETTINGS: "INVALID_GAME_SETTINGS",
 } as const;
 
 export type MessageCode = (typeof MessageCode)[keyof typeof MessageCode];
@@ -22,4 +23,5 @@ export const errorMessages: Record<MessageCode, string> = {
   [MessageCode.SERVER_ERROR]: "Something went wrong. Please try again.",
   [MessageCode.UNKNOWN_GAME]: "That game does not exist.",
   [MessageCode.UNAVAILABLE_GAME]: "That game is not available yet.",
+  [MessageCode.INVALID_GAME_SETTINGS]: "Invalid game settings.",
 };
