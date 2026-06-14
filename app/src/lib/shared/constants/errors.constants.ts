@@ -9,6 +9,7 @@ export const MessageCode = {
   UNKNOWN_GAME: "UNKNOWN_GAME",
   UNAVAILABLE_GAME: "UNAVAILABLE_GAME",
   INVALID_GAME_SETTINGS: "INVALID_GAME_SETTINGS",
+  INVALID_ROUND: "INVALID_ROUND",
 } as const;
 
 export type MessageCode = (typeof MessageCode)[keyof typeof MessageCode];
@@ -24,4 +25,5 @@ export const errorMessages: Record<MessageCode, string> = {
   [MessageCode.UNKNOWN_GAME]: "That game does not exist.",
   [MessageCode.UNAVAILABLE_GAME]: "That game is not available yet.",
   [MessageCode.INVALID_GAME_SETTINGS]: "Invalid game settings.",
+  [MessageCode.INVALID_ROUND]: "Invalid round data.",
 };
