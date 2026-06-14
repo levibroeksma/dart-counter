@@ -1,0 +1,30 @@
+---
+import { getCheckoutHint } from "@lib/shared/darts/checkouts";
+
+interface Props {
+  target?: number;
+  targetModel?: string;
+}
+
+const { target = 41, targetModel = "session.state.currentTarget" } = Astro.props;
+const checkoutHint = getCheckoutHint(target);
+---
+
+<article
+  class="bg-border h-fit rounded-lg border border-slate-700 p-6 shadow-card"
+>
+  <div class="flex items-center justify-center flex-col gap-6">
+    <div class="flex items-center justify-center flex-col gap-2">
+      <span class="text-sm text-text-muted font-mono uppercase tracking-wider">Target</span>
+      <span class="text-6xl font-bold" x-text={targetModel}>{target}</span>
+    </div>
+
+    <span class="bg-slate-900 flex min-h-10 w-2/3 items-center justify-center gap-2 rounded-lg p-1 font-mono text-sm">
+      {checkoutHint?.segments?.length ? (
+        checkoutHint.segments.map((segment) => <span>{segment}</span>)
+      ) : (
+        <span class="text-text-muted">No checkout route</span>
+      )}
+    </span>
+  </div>
+</article>

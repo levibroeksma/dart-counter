@@ -1,0 +1,28 @@
+---
+import { ALL_DOUBLES } from "@lib/shared/darts/doubles";
+
+interface Props {
+  label: string;
+  model: string;
+}
+
+const { label, model } = Astro.props;
+---
+
+<div class="flex flex-1 w-full flex-col gap-2">
+  <h3 class="font-bold text-xs">{label}</h3>
+  <div class="grid flex-1 grid-cols-5 gap-2">
+    {ALL_DOUBLES.map((doubleValue) => (
+      <div
+        class:list={[
+          "card w-full cursor-pointer justify-center text-xs",
+          doubleValue === "Bull" && "col-start-3",
+        ]}
+        @click={`${model} = '${doubleValue}'`}
+        :class={`${model} === '${doubleValue}' ? 'bg-accent text-accent-foreground' : ''`}
+      >
+        {doubleValue === "Bull" ? "BULL" : doubleValue}
+      </div>
+    ))}
+  </div>
+</div>
