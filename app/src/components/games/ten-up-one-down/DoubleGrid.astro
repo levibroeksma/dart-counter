@@ -4,22 +4,24 @@ import { ALL_DOUBLES } from "@lib/shared/darts/doubles";
 interface Props {
   label: string;
   model: string;
+  onSelect: string;
 }
 
-const { label, model } = Astro.props;
+const { label, model, onSelect } = Astro.props;
 ---
 
-<div class="flex flex-1 w-full flex-col gap-2">
-  <h3 class="font-bold text-xs">{label}</h3>
-  <div class="grid flex-1 grid-cols-5 gap-2">
+<div class="flex w-full flex-col gap-2">
+  <h3 class="section-label">{label}</h3>
+  <div class="grid grid-cols-5 gap-2">
     {ALL_DOUBLES.map((doubleValue) => (
       <div
         class:list={[
-          "card w-full cursor-pointer justify-center text-xs",
+          "card-interactive btn-press justify-center text-xs",
           doubleValue === "Bull" && "col-start-3",
         ]}
-        @click={`${model} = '${doubleValue}'`}
+        @click={`${onSelect}('${doubleValue}')`}
         :class={`${model} === '${doubleValue}' ? 'bg-accent text-accent-foreground' : ''`}
+        :aria-pressed={`${model} === '${doubleValue}'`}
       >
         {doubleValue === "Bull" ? "BULL" : doubleValue}
       </div>
