@@ -1,61 +1,69 @@
 import { describe, it, expect } from "vitest";
-import {
-  deriveSuccessAttempts, deriveFailureAttempts,
-  buildRoundRecord, validateRoundRecord,
-} from "@lib/shared/games/ten-up-one-down/round";
-
-describe("deriveSuccessAttempts", () => {
-  it("1 dart on double", () => {
-    expect(deriveSuccessAttempts(1, "D16")).toEqual([{ double: "D16", hit: true }]);
-  });
-  it("2 darts on double", () => {
-    expect(deriveSuccessAttempts(2, "D16")).toEqual([
-      { double: "D16", hit: false }, { double: "D16", hit: true },
-    ]);
-  });
-  it("3 darts on double", () => {
-    expect(deriveSuccessAttempts(3, "D16")).toHaveLength(3);
-    expect(deriveSuccessAttempts(3, "D16").filter((a) => a.hit)).toHaveLength(1);
-  });
-});
-
-describe("deriveFailureAttempts", () => {
-  it("returns empty when onDouble is 0", () => {
-    expect(deriveFailureAttempts(0, null)).toEqual([]);
-  });
-  it("returns misses for onDouble > 0", () => {
-    expect(deriveFailureAttempts(2, "D20")).toEqual([
-      { double: "D20", hit: false }, { double: "D20", hit: false },
-    ]);
-  });
-});
+import { buildRoundRecord, validateRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
 
 describe("buildRoundRecord", () => {
-  it("builds success record", () => {
+  it("builds success record with derived dartsUsed", () => {
     const record = buildRoundRecord(1, 41, {
-      outcome: "success", dartsUsed: 2, onDouble: 2, finishedOnDouble: "D16",
+      outcome: "success",
+      dartsForFinish: 2,
+      dartsOnDouble: 1,
     });
-    expect(record.finished).toBe(true);
-    expect(record.dartsUsed).toBe(2);
-    expect(record.doubleAttempts).toHaveLength(2);
+    expect(record).toEqual({
+      roundNumber: 1,
+      targetAtStart: 41,
+      targetAfter: 41,
+      finished: true,
+      dartsUsed: 2,
+      dartsOnDouble: 1,
+    });
   });
 
-  it("builds failure record with busted", () => {
+  it("builds failure record", () => {
     const record = buildRoundRecord(1, 41, {
-      outcome: "failure", dartsUsed: 3, onDouble: 0, doubleAttempted: null, busted: true,
+      outcome: "failure",
+      dartsUsed: 3,
+      dartsOnDouble: 2,
     });
-    expect(record.finished).toBe(false);
-    expect(record.busted).toBe(true);
-    expect(record.doubleAttempts).toEqual([]);
+    expect(record).toEqual({
+      roundNumber: 1,
+      targetAtStart: 41,
+      targetAfter: 41,
+      finished: false,
+      dartsUsed: 3,
+      dartsOnDouble: 2,
+    });
   });
 });
 
 describe("validateRoundRecord", () => {
-  it("rejects success with multiple hits", () => {
+  it("rejects success when dartsOnDouble > dartsUsed", () => {
     const record = buildRoundRecord(1, 41, {
-      outcome: "success", dartsUsed: 2, onDouble: 2, finishedOnDouble: "D16",
+      outcome: "success",
+      dartsForFinish: 2,
+      dartsOnDouble: 3,
     });
-    record.doubleAttempts.push({ double: "D20", hit: true });
     expect(validateRoundRecord(record).valid).toBe(false);
+  });
+
+  it("rejects failure when dartsOnDouble > dartsUsed", () => {
+    const record = buildRoundRecord(1, 41, {
+      outcome: "failure",
+      dartsUsed: 2,
+      dartsOnDouble: 3,
+    });
+    expect(validateRoundRecord(record).valid).toBe(false);
+  });
+
+  it("accepts valid success and failure records", () => {
+    expect(
+      validateRoundRecord(
+        buildRoundRecord(1, 40, { outcome: "success", dartsForFinish: 1, dartsOnDouble: 1 }),
+      ).valid,
+    ).toBe(true);
+    expect(
+      validateRoundRecord(
+        buildRoundRecord(1, 40, { outcome: "failure", dartsUsed: 3, dartsOnDouble: 0 }),
+      ).valid,
+    ).toBe(true);
   });
 });

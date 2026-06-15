@@ -8,10 +8,7 @@ const successRound: TenUpOneDownRoundRecord = {
   targetAfter: 51,
   finished: true,
   dartsUsed: 2,
-  doubleAttempts: [
-    { double: "D16", hit: false },
-    { double: "D16", hit: true },
-  ],
+  dartsOnDouble: 2,
 };
 
 const failureRound: TenUpOneDownRoundRecord = {
@@ -20,8 +17,7 @@ const failureRound: TenUpOneDownRoundRecord = {
   targetAfter: 50,
   finished: false,
   dartsUsed: 3,
-  doubleAttempts: [{ double: "D20", hit: false }],
-  busted: true,
+  dartsOnDouble: 1,
 };
 
 describe("double-stats", () => {

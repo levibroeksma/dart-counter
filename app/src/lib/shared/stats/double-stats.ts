@@ -10,10 +10,6 @@ export function createEmptyPlayerDartStats(): PlayerDartStats {
 }
 
 export function applyRoundToStats(stats: PlayerDartStats, round: TenUpOneDownRoundRecord): void {
-  for (const attempt of round.doubleAttempts) {
-    stats.doubleStats[attempt.double].attempts++;
-    if (attempt.hit) stats.doubleStats[attempt.double].successes++;
-  }
   if (round.finished) {
     stats.totalCheckouts++;
     stats.totalCheckoutDarts += round.dartsUsed;
@@ -21,10 +17,6 @@ export function applyRoundToStats(stats: PlayerDartStats, round: TenUpOneDownRou
 }
 
 export function revertRoundFromStats(stats: PlayerDartStats, round: TenUpOneDownRoundRecord): void {
-  for (const attempt of round.doubleAttempts) {
-    stats.doubleStats[attempt.double].attempts--;
-    if (attempt.hit) stats.doubleStats[attempt.double].successes--;
-  }
   if (round.finished) {
     stats.totalCheckouts--;
     stats.totalCheckoutDarts -= round.dartsUsed;

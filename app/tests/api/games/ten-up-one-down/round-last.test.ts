@@ -30,8 +30,8 @@ const roundRecord = {
   targetAtStart: 41,
   targetAfter: 51,
   finished: true,
-  dartsUsed: 1,
-  doubleAttempts: [{ double: "D16", hit: true }],
+  dartsUsed: 2,
+  dartsOnDouble: 1,
 };
 
 const activeSession = {

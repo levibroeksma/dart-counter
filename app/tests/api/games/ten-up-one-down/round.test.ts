@@ -53,8 +53,8 @@ const validRound = {
   targetAtStart: 41,
   targetAfter: 41,
   finished: true,
-  dartsUsed: 1,
-  doubleAttempts: [{ double: "D16", hit: true }],
+  dartsUsed: 2,
+  dartsOnDouble: 1,
 };
 
 function createContext(body: unknown): APIContext {
@@ -144,7 +144,7 @@ describe("POST /api/games/ten-up-one-down/session/round", () => {
 
   it("rejects invalid round payload", async () => {
     const response = await POST(
-      createContext({ ...validRound, doubleAttempts: [] })
+      createContext({ ...validRound, dartsOnDouble: 3, dartsUsed: 2 })
     );
 
     expect(response.status).toBe(400);

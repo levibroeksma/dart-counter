@@ -4,8 +4,7 @@ import type { TenUpOneDownRoundRecord } from "@lib/shared/games/ten-up-one-down/
 
 const successRound: TenUpOneDownRoundRecord = {
   roundNumber: 1, targetAtStart: 41, targetAfter: 51,
-  finished: true, dartsUsed: 1,
-  doubleAttempts: [{ double: "D16", hit: true }],
+  finished: true, dartsUsed: 2, dartsOnDouble: 1,
 };
 
 describe("createInitialGameState", () => {
