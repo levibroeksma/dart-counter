@@ -8,6 +8,8 @@ import { gameSettingsShell } from "@lib/client/alpine/games/game-settings.shell"
 import { tenUpOneDownSettings } from "@lib/client/alpine/games/ten-up-one-down.settings";
 import { tenUpOneDownPlay } from "@lib/client/alpine/games/ten-up-one-down.play";
 
+import { confirmationModalState } from "@lib/client/alpine/stores/confirmationModal.store";
+
 export default (Alpine: Alpine) => {
   Alpine.data("loginForm", loginForm);
   Alpine.data("logoutBtn", logoutBtn);
@@ -17,4 +19,8 @@ export default (Alpine: Alpine) => {
   Alpine.data("gameSettingsShell", gameSettingsShell);
   Alpine.data("tenUpOneDownSettings", tenUpOneDownSettings);
   Alpine.data("tenUpOneDownPlay", tenUpOneDownPlay);
+
+  const confirmationModal = confirmationModalState(Alpine);
+  Alpine.store("confirmationModal", confirmationModal);
+  confirmationModal.init();
 };
