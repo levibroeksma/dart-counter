@@ -1,9 +1,6 @@
-import type { DoubleTarget } from "@lib/shared/darts/doubles";
-
-export type PlayerDoubleStats = Record<DoubleTarget, { attempts: number; successes: number }>;
-
 export type PlayerDartStats = {
-  doubleStats: PlayerDoubleStats;
+  doubleAttempts: number;
+  doubleHits: number;
   totalCheckouts: number;
   totalCheckoutDarts: number;
 };

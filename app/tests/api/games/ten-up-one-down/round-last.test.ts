@@ -64,9 +64,10 @@ describe("DELETE /api/games/ten-up-one-down/session/round/last", () => {
     mockGetSession.mockResolvedValue({ isLoggedIn: true, username: "alex" });
     mockGetTuodSession.mockResolvedValue(structuredClone(activeSession));
     const stats = createEmptyPlayerDartStats();
-    stats.doubleStats.D16 = { attempts: 1, successes: 1 };
+    stats.doubleAttempts = 1;
+    stats.doubleHits = 1;
     stats.totalCheckouts = 1;
-    stats.totalCheckoutDarts = 1;
+    stats.totalCheckoutDarts = 2;
     mockGetPlayerStats.mockResolvedValue(stats);
     mockSaveTuodSession.mockResolvedValue(undefined);
     mockSavePlayerStats.mockResolvedValue(undefined);

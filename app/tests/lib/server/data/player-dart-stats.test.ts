@@ -28,13 +28,13 @@ describe("player-dart-stats data layer", () => {
     const stats = await getPlayerDartStats("alex");
 
     expect(stats.totalCheckouts).toBe(0);
-    expect(stats.doubleStats.D1.attempts).toBe(0);
-    expect(stats.doubleStats.D1.successes).toBe(0);
+    expect(stats.doubleAttempts).toBe(0);
+    expect(stats.doubleHits).toBe(0);
   });
 
   it("returns stored stats when found", async () => {
     mockGet.mockResolvedValue({
-      doubleStats: createEmptyPlayerDartStats().doubleStats,
+      ...createEmptyPlayerDartStats(),
       totalCheckouts: 4,
       totalCheckoutDarts: 9,
     });
