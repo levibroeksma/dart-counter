@@ -10,16 +10,14 @@ const { target = 41, targetModel = "session.state.currentTarget" } = Astro.props
 const checkoutHint = getCheckoutHint(target);
 ---
 
-<article
-  class="bg-border h-fit rounded-lg border border-slate-700 p-6 shadow-card"
->
+<article class="game-panel p-3 h-40">
   <div class="flex items-center justify-center flex-col gap-6">
     <div class="flex items-center justify-center flex-col gap-2">
       <span class="text-sm text-text-muted font-mono uppercase tracking-wider">Target</span>
-      <span class="text-6xl font-bold" x-text={targetModel}>{target}</span>
+      <span class="text-4xl font-bold" x-text={targetModel}>{target}</span>
     </div>
 
-    <span class="bg-slate-900 flex min-h-10 w-2/3 items-center justify-center gap-2 rounded-lg p-1 font-mono text-sm">
+    <span class="checkout-hint">
       {checkoutHint?.segments?.length ? (
         checkoutHint.segments.map((segment) => <span>{segment}</span>)
       ) : (
