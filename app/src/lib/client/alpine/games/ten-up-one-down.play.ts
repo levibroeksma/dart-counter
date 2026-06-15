@@ -1,3 +1,4 @@
+import type { OpenOptions } from "@lib/client/alpine/stores/confirmationModal.store";
 import type {
   ApiResponse,
   TenUpOneDownSessionSuccess,
@@ -7,6 +8,7 @@ import {
   buildSuccessModalQuestions,
   type ModalQuestion,
 } from "@lib/shared/darts/checkout-constraints";
+import { getCheckoutHint } from "@lib/shared/darts/checkouts";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import { resolveRoundOutcome } from "@lib/shared/games/ten-up-one-down/outcome";
 import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
@@ -19,7 +21,10 @@ import { t } from "@lib/shared/i18n";
 export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
   let timerId: ReturnType<typeof setInterval> | null = null;
 
+  type ConfirmationModal = { open: (options: OpenOptions) => void };
+
   return {
+    $store: {} as { confirmationModal: ConfirmationModal },
     session: initialSession,
     score: null as string | null,
     showModal: false,
@@ -36,6 +41,15 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
       return this.loading || this.session.state.status === "paused";
     },
 
+    get checkoutHintSegments() {
+      return getCheckoutHint(this.session.state.currentTarget)?.segments ?? [];
+    },
+
+    get checkoutHintDisplay() {
+      const segments = this.checkoutHintSegments;
+      return segments.length > 0 ? segments.join(" ") : null;
+    },
+
     get modalCanSubmit() {
       if (this.outcome === "success") {
         if (this.dartsForFinish === null || this.dartsOnDouble === null) {
@@ -47,6 +61,24 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
         return false;
       }
       return this.dartsOnDouble <= this.dartsUsed;
+    },
+
+    init() {
+      if (this.session.settings.endMode === "timed") {
+        this.startTimer();
+      }
+    },
+
+    leave() {
+      this.$store.confirmationModal.open({
+        title: "Leave game?",
+        message: "Your progress in this session will be lost.",
+        onConfirm: () => this.confirmLeave(),
+      });
+    },
+
+    confirmLeave() {
+      window.location.href = "/games";
     },
 
     submitScore() {
@@ -200,12 +232,6 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
       if (!timerId) return;
       clearInterval(timerId);
       timerId = null;
-    },
-
-    init() {
-      if (this.session.settings.endMode === "timed") {
-        this.startTimer();
-      }
     },
   };
 }

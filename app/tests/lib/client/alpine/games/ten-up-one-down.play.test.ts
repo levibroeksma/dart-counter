@@ -39,6 +39,20 @@ describe("tenUpOneDownPlay", () => {
     vi.unstubAllGlobals();
   });
 
+  it("checkoutHintDisplay reflects current target", () => {
+    const play = tenUpOneDownPlay(structuredClone(roundsSession));
+    expect(play.checkoutHintDisplay).toBe("9 D16");
+
+    play.session.state.currentTarget = 40;
+    expect(play.checkoutHintDisplay).toBe("D20");
+
+    play.session.state.currentTarget = 51;
+    expect(play.checkoutHintDisplay).toBe("T11 D10");
+
+    play.session.state.currentTarget = 169;
+    expect(play.checkoutHintDisplay).toBeNull();
+  });
+
   it("submitScore opens failure modal for empty score", () => {
     const play = tenUpOneDownPlay(structuredClone(roundsSession));
     play.score = null;
@@ -121,6 +135,29 @@ describe("tenUpOneDownPlay", () => {
       "/api/games/ten-up-one-down/session/round/last",
       { method: "DELETE" },
     );
+  });
+
+  it("leave opens confirmation modal and confirmLeave navigates", () => {
+    const open = vi.fn();
+    const play = tenUpOneDownPlay(structuredClone(roundsSession)) as ReturnType<
+      typeof tenUpOneDownPlay
+    > & {
+      $store: { confirmationModal: { open: typeof open } };
+    };
+    play.$store = { confirmationModal: { open } };
+
+    play.leave();
+
+    expect(open).toHaveBeenCalledOnce();
+    expect(open).toHaveBeenCalledWith({
+      title: "Leave game?",
+      message: "Your progress in this session will be lost.",
+      onConfirm: expect.any(Function),
+    });
+
+    const { onConfirm } = open.mock.calls[0]![0] as { onConfirm: () => void };
+    onConfirm();
+    expect(window.location.href).toBe("/games");
   });
 
   it("pauses and resumes timed countdown", () => {

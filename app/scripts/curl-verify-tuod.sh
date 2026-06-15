@@ -44,6 +44,7 @@ assert_contains "$HTML" 'data-testid="tuod-number-pad"' "play page renders Numbe
 assert_contains "$HTML" 'data-testid="tuod-score-display"' "play page renders score display"
 assert_contains "$HTML" 'data-testid="tuod-option-modal"' "play page renders OptionModal"
 assert_contains "$HTML" 'tenUpOneDownPlay' "Alpine factory wired"
+assert_contains "$HTML" '@click="leave()"' "play page wires leave button to Alpine"
 assert_contains "$HTML" 'currentTarget&quot;:41' "session JSON embedded"
 assert_contains "$HTML" 'data-testid="tuod-target-card"' "TargetCard rendered"
 
