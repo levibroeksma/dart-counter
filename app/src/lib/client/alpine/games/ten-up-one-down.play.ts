@@ -1,14 +1,19 @@
-import type { ApiResponse, TenUpOneDownSessionSuccess } from "@lib/shared/api/types";
+import type {
+  ApiResponse,
+  TenUpOneDownSessionSuccess,
+} from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import type { DoubleTarget } from "@lib/shared/darts/doubles";
-import { buildRoundRecord, type WizardInput } from "@lib/shared/games/ten-up-one-down/round";
+import {
+  buildRoundRecord,
+  type WizardInput,
+} from "@lib/shared/games/ten-up-one-down/round";
 import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
 import { t } from "@lib/shared/i18n";
 
 type WizardStep =
   | "outcome"
-  | "dartsUsed"
-  | "onDouble"
+  | "dartCounts"
   | "doubleSelect"
   | "busted"
   | "submit";
@@ -23,8 +28,8 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     session: initialSession,
     step: "outcome" as WizardStep,
     targetHit: null as boolean | null,
-    dartsUsed: 0 as 0 | 1 | 2 | 3,
-    onDouble: 0 as 0 | 1 | 2 | 3,
+    dartsUsed: null as null | 1 | 2 | 3,
+    onDouble: null as null | 0 | 1 | 2 | 3,
     finishedOnDouble: null as DoubleTarget | null,
     doubleAttempted: null as DoubleTarget | null,
     busted: null as boolean | null,
@@ -41,45 +46,60 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     },
 
     get showDartSteps() {
-      return this.step === "dartsUsed" || this.step === "onDouble";
+      return this.step === "dartCounts";
     },
 
     get showDoubleGrid() {
-      if (this.step !== "doubleSelect") return false;
-      if (this.isSuccess) return this.dartsUsed > 0 && this.onDouble > 0;
-      return this.onDouble > 0;
+      return this.step === "doubleSelect";
+    },
+
+    selectDartsUsed(count: 1 | 2 | 3) {
+      if (this.controlsDisabled) return;
+      this.dartsUsed = count;
+      if (this.onDouble !== null && this.onDouble > count) {
+        this.onDouble = null;
+      }
+      this.tryAdvanceFromDartCounts();
+    },
+
+    selectOnDouble(count: 0 | 1 | 2 | 3) {
+      if (this.controlsDisabled) return;
+      this.onDouble = count;
+      this.tryAdvanceFromDartCounts();
+    },
+
+    tryAdvanceFromDartCounts() {
+      if (this.step !== "dartCounts") return;
+      if (this.dartsUsed === null || this.onDouble === null) return;
+      if (this.onDouble > this.dartsUsed) return;
+
+      if (this.isSuccess || this.onDouble > 0) {
+        this.step = "doubleSelect";
+        return;
+      }
+
+      this.step = "busted";
+    },
+
+    selectFinishedOnDouble(double: DoubleTarget) {
+      if (this.controlsDisabled) return;
+      this.finishedOnDouble = double;
+      if (this.step === "doubleSelect") {
+        this.step = "submit";
+      }
+    },
+
+    selectDoubleAttempted(double: DoubleTarget) {
+      if (this.controlsDisabled) return;
+      this.doubleAttempted = double;
+      if (this.step === "doubleSelect") {
+        this.step = "busted";
+      }
     },
 
     wizardNext() {
       if (this.step === "outcome" && this.targetHit !== null) {
-        this.step = "dartsUsed";
-        return;
-      }
-
-      if (this.step === "dartsUsed" && this.dartsUsed > 0) {
-        this.step = "onDouble";
-        return;
-      }
-
-      if (this.step === "onDouble") {
-        if (this.isSuccess && this.onDouble > 0) {
-          this.step = "doubleSelect";
-          return;
-        }
-
-        if (!this.isSuccess && this.onDouble > 0) {
-          this.step = "doubleSelect";
-          return;
-        }
-
-        if (!this.isSuccess) {
-          this.step = "busted";
-        }
-        return;
-      }
-
-      if (this.step === "doubleSelect") {
-        this.step = this.isSuccess ? "submit" : "busted";
+        this.step = "dartCounts";
         return;
       }
 
@@ -94,18 +114,14 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
         return;
       }
       if (this.step === "busted") {
-        this.step = this.onDouble > 0 ? "doubleSelect" : "onDouble";
+        this.step = this.onDouble === 0 ? "dartCounts" : "doubleSelect";
         return;
       }
       if (this.step === "doubleSelect") {
-        this.step = "onDouble";
+        this.step = "dartCounts";
         return;
       }
-      if (this.step === "onDouble") {
-        this.step = "dartsUsed";
-        return;
-      }
-      if (this.step === "dartsUsed") {
+      if (this.step === "dartCounts") {
         this.step = "outcome";
       }
     },
@@ -113,8 +129,8 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     resetWizard() {
       this.step = "outcome";
       this.targetHit = null;
-      this.dartsUsed = 0;
-      this.onDouble = 0;
+      this.dartsUsed = null;
+      this.onDouble = null;
       this.finishedOnDouble = null;
       this.doubleAttempted = null;
       this.busted = null;
@@ -144,7 +160,7 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
       const round = buildRoundRecord(
         this.session.state.currentRound,
         this.session.state.currentTarget,
-        this.buildInput()
+        this.buildInput(),
       );
       const timerExpired =
         this.timerExpired ||
@@ -155,11 +171,14 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
       this.loading = true;
       this.error = "";
       try {
-        const response = await fetch("/api/games/ten-up-one-down/session/round", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ round, timerExpired }),
-        });
+        const response = await fetch(
+          "/api/games/ten-up-one-down/session/round",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ round, timerExpired }),
+          },
+        );
         const data = (await response.json()) as ApiResponse;
 
         if (!data.ok) {
@@ -186,9 +205,12 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
       this.loading = true;
       this.error = "";
       try {
-        const response = await fetch("/api/games/ten-up-one-down/session/round/last", {
-          method: "DELETE",
-        });
+        const response = await fetch(
+          "/api/games/ten-up-one-down/session/round/last",
+          {
+            method: "DELETE",
+          },
+        );
         const data = (await response.json()) as ApiResponse;
         if (!data.ok) {
           this.error = t(data.code ?? MessageCode.SERVER_ERROR);
