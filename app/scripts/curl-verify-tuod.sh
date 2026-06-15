@@ -26,6 +26,9 @@ assert_contains() {
 login
 echo "Logged in"
 
+GAMES_HTML=$(curl -sf -b "$JAR" "$BASE_URL/games")
+assert_contains "$GAMES_HTML" 'data-testid="confirmation-modal"' "games list includes global ConfirmationModal"
+
 curl -sf -b "$JAR" -X DELETE "$BASE_URL/api/games/ten-up-one-down/session" "${ORIGIN_HEADER[@]}" > /dev/null
 
 SESSION_RESP=$(curl -sf -b "$JAR" -X POST "$BASE_URL/api/games/ten-up-one-down/session" \
@@ -35,6 +38,8 @@ SESSION_RESP=$(curl -sf -b "$JAR" -X POST "$BASE_URL/api/games/ten-up-one-down/s
 assert_contains "$SESSION_RESP" '"ok":true' "session created"
 
 HTML=$(curl -sf -b "$JAR" "$BASE_URL/games/ten-up-one-down")
+assert_contains "$HTML" 'data-testid="confirmation-modal"' "play page includes global ConfirmationModal"
+assert_contains "$HTML" '$store.confirmationModal.showModal' "ConfirmationModal binds to store"
 assert_contains "$HTML" 'data-testid="tuod-number-pad"' "play page renders NumberInputPad"
 assert_contains "$HTML" 'data-testid="tuod-score-display"' "play page renders score display"
 assert_contains "$HTML" 'data-testid="tuod-option-modal"' "play page renders OptionModal"
