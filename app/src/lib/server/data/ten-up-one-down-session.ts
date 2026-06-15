@@ -1,6 +1,9 @@
 import { getStore } from "@netlify/blobs";
 import { createInitialGameState } from "@lib/shared/games/ten-up-one-down/state";
-import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
+import {
+  isTenUpOneDownSession,
+  type TenUpOneDownSession,
+} from "@lib/shared/games/ten-up-one-down/session";
 import type { TenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/settings";
 
 const STORE_NAME = "game-sessions";
@@ -18,7 +21,8 @@ export async function getTenUpOneDownSession(
 ): Promise<TenUpOneDownSession | null> {
   const store = getStore(STORE_NAME);
   const data = await store.get(sessionKey(userId), { type: "json" });
-  return (data as TenUpOneDownSession | null) ?? null;
+  if (!isTenUpOneDownSession(data)) return null;
+  return data;
 }
 
 /**
