@@ -2,21 +2,16 @@ import type {
   ApiResponse,
   TenUpOneDownSessionSuccess,
 } from "@lib/shared/api/types";
-import { MessageCode } from "@lib/shared/constants/errors.constants";
-import type { DoubleTarget } from "@lib/shared/darts/doubles";
 import {
-  buildRoundRecord,
-  type WizardInput,
-} from "@lib/shared/games/ten-up-one-down/round";
+  buildFailureModalQuestions,
+  buildSuccessModalQuestions,
+  type ModalQuestion,
+} from "@lib/shared/darts/checkout-constraints";
+import { MessageCode } from "@lib/shared/constants/errors.constants";
+import { resolveRoundOutcome } from "@lib/shared/games/ten-up-one-down/outcome";
+import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
 import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
 import { t } from "@lib/shared/i18n";
-
-type WizardStep =
-  | "outcome"
-  | "dartCounts"
-  | "doubleSelect"
-  | "busted"
-  | "submit";
 
 /**
  * Alpine state factory for Ten Up One Down play flow.
@@ -26,141 +21,90 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
 
   return {
     session: initialSession,
-    step: "outcome" as WizardStep,
-    targetHit: null as boolean | null,
-    dartsUsed: null as null | 1 | 2 | 3,
-    onDouble: null as null | 0 | 1 | 2 | 3,
-    finishedOnDouble: null as DoubleTarget | null,
-    doubleAttempted: null as DoubleTarget | null,
-    busted: null as boolean | null,
+    score: null as string | null,
+    showModal: false,
+    outcome: null as "success" | "failure" | null,
+    dartsOnDouble: null as number | null,
+    dartsForFinish: null as number | null,
+    dartsUsed: null as number | null,
+    modalQuestions: [] as ModalQuestion[],
     loading: false,
     error: "",
     timerExpired: false,
-
-    get isSuccess() {
-      return this.targetHit === true;
-    },
 
     get controlsDisabled() {
       return this.loading || this.session.state.status === "paused";
     },
 
-    get showDartSteps() {
-      return this.step === "dartCounts";
+    get modalCanSubmit() {
+      if (this.outcome === "success") {
+        if (this.dartsForFinish === null || this.dartsOnDouble === null) {
+          return false;
+        }
+        return this.dartsOnDouble <= this.dartsForFinish;
+      }
+      if (this.dartsUsed === null || this.dartsOnDouble === null) {
+        return false;
+      }
+      return this.dartsOnDouble <= this.dartsUsed;
     },
 
-    get showDoubleGrid() {
-      return this.step === "doubleSelect";
-    },
+    submitScore() {
+      const resolved = resolveRoundOutcome(
+        this.score,
+        this.session.state.currentTarget,
+      );
+      if (resolved === null) return;
 
-    selectDartsUsed(count: 1 | 2 | 3) {
-      if (this.controlsDisabled) return;
-      this.dartsUsed = count;
-      if (this.onDouble !== null && this.onDouble > count) {
-        this.onDouble = null;
-      }
-      this.tryAdvanceFromDartCounts();
-    },
-
-    selectOnDouble(count: 0 | 1 | 2 | 3) {
-      if (this.controlsDisabled) return;
-      this.onDouble = count;
-      this.tryAdvanceFromDartCounts();
-    },
-
-    tryAdvanceFromDartCounts() {
-      if (this.step !== "dartCounts") return;
-      if (this.dartsUsed === null || this.onDouble === null) return;
-      if (this.onDouble > this.dartsUsed) return;
-
-      if (this.isSuccess || this.onDouble > 0) {
-        this.step = "doubleSelect";
-        return;
-      }
-
-      this.step = "busted";
-    },
-
-    selectFinishedOnDouble(double: DoubleTarget) {
-      if (this.controlsDisabled) return;
-      this.finishedOnDouble = double;
-      if (this.step === "doubleSelect") {
-        this.step = "submit";
-      }
-    },
-
-    selectDoubleAttempted(double: DoubleTarget) {
-      if (this.controlsDisabled) return;
-      this.doubleAttempted = double;
-      if (this.step === "doubleSelect") {
-        this.step = "busted";
-      }
-    },
-
-    wizardNext() {
-      if (this.step === "outcome" && this.targetHit !== null) {
-        this.step = "dartCounts";
-        return;
-      }
-
-      if (this.step === "busted" && this.busted !== null) {
-        this.step = "submit";
-      }
-    },
-
-    wizardBack() {
-      if (this.step === "submit") {
-        this.step = this.isSuccess ? "doubleSelect" : "busted";
-        return;
-      }
-      if (this.step === "busted") {
-        this.step = this.onDouble === 0 ? "dartCounts" : "doubleSelect";
-        return;
-      }
-      if (this.step === "doubleSelect") {
-        this.step = "dartCounts";
-        return;
-      }
-      if (this.step === "dartCounts") {
-        this.step = "outcome";
-      }
-    },
-
-    resetWizard() {
-      this.step = "outcome";
-      this.targetHit = null;
+      this.outcome = resolved;
+      this.dartsOnDouble = null;
+      this.dartsForFinish = null;
       this.dartsUsed = null;
-      this.onDouble = null;
-      this.finishedOnDouble = null;
-      this.doubleAttempted = null;
-      this.busted = null;
-      this.error = "";
+      this.modalQuestions =
+        resolved === "success"
+          ? buildSuccessModalQuestions(this.session.state.currentTarget)
+          : buildFailureModalQuestions();
+      this.applyAutoValues();
+      this.showModal = true;
     },
 
-    buildInput(): WizardInput {
-      if (this.isSuccess) {
-        return {
-          outcome: "success",
-          dartsUsed: this.dartsUsed as 1 | 2 | 3,
-          onDouble: this.onDouble as 1 | 2 | 3,
-          finishedOnDouble: this.finishedOnDouble as DoubleTarget,
-        };
+    applyAutoValues() {
+      for (const q of this.modalQuestions) {
+        if (q.autoValue !== undefined) {
+          this[q.id] = q.autoValue;
+        }
       }
-
-      return {
-        outcome: "failure",
-        dartsUsed: this.dartsUsed as 1 | 2 | 3,
-        onDouble: this.onDouble as 0 | 1 | 2 | 3,
-        doubleAttempted: this.doubleAttempted,
-        busted: Boolean(this.busted),
-      };
     },
 
-    async submit() {
+    closeModal() {
+      this.showModal = false;
+      this.outcome = null;
+      this.dartsOnDouble = null;
+      this.dartsForFinish = null;
+      this.dartsUsed = null;
+      this.modalQuestions = [];
+    },
+
+    async modalSubmit() {
+      if (!this.modalCanSubmit || this.outcome === null) return;
+
+      const input =
+        this.outcome === "success"
+          ? {
+              outcome: "success" as const,
+              dartsForFinish: this.dartsForFinish as 1 | 2 | 3,
+              dartsOnDouble: this.dartsOnDouble as 1 | 2 | 3,
+            }
+          : {
+              outcome: "failure" as const,
+              dartsUsed: this.dartsUsed as 1 | 2 | 3,
+              dartsOnDouble: this.dartsOnDouble as 0 | 1 | 2 | 3,
+            };
+
       const round = buildRoundRecord(
         this.session.state.currentRound,
         this.session.state.currentTarget,
-        this.buildInput(),
+        input,
       );
       const timerExpired =
         this.timerExpired ||
@@ -193,7 +137,8 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
         }
 
         this.session = success.session;
-        this.resetWizard();
+        this.score = null;
+        this.closeModal();
       } catch {
         this.error = t(MessageCode.NETWORK_ERROR);
       } finally {

@@ -39,80 +39,35 @@ describe("tenUpOneDownPlay", () => {
     vi.unstubAllGlobals();
   });
 
-  it("starts at outcome step", () => {
+  it("submitScore opens failure modal for empty score", () => {
     const play = tenUpOneDownPlay(structuredClone(roundsSession));
-    expect(play.step).toBe("outcome");
+    play.score = null;
+    play.submitScore();
+    expect(play.outcome).toBe("failure");
+    expect(play.showModal).toBe(true);
+    expect(play.modalQuestions.map((q) => q.id)).toEqual([
+      "dartsOnDouble",
+      "dartsUsed",
+    ]);
   });
 
-  it("advances success flow steps", () => {
+  it("submitScore opens success modal for matching target", () => {
     const play = tenUpOneDownPlay(structuredClone(roundsSession));
-    play.targetHit = true;
-    play.wizardNext();
-    expect(play.step).toBe("dartCounts");
-
-    play.selectDartsUsed(2);
-    expect(play.step).toBe("dartCounts");
-
-    play.selectOnDouble(2);
-    expect(play.step).toBe("doubleSelect");
-
-    play.selectFinishedOnDouble("D16");
-    expect(play.step).toBe("submit");
+    play.score = "41";
+    play.submitScore();
+    expect(play.outcome).toBe("success");
+    expect(play.modalQuestions[0]?.id).toBe("dartsForFinish");
   });
 
-  it("shows both dart count pickers on dartCounts step", () => {
+  it("modalCanSubmit is false when dartsOnDouble > dartsUsed on failure", () => {
     const play = tenUpOneDownPlay(structuredClone(roundsSession));
-    play.targetHit = true;
-    play.wizardNext();
-    expect(play.showDartSteps).toBe(true);
-    expect(play.step).toBe("dartCounts");
+    play.submitScore();
+    play.dartsOnDouble = 3;
+    play.dartsUsed = 2;
+    expect(play.modalCanSubmit).toBe(false);
   });
 
-  it("failure with zero darts on double skips double grid", () => {
-    const play = tenUpOneDownPlay(structuredClone(roundsSession));
-    play.targetHit = false;
-    play.wizardNext();
-    play.selectDartsUsed(3);
-    play.selectOnDouble(0);
-    expect(play.step).toBe("busted");
-    expect(play.showDoubleGrid).toBe(false);
-  });
-
-  it("does not advance dart counts until both values are selected", () => {
-    const play = tenUpOneDownPlay(structuredClone(roundsSession));
-    play.targetHit = true;
-    play.wizardNext();
-    play.selectDartsUsed(2);
-    expect(play.step).toBe("dartCounts");
-  });
-
-  it("wizardBack returns to previous step", () => {
-    const play = tenUpOneDownPlay(structuredClone(roundsSession));
-    play.targetHit = true;
-    play.wizardNext();
-    play.selectDartsUsed(1);
-    play.wizardBack();
-    expect(play.step).toBe("outcome");
-  });
-
-  it("resetWizard clears transient wizard state", () => {
-    const play = tenUpOneDownPlay(structuredClone(roundsSession));
-    play.targetHit = true;
-    play.selectDartsUsed(1);
-    play.selectOnDouble(1);
-    play.selectFinishedOnDouble("D16");
-    play.step = "submit";
-
-    play.resetWizard();
-
-    expect(play.step).toBe("outcome");
-    expect(play.targetHit).toBeNull();
-    expect(play.dartsUsed).toBeNull();
-    expect(play.onDouble).toBeNull();
-    expect(play.finishedOnDouble).toBeNull();
-  });
-
-  it("submits round and updates session", async () => {
+  it("modalSubmit posts simplified round record", async () => {
     vi.mocked(fetch).mockResolvedValue({
       json: async () => ({
         ok: true,
@@ -125,32 +80,27 @@ describe("tenUpOneDownPlay", () => {
     } as Response);
 
     const play = tenUpOneDownPlay(structuredClone(roundsSession));
-    play.targetHit = true;
-    play.dartsUsed = 1;
-    play.onDouble = 1;
-    play.finishedOnDouble = "D16";
+    play.score = "41";
+    play.submitScore();
+    play.dartsForFinish = 2;
+    play.dartsOnDouble = 1;
 
-    await play.submit();
+    await play.modalSubmit();
 
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/games/ten-up-one-down/session/round",
-      expect.objectContaining({ method: "POST" }),
-    );
-    const submitBody = JSON.parse(
+    const body = JSON.parse(
       (vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit).body as string,
     );
-    expect(submitBody).toEqual(
+    expect(body.round).toEqual(
       expect.objectContaining({
-        round: expect.objectContaining({
-          roundNumber: 1,
-          targetAtStart: 41,
-          finished: true,
-        }),
-        timerExpired: false,
+        roundNumber: 1,
+        targetAtStart: 41,
+        finished: true,
+        dartsUsed: 2,
+        dartsOnDouble: 1,
       }),
     );
-    expect(play.session.state.currentTarget).toBe(51);
-    expect(play.step).toBe("outcome");
+    expect(play.showModal).toBe(false);
+    expect(play.score).toBeNull();
   });
 
   it("undo refreshes session from API response", async () => {
