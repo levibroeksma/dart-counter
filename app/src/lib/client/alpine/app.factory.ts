@@ -22,5 +22,4 @@ export default (Alpine: Alpine) => {
 
   const confirmationModal = confirmationModalState(Alpine);
   Alpine.store("confirmationModal", confirmationModal);
-  confirmationModal.init();
 };
