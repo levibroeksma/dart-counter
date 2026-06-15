@@ -19,3 +19,23 @@ export type TenUpOneDownSession = {
   createdAt: string;
   updatedAt: string;
 };
+
+/**
+ * Runtime guard for blob-loaded session documents (rejects legacy config blobs).
+ */
+export function isTenUpOneDownSession(value: unknown): value is TenUpOneDownSession {
+  if (!value || typeof value !== "object") return false;
+
+  const record = value as Record<string, unknown>;
+  const state = record.state;
+
+  return (
+    record.slug === "ten-up-one-down" &&
+    state !== null &&
+    typeof state === "object" &&
+    typeof (state as TenUpOneDownGameState).currentTarget === "number" &&
+    Array.isArray(record.roundHistory) &&
+    record.settings !== null &&
+    typeof record.settings === "object"
+  );
+}
