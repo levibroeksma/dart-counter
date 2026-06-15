@@ -26,6 +26,6 @@ const playUrl = playPath(game.slug);
   <form id="game-settings-form" class="space-y-4" @submit.prevent="start()">
     <slot />
     <p x-show="error" x-text="error" x-cloak class="text-sm text-red-400" role="alert"></p>
-    <PrimaryBtn type="submit">Start playing</PrimaryBtn>
+    <PrimaryBtn type="submit" label="Start playing" />
   </form>
 </main>
