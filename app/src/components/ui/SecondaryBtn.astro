@@ -1,18 +1,18 @@
 ---
 interface Props {
   label: string;
-  loading?: string;
+  class?: string;
   [key: string]: unknown;
 }
 
-const { label, loading, ...props }: Props = Astro.props;
+const { label, class: className = "", disabled, loading, ...props }: Props = Astro.props;
 ---
-
 <button
-  type="submit"
+  type="button"
+  class:list={["btn-secondary btn-press w-full", className]}
   {...props}
-  class="btn-primary btn-press relative w-full"
 >
   <span x-show={`!${loading}`} x-cloak>{label}</span>
   <span x-show={`${loading}`} x-cloak class="spinner" aria-hidden="true"></span>
+
 </button>
