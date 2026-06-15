@@ -9,6 +9,7 @@ import {
 } from "@lib/shared/games/components";
 import { getSession } from "@lib/server/auth/session";
 import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
+import { isTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
 
 const { game: slug } = Astro.params;
 
@@ -32,7 +33,7 @@ if (slug === "ten-up-one-down") {
   const auth = await getSession(Astro.cookies);
   if (auth.isLoggedIn && auth.username) {
     const activeSession = await getTenUpOneDownSession(auth.username);
-    hasActiveSession = Boolean(activeSession);
+    hasActiveSession = isTenUpOneDownSession(activeSession);
   }
 }
 ---
