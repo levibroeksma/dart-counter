@@ -154,7 +154,77 @@
     transform: scale(0.97);
   }
 
+  .btn-primary {
+    @apply rounded-full bg-accent px-4 py-2.5 font-medium text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-70;
+  }
+
+  .btn-secondary {
+    @apply rounded-full border border-border px-4 py-2 text-sm;
+  }
+
+  .link-subtle {
+    @apply text-text-muted text-sm;
+  }
+
+  .nav-link-inactive {
+    @apply text-text-muted;
+  }
+
+  .section-label {
+    @apply text-sm text-text-muted font-mono uppercase tracking-wider;
+  }
+
+  .game-panel {
+    @apply h-fit rounded-lg border border-border bg-surface-card shadow-card;
+  }
+
+  .checkout-hint {
+    @apply flex min-h-10 w-2/3 items-center justify-center gap-2 rounded-lg bg-surface-input p-1 font-mono text-sm;
+  }
+
+  .card {
+    @apply rounded-xl border border-border bg-surface-card shadow-card p-4;
+  }
+
+  .card-interactive {
+    @apply w-full cursor-pointer rounded-xl border border-border bg-surface-card p-4 shadow-card;
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      background-color var(--duration-ui) var(--ease-out),
+      color var(--duration-ui) var(--ease-out);
+  }
+
+  .toast-panel {
+    transform-origin: bottom center;
+  }
+
   @media (hover: hover) and (pointer: fine) {
+    .btn-primary:not(:disabled) {
+      transition:
+        transform var(--duration-fast) var(--ease-out),
+        background-color var(--duration-ui) var(--ease-out);
+    }
+
+    .btn-primary:not(:disabled):hover {
+      @apply bg-accent-hover;
+    }
+
+    .link-subtle {
+      transition: color var(--duration-ui) var(--ease-out);
+    }
+
+    .link-subtle:hover {
+      @apply text-text-primary;
+    }
+
+    .nav-link-inactive {
+      transition: color var(--duration-ui) var(--ease-out);
+    }
+
+    .nav-link-inactive:hover {
+      @apply text-accent;
+    }
+
     .icon-btn-hover {
       transition:
         color var(--duration-ui) var(--ease-out),
@@ -172,6 +242,14 @@
     .menu-item-hover:hover {
       @apply bg-surface-input;
     }
+
+    .game-card-link {
+      transition: color var(--duration-ui) var(--ease-out);
+    }
+
+    .game-card-link:hover {
+      @apply text-accent;
+    }
   }
 
   .input-field {
@@ -186,16 +264,24 @@
     box-shadow: 0 0 0 3px var(--ring);
   }
 
-  .card {
-    @apply rounded-xl border border-border bg-surface-card shadow-card p-4;
-  }
-
   .spinner {
     @apply inline-block h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent;
   }
 
   .menu-panel {
     transform-origin: top right;
+  }
+
+  .transition-fade-scale-enter {
+    transition:
+      transform var(--duration-ui) var(--ease-out),
+      opacity var(--duration-ui) var(--ease-out);
+  }
+
+  .transition-fade-scale-leave {
+    transition:
+      transform 150ms var(--ease-out),
+      opacity 150ms var(--ease-out);
   }
 }
 
