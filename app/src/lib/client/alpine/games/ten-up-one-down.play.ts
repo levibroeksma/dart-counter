@@ -1,4 +1,5 @@
-import type { OpenOptions } from "@lib/client/alpine/stores/confirmationModal.store";
+import Alpine from "alpinejs";
+import type { ConfirmationModalStore } from "@lib/client/alpine/stores/confirmationModal.store";
 import type {
   ApiResponse,
   TenUpOneDownSessionSuccess,
@@ -20,13 +21,6 @@ import { t } from "@lib/shared/i18n";
  */
 export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
   let timerId: ReturnType<typeof setInterval> | null = null;
-
-  type ConfirmationModal = { open: (options: OpenOptions) => void };
-  type PlayAlpineContext = {
-    $store: {
-      confirmationModal: ConfirmationModal;
-    };
-  };
 
   return {
     session: initialSession,
@@ -74,7 +68,7 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     },
 
     leave() {
-      (this as typeof this & PlayAlpineContext).$store.confirmationModal.open({
+      (Alpine.store("confirmationModal") as ConfirmationModalStore).open({
         title: "Leave game?",
         message: "Your progress in this session will be lost.",
         onConfirm: () => this.confirmLeave(),

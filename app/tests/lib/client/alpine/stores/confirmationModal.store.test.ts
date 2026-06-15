@@ -1,24 +1,26 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import Alpine from "alpinejs";
 import type { Alpine as AlpineType } from "alpinejs";
 import { confirmationModalState } from "@lib/client/alpine/stores/confirmationModal.store";
 
 describe("confirmationModalState", () => {
-  let Alpine: { effect: (fn: () => void) => void };
+  let AlpineMock: AlpineType;
   let effectFn: (() => void) | null = null;
   let store: ReturnType<typeof confirmationModalState>;
 
   beforeEach(() => {
     vi.useFakeTimers();
     effectFn = null;
-    Alpine = {
+    AlpineMock = {
       effect: (fn) => {
         effectFn = fn;
         fn();
       },
-    };
-    store = confirmationModalState(Alpine as unknown as AlpineType);
+      reactive: Alpine.reactive,
+    } as AlpineType;
+    store = confirmationModalState(AlpineMock);
     store.init();
   });
 

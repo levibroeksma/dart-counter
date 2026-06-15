@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import Alpine from "alpinejs";
 import { tenUpOneDownPlay } from "@lib/client/alpine/games/ten-up-one-down.play";
 
 const roundsSession = {
@@ -139,12 +140,9 @@ describe("tenUpOneDownPlay", () => {
 
   it("leave opens confirmation modal and confirmLeave navigates", () => {
     const open = vi.fn();
-    const play = tenUpOneDownPlay(structuredClone(roundsSession)) as ReturnType<
-      typeof tenUpOneDownPlay
-    > & {
-      $store: { confirmationModal: { open: typeof open } };
-    };
-    play.$store = { confirmationModal: { open } };
+    vi.spyOn(Alpine, "store").mockReturnValue({ open });
+
+    const play = tenUpOneDownPlay(structuredClone(roundsSession));
 
     play.leave();
 

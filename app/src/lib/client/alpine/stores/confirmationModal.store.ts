@@ -17,7 +17,7 @@ type StoredCallbacks = {
 export function confirmationModalState(Alpine: Alpine) {
   let callbacks: StoredCallbacks = { onConfirm: () => {} };
 
-  const store = {
+  const store = Alpine.reactive({
     showModal: false,
     title: "",
     message: "",
@@ -63,7 +63,9 @@ export function confirmationModalState(Alpine: Alpine) {
       store.cancelLabel = "Cancel";
       callbacks = { onConfirm: () => {} };
     },
-  };
+  });
 
   return store;
 }
+
+export type ConfirmationModalStore = ReturnType<typeof confirmationModalState>;
