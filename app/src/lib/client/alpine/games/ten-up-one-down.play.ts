@@ -22,9 +22,13 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
   let timerId: ReturnType<typeof setInterval> | null = null;
 
   type ConfirmationModal = { open: (options: OpenOptions) => void };
+  type PlayAlpineContext = {
+    $store: {
+      confirmationModal: ConfirmationModal;
+    };
+  };
 
   return {
-    $store: {} as { confirmationModal: ConfirmationModal },
     session: initialSession,
     score: null as string | null,
     showModal: false,
@@ -70,7 +74,7 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     },
 
     leave() {
-      this.$store.confirmationModal.open({
+      (this as typeof this & PlayAlpineContext).$store.confirmationModal.open({
         title: "Leave game?",
         message: "Your progress in this session will be lost.",
         onConfirm: () => this.confirmLeave(),

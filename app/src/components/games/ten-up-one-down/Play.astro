@@ -1,11 +1,10 @@
 ---
-import IconBtn from "@components/ui/IconBtn.astro";
-import UndoIcon from "@icons/undo.svg";
 import NumberInputPad from "@components/ui/NumberInputPad.astro";
 import OptionModal from "@components/ui/OptionModal.astro";
 import RoundProgress from "./RoundProgress.astro";
 import TargetCard from "./TargetCard.astro";
 import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
+import LeaveIcon from "@icons/leave.svg";
 
 interface Props {
   displayName: string;
@@ -21,8 +20,12 @@ const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
   x-data={`tenUpOneDownPlay(${sessionJson})`}
   x-init="init()"
 >
-  <div class="flex justify-evenly py-2">
+  <div class="flex justify-between py-2">
+    <button type="button" class=" btn-press" @click="leave()">
+      <LeaveIcon class="size-6 text-text-muted rotate-180" />
+    </button>
     <h2 class="text-xl font-semibold">{displayName}</h2>
+    <div class="size-6 transparent"></div>
   </div>
 
   <TargetCard
@@ -64,18 +67,5 @@ const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
       </div>
     </template>
   </OptionModal>
-
-  <article class="game-panel p-1 h-fit">
-    <IconBtn
-      ariaLabel="Go back a round"
-      class="flex items-center justify-center gap-2 w-full"
-      :disabled="session.roundHistory.length === 0 || loading"
-      @click="undo()"
-    >
-      <UndoIcon class="size-6 text-text-muted" />
-      <span class="text-sm text-text-muted font-mono uppercase tracking-wider">Go back</span>
-    </IconBtn>
-  </article>
-
   <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
 </section>
