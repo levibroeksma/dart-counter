@@ -13,6 +13,9 @@
     "files.exclude": {
       "app": true,
     },
+    "[astro]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,
