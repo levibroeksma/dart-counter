@@ -10,7 +10,7 @@ const { target = 41, targetModel = "session.state.currentTarget" } = Astro.props
 const checkoutHint = getCheckoutHint(target);
 ---
 
-<article class="game-panel p-3 h-40">
+<article class="game-panel p-3 h-40" data-testid="tuod-target-card">
   <div class="flex items-center justify-center flex-col gap-6">
     <div class="flex items-center justify-center flex-col gap-2">
       <span class="text-sm text-text-muted font-mono uppercase tracking-wider">Target</span>

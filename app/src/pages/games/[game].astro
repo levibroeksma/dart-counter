@@ -7,7 +7,6 @@ import {
 } from "@lib/server/data/games";
 import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
-import { settingsPath } from "@lib/shared/games/paths";
 import { getSession } from "@lib/server/auth/session";
 
 const { game: slug } = Astro.params;
@@ -40,7 +39,7 @@ const tenUpOneDownSession =
     : null;
 
 if (slug === "ten-up-one-down" && !tenUpOneDownSession) {
-  return Astro.redirect(settingsPath(slug));
+  return Astro.redirect(`/games/settings-${slug}`);
 }
 
 const Play = getPlayComponent(slug)!;
