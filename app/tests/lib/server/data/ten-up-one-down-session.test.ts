@@ -75,6 +75,16 @@ describe("ten-up-one-down session data layer", () => {
     expect(session?.state.currentTarget).toBe(50);
   });
 
+  it("returns null for legacy config blobs", async () => {
+    mockGet.mockResolvedValue({
+      slug: "ten-up-one-down",
+      settings: { targetScore: 10 },
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    await expect(getTenUpOneDownSession("alex")).resolves.toBeNull();
+  });
+
   it("saves session", async () => {
     mockSetJSON.mockResolvedValue(undefined);
 

@@ -48,22 +48,49 @@ describe("tenUpOneDownPlay", () => {
     const play = tenUpOneDownPlay(structuredClone(roundsSession));
     play.targetHit = true;
     play.wizardNext();
-    expect(play.step).toBe("dartsUsed");
+    expect(play.step).toBe("dartCounts");
 
-    play.dartsUsed = 2;
-    play.wizardNext();
-    expect(play.step).toBe("onDouble");
+    play.selectDartsUsed(2);
+    expect(play.step).toBe("dartCounts");
 
-    play.onDouble = 2;
-    play.wizardNext();
+    play.selectOnDouble(2);
     expect(play.step).toBe("doubleSelect");
+
+    play.selectFinishedOnDouble("D16");
+    expect(play.step).toBe("submit");
+  });
+
+  it("shows both dart count pickers on dartCounts step", () => {
+    const play = tenUpOneDownPlay(structuredClone(roundsSession));
+    play.targetHit = true;
+    play.wizardNext();
+    expect(play.showDartSteps).toBe(true);
+    expect(play.step).toBe("dartCounts");
+  });
+
+  it("failure with zero darts on double skips double grid", () => {
+    const play = tenUpOneDownPlay(structuredClone(roundsSession));
+    play.targetHit = false;
+    play.wizardNext();
+    play.selectDartsUsed(3);
+    play.selectOnDouble(0);
+    expect(play.step).toBe("busted");
+    expect(play.showDoubleGrid).toBe(false);
+  });
+
+  it("does not advance dart counts until both values are selected", () => {
+    const play = tenUpOneDownPlay(structuredClone(roundsSession));
+    play.targetHit = true;
+    play.wizardNext();
+    play.selectDartsUsed(2);
+    expect(play.step).toBe("dartCounts");
   });
 
   it("wizardBack returns to previous step", () => {
     const play = tenUpOneDownPlay(structuredClone(roundsSession));
     play.targetHit = true;
     play.wizardNext();
-    play.dartsUsed = 1;
+    play.selectDartsUsed(1);
     play.wizardBack();
     expect(play.step).toBe("outcome");
   });
@@ -71,15 +98,17 @@ describe("tenUpOneDownPlay", () => {
   it("resetWizard clears transient wizard state", () => {
     const play = tenUpOneDownPlay(structuredClone(roundsSession));
     play.targetHit = true;
-    play.dartsUsed = 1;
-    play.onDouble = 1;
-    play.finishedOnDouble = "D16";
+    play.selectDartsUsed(1);
+    play.selectOnDouble(1);
+    play.selectFinishedOnDouble("D16");
     play.step = "submit";
 
     play.resetWizard();
 
     expect(play.step).toBe("outcome");
     expect(play.targetHit).toBeNull();
+    expect(play.dartsUsed).toBeNull();
+    expect(play.onDouble).toBeNull();
     expect(play.finishedOnDouble).toBeNull();
   });
 
@@ -105,10 +134,10 @@ describe("tenUpOneDownPlay", () => {
 
     expect(fetch).toHaveBeenCalledWith(
       "/api/games/ten-up-one-down/session/round",
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({ method: "POST" }),
     );
     const submitBody = JSON.parse(
-      (vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit).body as string
+      (vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit).body as string,
     );
     expect(submitBody).toEqual(
       expect.objectContaining({
@@ -118,7 +147,7 @@ describe("tenUpOneDownPlay", () => {
           finished: true,
         }),
         timerExpired: false,
-      })
+      }),
     );
     expect(play.session.state.currentTarget).toBe(51);
     expect(play.step).toBe("outcome");
@@ -140,7 +169,7 @@ describe("tenUpOneDownPlay", () => {
     await play.undo();
     expect(fetch).toHaveBeenCalledWith(
       "/api/games/ten-up-one-down/session/round/last",
-      { method: "DELETE" }
+      { method: "DELETE" },
     );
   });
 
