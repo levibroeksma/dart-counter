@@ -37,5 +37,6 @@ assert_contains "$SESSION_RESP" '"ok":true' "session created"
 HTML=$(curl -sf -b "$JAR" "$BASE_URL/games/ten-up-one-down")
 assert_contains "$HTML" 'data-testid="tuod-number-pad"' "play page renders NumberInputPad"
 assert_contains "$HTML" 'data-testid="tuod-score-display"' "play page renders score display"
+assert_contains "$HTML" 'data-testid="tuod-option-modal"' "play page renders OptionModal"
 
 echo "All curl checks passed"
