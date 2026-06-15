@@ -8,34 +8,34 @@ import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/sess
 
 interface Props {
   displayName: string;
-  session: TenUpOneDownSession;
+  gameSession: TenUpOneDownSession;
 }
-const { displayName, session } = Astro.props;
-const sessionJson = JSON.stringify(session).replace(/</g, "\\u003c");
+const { displayName, gameSession } = Astro.props;
+const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
 ---
 
 <section
-  class="flex-1 flex flex-col gap-4"
+  class="flex-1 h-full flex flex-col gap-4"
   x-data={`tenUpOneDownPlay(${sessionJson})`}
   x-init="init()"
 >
   <div class="flex justify-evenly py-2">
-    <h2 class="text-2xl font-bold">
+    <h2 class="text-xl font-semibold">
       {displayName}
     </h2>
   </div>
 
-  <TargetCard target={session.state.currentTarget} />
+  <TargetCard target={gameSession.state.currentTarget} />
   <RoundProgress />
 
-  <article class="bg-border h-fit flex-1 rounded-lg border border-slate-700 p-6 shadow-card">
+  <article class="game-panel flex-1 p-4 flex flex-col">
     <RoundEntryWizard />
   </article>
 
-  <article class="bg-border h-fit rounded-lg border border-slate-700 p-2 shadow-card">
+  <article class="game-panel p-1 h-fit">
     <IconBtn
       ariaLabel="Go back a round"
-      class="flex items-center justify-center gap-2"
+      class="flex items-center justify-center gap-2 w-full"
       :disabled="session.roundHistory.length === 0 || loading"
       @click="undo()"
     >
