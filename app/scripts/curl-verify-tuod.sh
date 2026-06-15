@@ -42,4 +42,16 @@ assert_contains "$HTML" 'tenUpOneDownPlay' "Alpine factory wired"
 assert_contains "$HTML" 'currentTarget&quot;:41' "session JSON embedded"
 assert_contains "$HTML" 'data-testid="tuod-target-card"' "TargetCard rendered"
 
+ROUND='{"round":{"roundNumber":1,"targetAtStart":41,"targetAfter":41,"finished":true,"dartsUsed":2,"dartsOnDouble":1}}'
+ROUND_RESP=$(curl -sf -b "$JAR" -X POST "$BASE_URL/api/games/ten-up-one-down/session/round" \
+  "${ORIGIN_HEADER[@]}" \
+  -H "Content-Type: application/json" \
+  -d "$ROUND")
+assert_contains "$ROUND_RESP" '"currentTarget":51' "round POST advances target"
+assert_contains "$ROUND_RESP" '"currentRound":2' "round POST increments round"
+
+UNDO_RESP=$(curl -sf -b "$JAR" -X DELETE "$BASE_URL/api/games/ten-up-one-down/session/round/last" \
+  "${ORIGIN_HEADER[@]}")
+assert_contains "$UNDO_RESP" '"currentTarget":41' "undo restores target"
+
 echo "All curl checks passed"
