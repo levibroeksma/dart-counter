@@ -11,7 +11,7 @@ const { game } = Astro.props;
 ---
 
 <Card>
-  <a href={settingsPath(game.slug)} class="block text-text-primary font-medium">
+  <a href={settingsPath(game.slug)} class="game-card-link block font-medium text-text-primary">
     {game.displayName}
   </a>
 </Card>
