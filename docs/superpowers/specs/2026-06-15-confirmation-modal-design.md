@@ -76,7 +76,7 @@ cancel(): void
 | Method | Behavior |
 |--------|----------|
 | `open()` | Stores callbacks internally, sets title/message/labels, `showModal = true` |
-| `confirm()` | Calls stored `onConfirm`; **does not** auto-close |
+| `confirm()` | Calls stored `onConfirm`, then `showModal = false` (triggers reset via §3.3) |
 | `cancel()` | Calls stored `onCancel` if provided, then `showModal = false` |
 
 Callbacks are held in closure/private fields inside `open()` — not exposed on store state.
@@ -131,7 +131,7 @@ leave() {
 }
 ```
 
-`confirmLeave()` unchanged — sets `window.location.href = "/games"`. Navigation unmounts the page; modal reset is not required on confirm.
+`confirmLeave()` unchanged — sets `window.location.href = "/games"`. `confirm()` closes the modal before navigation; page unmount makes the subsequent reset redundant but harmless.
 
 **File:** `app/src/components/games/ten-up-one-down/Play.astro` — no changes beyond existing leave button (`@click="leave()"`).
 
@@ -159,8 +159,7 @@ Alpine.store("confirmationModal", confirmationModalState(Alpine));
 |------|-----------|
 | `open()` | Sets `title`, `message`, `showModal = true`, default labels |
 | `open()` with custom labels | Sets `confirmLabel`, `cancelLabel` |
-| `confirm()` | Calls `onConfirm` callback |
-| `confirm()` | Does not set `showModal = false` |
+| `confirm()` | Calls `onConfirm` callback, then sets `showModal = false` |
 | `cancel()` | Calls optional `onCancel`, sets `showModal = false` |
 | `reset()` | Clears all public fields |
 
