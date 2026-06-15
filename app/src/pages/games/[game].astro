@@ -49,7 +49,7 @@ const Play = getPlayComponent(slug)!;
 <GameLayout>
   <GamePlayShell game={game}>
     {slug === "ten-up-one-down" ? (
-      <Play displayName={game.displayName} session={tenUpOneDownSession} />
+      <Play displayName={game.displayName} gameSession={tenUpOneDownSession!} />
     ) : (
       <Play displayName={game.displayName} slug={game.slug} />
     )}
