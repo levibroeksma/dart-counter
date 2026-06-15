@@ -1,0 +1,127 @@
+---
+import BackspaceIcon from "@icons/backspace.svg";
+import UndoIcon from "@icons/undo.svg";
+
+interface Props {
+  scoreModel: string;
+  submitAction: string;
+  disabledExpr?: string;
+  canUndoExpr?: string;
+  undoAction?: string;
+}
+
+const {
+  scoreModel,
+  submitAction,
+  disabledExpr = "false",
+  canUndoExpr = "false",
+  undoAction = "",
+} = Astro.props;
+---
+
+<div data-testid="tuod-number-pad" class="flex flex-col flex-1">
+  <div class="flex items-center h-fit border rounded-md border-white/20 bg-white/10">
+    <span
+      data-testid="tuod-score-display"
+      class="text-xs font-bold flex-1 px-4 py-2"
+      x-text={`${scoreModel} ? ${scoreModel} : 'Enter a score'`}
+    ></span>
+    <div class="rounded-r-full border-muted pl-4 pr-2 py-2">
+      <button
+        type="button"
+        class="bg-accent rounded-md px-4 py-2 text-slate-900 text-xs"
+        :disabled={disabledExpr}
+        @click={submitAction}
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 grid-rows-4 mt-4 divide-x divide-white/10 flex-1">
+    <div class="flex flex-col row-span-4 justify-evenly divide-y divide-white/10">
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '1' : ${scoreModel} += '1'`}
+        x-text="1"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '4' : ${scoreModel} += '4'`}
+        x-text="4"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '7' : ${scoreModel} += '7'`}
+        x-text="7"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center items-center flex flex-1"
+        :class={`!(${canUndoExpr}) ? 'opacity-50 cursor-not-allowed' : ''`}
+        :disabled={`!(${canUndoExpr})`}
+        @click={undoAction}
+      >
+        <UndoIcon class="size-6 text-text-muted" />
+      </button>
+    </div>
+
+    <div class="flex flex-col row-span-4 justify-evenly divide-y divide-white/10">
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '2' : ${scoreModel} += '2'`}
+        x-text="2"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '5' : ${scoreModel} += '5'`}
+        x-text="5"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '8' : ${scoreModel} += '8'`}
+        x-text="8"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '0' : ${scoreModel} += '0'`}
+        x-text="0"
+      ></button>
+    </div>
+
+    <div class="flex flex-col row-span-4 justify-evenly divide-y divide-white/10">
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '3' : ${scoreModel} += '3'`}
+        x-text="3"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '6' : ${scoreModel} += '6'`}
+        x-text="6"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center font-bold flex items-center flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = '9' : ${scoreModel} += '9'`}
+        x-text="9"
+      ></button>
+      <button
+        type="button"
+        class="btn-press justify-center items-center flex flex-1"
+        @click={`${scoreModel} === null ? ${scoreModel} = null : ${scoreModel} = ${scoreModel}.slice(0, -1)`}
+      >
+        <BackspaceIcon class="size-6 text-text-muted" />
+      </button>
+    </div>
+  </div>
+</div>

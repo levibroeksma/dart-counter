@@ -1,7 +1,5 @@
 ---
-import UndoIcon from "@icons/undo.svg";
-import IconBtn from "@components/ui/IconBtn.astro";
-import RoundEntryWizard from "./RoundEntryWizard.astro";
+import NumberInputPad from "@components/ui/NumberInputPad.astro";
 import RoundProgress from "./RoundProgress.astro";
 import TargetCard from "./TargetCard.astro";
 import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
@@ -10,6 +8,7 @@ interface Props {
   displayName: string;
   gameSession: TenUpOneDownSession;
 }
+
 const { displayName, gameSession } = Astro.props;
 const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
 ---
@@ -20,31 +19,67 @@ const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
   x-init="init()"
 >
   <div class="flex justify-evenly py-2">
-    <h2 class="text-xl font-semibold">
-      {displayName}
-    </h2>
+    <h2 class="text-xl font-semibold">{displayName}</h2>
   </div>
 
   <TargetCard target={gameSession.state.currentTarget} />
   <RoundProgress />
 
   <article class="game-panel flex-1 p-4 flex flex-col">
-    <RoundEntryWizard />
+    <NumberInputPad
+      scoreModel="score"
+      submitAction="submitScore()"
+      disabledExpr="controlsDisabled"
+      canUndoExpr="session.roundHistory.length > 0"
+      undoAction="undo()"
+    />
   </article>
 
-  <article class="game-panel p-1 h-fit">
-    <IconBtn
-      ariaLabel="Go back a round"
-      class="flex items-center justify-center gap-2 w-full"
-      :disabled="session.roundHistory.length === 0 || loading"
-      @click="undo()"
-    >
-      <UndoIcon class="size-6 text-text-muted" />
-      <span class="text-sm text-text-muted font-mono uppercase tracking-wider">
-        Go back
-      </span>
-    </IconBtn>
-  </article>
+  <div
+    class="absolute top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-10 p-4"
+    x-show="showModal"
+    x-cloak
+  >
+    <div class="card-interactive rounded-md p-4">
+      <h3 class="text-sm text-text-muted font-mono uppercase tracking-wider">Darts on double</h3>
+      <div class="flex items-center justify-center gap-2 py-2">
+        <button
+          type="button"
+          class="w-full p-4 border rounded-md text-xs border-white/10"
+          :class="dartsOnDouble === 1 ? 'bg-accent text-accent-foreground' : ''"
+          @click="dartsOnDouble = 1">1</button>
+        <button
+          type="button"
+          class="w-full p-4 border rounded-md text-xs border-white/10"
+          :class="dartsOnDouble === 2 ? 'bg-accent text-accent-foreground' : ''"
+          @click="dartsOnDouble = 2">2</button>
+        <button
+          type="button"
+          class="w-full p-4 border rounded-md text-xs border-white/10"
+          :class="dartsOnDouble === 3 ? 'bg-accent text-accent-foreground' : ''"
+          @click="dartsOnDouble = 3">3</button>
+      </div>
+      <h3 class="text-sm text-text-muted font-mono uppercase tracking-wider">Darts for finish</h3>
+      <div class="flex items-center justify-center gap-2 py-2">
+        <button
+          type="button"
+          class="w-full p-4 border rounded-md text-xs border-white/10"
+          :class="dartsForFinish === 1 ? 'bg-accent text-accent-foreground' : ''"
+          @click="dartsForFinish = 1">1</button>
+        <button
+          type="button"
+          class="w-full p-4 border rounded-md text-xs border-white/10"
+          :class="dartsForFinish === 2 ? 'bg-accent text-accent-foreground' : ''"
+          @click="dartsForFinish = 2">2</button>
+        <button
+          type="button"
+          class="w-full p-4 border rounded-md text-xs border-white/10"
+          :class="dartsForFinish === 3 ? 'bg-accent text-accent-foreground' : ''"
+          @click="dartsForFinish = 3">3</button>
+      </div>
+      <button class="btn-primary btn-press w-full mt-4" @click="modalSubmit()">submit</button>
+    </div>
+  </div>
 
   <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
 </section>
