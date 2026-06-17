@@ -7,6 +7,7 @@ import {
 } from "@lib/server/data/games";
 import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
 import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
+import { getSinglesTrainingSession } from "@lib/server/data/singles-training-session";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
 import { getSession } from "@lib/server/auth/session";
 
@@ -44,11 +45,20 @@ const scoreTrainingSession =
     ? await getScoreTrainingSession(session.username)
     : null;
 
+const singlesTrainingSession =
+  slug === "singles-training" && session.isLoggedIn && session.username
+    ? await getSinglesTrainingSession(session.username)
+    : null;
+
 if (slug === "ten-up-one-down" && !tenUpOneDownSession) {
   return Astro.redirect(`/games/settings-${slug}`);
 }
 
 if (slug === "score-training" && !scoreTrainingSession) {
+  return Astro.redirect(`/games/settings-${slug}`);
+}
+
+if (slug === "singles-training" && !singlesTrainingSession) {
   return Astro.redirect(`/games/settings-${slug}`);
 }
 
@@ -61,6 +71,8 @@ const Play = getPlayComponent(slug)!;
       <Play displayName={game.displayName} gameSession={tenUpOneDownSession!} />
     ) : slug === "score-training" ? (
       <Play displayName={game.displayName} gameSession={scoreTrainingSession!} />
+    ) : slug === "singles-training" ? (
+      <Play displayName={game.displayName} gameSession={singlesTrainingSession!} />
     ) : (
       <Play displayName={game.displayName} slug={game.slug} />
     )}
