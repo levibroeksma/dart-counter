@@ -59,6 +59,9 @@ describe("GET /api/games", () => {
 
     expect(response.status).toBe(200);
     expect(data).toEqual({ ok: true, games: SEED_GAMES });
+    expect(data.games.some((game: { slug: string }) => game.slug === "singles-training")).toBe(
+      true
+    );
   });
 
   it("returns 500 when catalog read fails", async () => {
