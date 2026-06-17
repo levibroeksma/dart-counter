@@ -16,7 +16,7 @@ const playUrl = playPath(game.slug);
   x-data={`gameSettingsShell('${game.slug}', '${playUrl}')`}
 >
   <header class="mb-6 space-y-1">
-    <a href="/games" class="text-text-muted text-sm hover:text-text-primary">
+    <a href="/games" class="link-subtle">
       ← Back to games
     </a>
     <h1 class="text-text-primary text-2xl font-semibold">{game.displayName}</h1>
@@ -26,6 +26,6 @@ const playUrl = playPath(game.slug);
   <form id="game-settings-form" class="space-y-4" @submit.prevent="start()">
     <slot />
     <p x-show="error" x-text="error" x-cloak class="text-sm text-red-400" role="alert"></p>
-    <PrimaryBtn type="submit">Start playing</PrimaryBtn>
+    <PrimaryBtn type="submit" label="Start playing" />
   </form>
 </main>

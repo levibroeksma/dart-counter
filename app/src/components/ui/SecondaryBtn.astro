@@ -1,0 +1,18 @@
+---
+interface Props {
+  label: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { label, class: className = "", disabled, loading, ...props }: Props = Astro.props;
+---
+<button
+  type="button"
+  class:list={["btn-secondary btn-press w-full", className]}
+  {...props}
+>
+  <span x-show={`!${loading}`} x-cloak>{label}</span>
+  <span x-show={`${loading}`} x-cloak class="spinner" aria-hidden="true"></span>
+
+</button>

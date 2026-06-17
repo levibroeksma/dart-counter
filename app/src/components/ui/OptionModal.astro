@@ -1,0 +1,31 @@
+---
+interface Props {
+  openModel: string;
+  submitAction: string;
+  submitDisabledExpr: string;
+  closeAction?: string;
+}
+
+const { openModel, submitAction, submitDisabledExpr, closeAction } = Astro.props;
+---
+
+<div
+  data-testid="tuod-option-modal"
+  class="absolute top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-10 p-4"
+  x-show={openModel}
+  x-cloak
+  {...(closeAction ? { "@keydown.escape.window": closeAction } : {})}
+>
+  <div class="card-interactive rounded-md p-4 w-full max-w-sm" @click.stop>
+    <slot />
+    <button
+      type="button"
+      class="btn-primary btn-press w-full mt-4"
+      data-testid="tuod-modal-submit"
+      :disabled={submitDisabledExpr}
+      @click={submitAction}
+    >
+      Submit
+    </button>
+  </div>
+</div>

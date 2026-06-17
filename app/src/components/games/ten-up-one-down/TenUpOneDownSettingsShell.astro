@@ -1,0 +1,45 @@
+---
+import PrimaryBtn from "@components/ui/PrimaryBtn.astro";
+import { playPath } from "@lib/shared/games/paths";
+import type { GameType } from "@lib/shared/games/types";
+import SecondaryBtn from "@components/ui/SecondaryBtn.astro";
+
+interface Props {
+  game: GameType;
+  hasActiveSession: boolean;
+}
+
+const { game, hasActiveSession } = Astro.props;
+const playUrl = playPath(game.slug);
+---
+
+<main
+  class="mx-auto w-full max-w-2xl flex-1 p-4 @sm:p-6"
+  x-data={`tenUpOneDownSettings('${playUrl}', ${hasActiveSession})`}
+>
+  <header class="mb-6 space-y-1">
+    <a href="/games" class="link-subtle">
+      ← Back to games
+    </a>
+    <h1 class="text-text-primary text-2xl font-semibold">{game.displayName}</h1>
+    <p class="text-text-muted text-sm">Configure your game settings.</p>
+  </header>
+
+  <div
+    x-show="hasActiveSession"
+    x-cloak
+    class="mb-4 rounded-lg border border-red-600/50 bg-red-950/30 p-4"
+  >
+    <p class="font-bold text-xs">Game in progress</p>
+    <div class="mt-2 flex gap-2">
+      <PrimaryBtn type="button" @click="resume()" :disabled="loading" :aria-busy="loading" loading="loading" label="Resume"></PrimaryBtn>
+      <SecondaryBtn label="Abandon" @click="abandon()" :disabled="loading" :aria-busy="loading" loading="loading" />
+    </div>
+  </div>
+
+  <form id="game-settings-form" class="space-y-4" @submit.prevent="start()">
+    <slot />
+    <p x-show="error" x-text="error" x-cloak class="text-sm text-red-400" role="alert"></p>
+    <PrimaryBtn type="submit" x-show="!hasActiveSession" label="Play" loading="loading" />
+  </form>
+</main>

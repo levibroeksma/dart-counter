@@ -1,12 +1,71 @@
 ---
+import NumberInputPad from "@components/ui/NumberInputPad.astro";
+import OptionModal from "@components/ui/OptionModal.astro";
+import RoundProgress from "./RoundProgress.astro";
+import TargetCard from "./TargetCard.astro";
+import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
+import LeaveIcon from "@icons/leave.svg";
+
 interface Props {
   displayName: string;
-  slug: string;
+  gameSession: TenUpOneDownSession;
 }
-const { displayName, slug } = Astro.props;
+
+const { displayName, gameSession } = Astro.props;
+const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
 ---
-<section class="card space-y-2">
-  <p class="text-text-primary">Playing {displayName}</p>
-  <p class="text-text-muted text-sm">Game slug: {slug}</p>
-  <p class="text-text-muted text-sm">[Ten Up One Down play UI placeholder]</p>
+
+<section
+  class="relative flex-1 h-full flex flex-col gap-4"
+  x-data={`tenUpOneDownPlay(${sessionJson})`}
+  x-init="init()"
+>
+  <div class="flex justify-between py-2">
+    <button type="button" class=" btn-press" @click="leave()">
+      <LeaveIcon class="size-6 text-text-muted rotate-180" />
+    </button>
+    <h2 class="text-xl font-semibold">{displayName}</h2>
+    <div class="size-6 transparent"></div>
+  </div>
+
+  <TargetCard
+    target={gameSession.state.currentTarget}
+    targetModel="session.state.currentTarget"
+  />
+  <RoundProgress />
+
+  <article class="game-panel flex-1 p-4 flex flex-col">
+    <NumberInputPad
+      scoreModel="score"
+      submitAction="submitScore()"
+      disabledExpr="controlsDisabled"
+      canUndoExpr="session.roundHistory.length > 0"
+      undoAction="undo()"
+    />
+  </article>
+
+  <OptionModal
+    openModel="showModal"
+    submitAction="modalSubmit()"
+    submitDisabledExpr="!modalCanSubmit || loading"
+    closeAction="closeModal()"
+  >
+    <template x-for="question in modalQuestions" :key="question.id">
+      <div x-show="question.autoValue === undefined" class="mb-4">
+        <h3 class="section-label" x-text="question.label"></h3>
+        <div class="flex items-center justify-center gap-2">
+          <template x-for="n in question.options" :key="n">
+            <button
+              type="button"
+              class="card-interactive btn-press justify-center text-sm text-center"
+              @click="question.id === 'dartsOnDouble' ? dartsOnDouble = n : question.id === 'dartsForFinish' ? dartsForFinish = n : dartsUsed = n"
+              :class="(question.id === 'dartsOnDouble' ? dartsOnDouble : question.id === 'dartsForFinish' ? dartsForFinish : dartsUsed) === n ? 'bg-accent text-accent-foreground' : ''"
+              x-text="n"
+            ></button>
+          </template>
+        </div>
+      </div>
+    </template>
+  </OptionModal>
+  <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
 </section>

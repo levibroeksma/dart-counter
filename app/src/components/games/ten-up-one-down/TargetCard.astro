@@ -1,0 +1,35 @@
+---
+import { getCheckoutHint } from "@lib/shared/darts/checkouts";
+
+interface Props {
+  target?: number;
+  targetModel?: string;
+  checkoutHintModel?: string;
+}
+
+const {
+  target = 41,
+  targetModel = "session.state.currentTarget",
+  checkoutHintModel = "checkoutHintDisplay",
+} = Astro.props;
+const checkoutHint = getCheckoutHint(target);
+const checkoutHintFallback =
+  checkoutHint?.segments?.join(" ") ?? "No checkout route";
+---
+
+<article class="game-panel p-3 h-40" data-testid="tuod-target-card">
+  <div class="flex items-center justify-center flex-col gap-6">
+    <div class="flex items-center justify-center flex-col gap-2">
+      <span class="text-sm text-text-muted font-mono uppercase tracking-wider">Target</span>
+      <span class="text-4xl font-bold" x-text={targetModel}>{target}</span>
+    </div>
+
+    <span
+      class="checkout-hint"
+      :class={`{ 'text-text-muted': !${checkoutHintModel} }`}
+      x-text={`${checkoutHintModel} || 'No checkout route'`}
+    >
+      {checkoutHintFallback}
+    </span>
+  </div>
+</article>

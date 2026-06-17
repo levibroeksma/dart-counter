@@ -1,0 +1,13 @@
+export const STARTING_TARGET = 41;
+export const DARTS_PER_ROUND = 3;
+export const PLAYER_COUNT = 1;
+export const MIN_TARGET = 2;
+export const MAX_TARGET = 170;
+export const SUCCESS_DELTA = 10;
+export const FAILURE_DELTA = -1;
+export const DEFAULT_ROUND_COUNT = 10;
+export const DEFAULT_PLAYTIME_SECONDS = 600;
+export const MIN_PLAYTIME_SECONDS = 300;
+export const MAX_PLAYTIME_SECONDS = 1800;
+export const MIN_ROUND_COUNT = 1;
+export const MAX_ROUND_COUNT = 100;

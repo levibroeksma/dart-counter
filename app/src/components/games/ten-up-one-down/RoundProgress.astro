@@ -1,0 +1,47 @@
+---
+interface Props {
+  endModeModel?: string;
+  currentRoundModel?: string;
+  roundCountModel?: string;
+  timeRemainingModel?: string;
+  statusModel?: string;
+}
+
+const {
+  endModeModel = "session.settings.endMode",
+  currentRoundModel = "session.state.currentRound",
+  roundCountModel = "session.settings.roundCount",
+  timeRemainingModel = "session.timeRemainingSeconds ?? 0",
+  statusModel = "session.state.status",
+} = Astro.props;
+---
+
+<article class="game-panel py-2 px-4 h-fit">
+  <div class="flex items-center justify-between gap-3">
+    <span
+      class="text-sm text-text-muted font-mono uppercase tracking-wider"
+      x-show={`${endModeModel} === 'rounds'`}
+      x-text={`'Round ' + ${currentRoundModel} + ' of ' + ${roundCountModel}`}
+    >
+    </span>
+
+    <span
+      class="text-sm text-text-muted font-mono uppercase tracking-wider"
+      x-show={`${endModeModel} === 'timed'`}
+    >
+      Round <span x-text={currentRoundModel}></span> ·
+      <span x-text={`String(Math.floor((${timeRemainingModel}) / 60)).padStart(2, '0')`}></span>:<span
+        x-text={`String((${timeRemainingModel}) % 60).padStart(2, '0')`}
+      ></span>
+    </span>
+
+    <button
+      type="button"
+      class="btn-secondary btn-press px-3 py-1 text-xs"
+      x-show={`${endModeModel} === 'timed'`}
+      @click="togglePause()"
+    >
+      <span x-text={`${statusModel} === 'paused' ? 'Resume' : 'Pause'`}></span>
+    </button>
+  </div>
+</article>

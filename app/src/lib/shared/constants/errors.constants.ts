@@ -8,6 +8,10 @@ export const MessageCode = {
   SERVER_ERROR: "SERVER_ERROR",
   UNKNOWN_GAME: "UNKNOWN_GAME",
   UNAVAILABLE_GAME: "UNAVAILABLE_GAME",
+  INVALID_GAME_SETTINGS: "INVALID_GAME_SETTINGS",
+  INVALID_ROUND: "INVALID_ROUND",
+  NO_ACTIVE_SESSION: "NO_ACTIVE_SESSION",
+  SESSION_EXISTS: "SESSION_EXISTS",
 } as const;
 
 export type MessageCode = (typeof MessageCode)[keyof typeof MessageCode];
@@ -22,4 +26,8 @@ export const errorMessages: Record<MessageCode, string> = {
   [MessageCode.SERVER_ERROR]: "Something went wrong. Please try again.",
   [MessageCode.UNKNOWN_GAME]: "That game does not exist.",
   [MessageCode.UNAVAILABLE_GAME]: "That game is not available yet.",
+  [MessageCode.INVALID_GAME_SETTINGS]: "Invalid game settings.",
+  [MessageCode.INVALID_ROUND]: "Invalid round data.",
+  [MessageCode.NO_ACTIVE_SESSION]: "No active session found.",
+  [MessageCode.SESSION_EXISTS]: "A session already exists for this game.",
 };
