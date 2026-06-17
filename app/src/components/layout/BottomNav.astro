@@ -5,11 +5,15 @@ import NavBtn from "@components/layout/NavBtn.astro";
 // Icons
 import homeIcon from "@icons/home.svg?raw";
 import statsIcon from "@icons/stats.svg?raw";
+import dartsIcon from "@icons/darts.svg?raw";
 ---
 
-<nav class="grid grid-cols-2 border-t border-border p-4">
+<nav class="flex justify-between items-center grid grid-cols-3 border-t border-border p-4">
   <NavBtn href="/">
     <span set:html={homeIcon} />
+  </NavBtn>
+  <NavBtn href="/games" matchPrefix="/games">
+    <span set:html={dartsIcon} />
   </NavBtn>
   <NavBtn href="/statistics">
     <span set:html={statsIcon} />
