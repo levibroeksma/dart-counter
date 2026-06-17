@@ -33,13 +33,23 @@ export function tenUpOneDownSettings(
      */
     formDataToSettings(form: HTMLFormElement): Record<string, unknown> {
       const settings: Record<string, unknown> = {};
+
       for (const [key, value] of new FormData(form).entries()) {
         if (typeof value !== "string") continue;
-        settings[key] =
-          key === "roundCount" || key === "playtimeSeconds"
-            ? Number(value)
-            : value;
+
+        if (key === "roundCount") {
+          settings[key] = Number(value);
+          continue;
+        }
+
+        if (key === "playtimeMinutes") {
+          settings.playtimeSeconds = Number(value) * 60;
+          continue;
+        }
+
+        settings[key] = value;
       }
+
       return settings;
     },
 
