@@ -1,0 +1,48 @@
+---
+import NumberInputPad from "@components/ui/NumberInputPad.astro";
+import ScoreCard from "./ScoreCard.astro";
+import ProgressBar from "./ProgressBar.astro";
+import Summary from "./Summary.astro";
+import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
+import LeaveIcon from "@icons/leave.svg";
+
+interface Props {
+  displayName: string;
+  gameSession: ScoreTrainingSession;
+}
+
+const { displayName, gameSession } = Astro.props;
+const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
+---
+
+<section
+  class="relative flex-1 h-full flex flex-col gap-4"
+  x-data={`scoreTrainingPlay(${sessionJson})`}
+  x-init="init()"
+>
+  <div class="flex justify-between py-2">
+    <button type="button" class="btn-press" @click="leave()">
+      <LeaveIcon class="size-6 text-text-muted rotate-180" />
+    </button>
+    <h2 class="text-xl font-semibold">{displayName}</h2>
+    <div class="size-6 transparent"></div>
+  </div>
+
+  <div x-show="!showSummary" class="flex flex-col gap-4 flex-1">
+    <ProgressBar />
+    <ScoreCard />
+
+    <article class="game-panel flex-1 p-4 flex flex-col">
+      <NumberInputPad
+        scoreModel="score"
+        submitAction="submitScore()"
+        disabledExpr="controlsDisabled"
+        canUndoExpr="session.roundHistory.length > 0"
+        undoAction="undo()"
+      />
+    </article>
+  </div>
+
+  <Summary />
+  <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
+</section>
