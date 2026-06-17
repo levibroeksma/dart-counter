@@ -12,7 +12,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "deploy": "netlify deploy --prod"
   },
   "dependencies": {
     "@astrojs/alpinejs": "^0.5.0",
