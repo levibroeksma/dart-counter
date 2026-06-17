@@ -1,5 +1,6 @@
 export const GAME_CODES: Partial<Record<string, string>> = {
   "ten-up-one-down": "tuod",
+  "singles-training": "st",
 };
 
 /**
