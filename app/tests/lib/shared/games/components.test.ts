@@ -18,6 +18,12 @@ describe("game component registry", () => {
     expect(getPlayComponent("score-training")).toBeDefined();
   });
 
+  it("resolves singles-training slug", () => {
+    expect(hasGameComponents("singles-training")).toBe(true);
+    expect(getSettingsFormComponent("singles-training")).toBeDefined();
+    expect(getPlayComponent("singles-training")).toBeDefined();
+  });
+
   it("returns undefined for unknown slugs", () => {
     expect(hasGameComponents("invalid")).toBe(false);
     expect(getSettingsFormComponent("invalid")).toBeUndefined();
