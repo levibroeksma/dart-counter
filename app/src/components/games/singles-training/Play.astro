@@ -1,0 +1,35 @@
+---
+import LeaveIcon from "@icons/leave.svg";
+import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
+import ScorePanel from "./ScorePanel.astro";
+import TargetLabel from "./TargetLabel.astro";
+import DartInput from "./DartInput.astro";
+import Summary from "./Summary.astro";
+
+interface Props {
+  displayName: string;
+  gameSession: SinglesTrainingSession;
+}
+
+const { displayName, gameSession } = Astro.props;
+const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
+---
+
+<section class="relative flex-1 h-full flex flex-col gap-4" x-data={`singlesTrainingPlay(${sessionJson})`}>
+  <div class="flex justify-between py-2">
+    <button type="button" class="btn-press" @click="leave()">
+      <LeaveIcon class="size-6 text-text-muted rotate-180" />
+    </button>
+    <h2 class="text-xl font-semibold">{displayName}</h2>
+    <div class="size-6 transparent"></div>
+  </div>
+
+  <div x-show="!showSummary" class="flex flex-col gap-3 flex-1">
+    <ScorePanel />
+    <TargetLabel />
+    <DartInput />
+  </div>
+
+  <Summary />
+  <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
+</section>
