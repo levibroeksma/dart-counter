@@ -1,12 +1,13 @@
 ---
 import {
-  DEFAULT_PLAYTIME_SECONDS,
   DEFAULT_ROUND_COUNT,
-  MAX_PLAYTIME_SECONDS,
   MAX_ROUND_COUNT,
-  MIN_PLAYTIME_SECONDS,
   MIN_ROUND_COUNT,
 } from "@lib/shared/games/ten-up-one-down/constants";
+
+const DEFAULT_PLAYTIME_MINUTES = 10;
+const MIN_PLAYTIME_MINUTES = 5;
+const MAX_PLAYTIME_MINUTES = 30;
 ---
 
 <fieldset class="space-y-2">
@@ -34,14 +35,13 @@ import {
 </label>
 
 <label class="block space-y-1" x-show="endMode === 'timed'" x-cloak>
-  <span class="text-text-muted text-sm">Play time (seconds)</span>
+  <span class="text-text-muted text-sm">Play time (minutes)</span>
   <input
     type="number"
-    name="playtimeSeconds"
-    value={DEFAULT_PLAYTIME_SECONDS}
-    min={MIN_PLAYTIME_SECONDS}
-    max={MAX_PLAYTIME_SECONDS}
-    step="60"
+    name="playtimeMinutes"
+    value={DEFAULT_PLAYTIME_MINUTES}
+    min={MIN_PLAYTIME_MINUTES}
+    max={MAX_PLAYTIME_MINUTES}
     class="input-field"
   />
 </label>

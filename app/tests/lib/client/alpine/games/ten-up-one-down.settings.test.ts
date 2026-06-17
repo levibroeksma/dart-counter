@@ -39,4 +39,22 @@ describe("tenUpOneDownSettings", () => {
     );
     expect(window.location.href).toBe("/games/ten-up-one-down");
   });
+
+  it("converts playtime minutes to seconds", () => {
+    const component = tenUpOneDownSettings("/games/ten-up-one-down", false);
+
+    const form = document.createElement("form");
+    form.innerHTML = `
+      <input name="endMode" value="timed" />
+      <input name="playtimeMinutes" value="10" />
+    `;
+
+    const settings = component.formDataToSettings(form);
+
+    expect(settings).toEqual({
+      endMode: "timed",
+      playtimeSeconds: 600,
+    });
+    expect(settings).not.toHaveProperty("playtimeMinutes");
+  });
 });
