@@ -12,6 +12,16 @@ describe("SEED_GAMES", () => {
     });
   });
 
+  it("includes singles-training as released", () => {
+    expect(SEED_GAMES).toContainEqual({
+      slug: "singles-training",
+      displayName: "Singles Training",
+      sortOrder: 5,
+      enabled: true,
+      released: true,
+    });
+  });
+
   it("marks placeholder games as unreleased", () => {
     const placeholders = SEED_GAMES.filter((g) =>
       ["501", "121"].includes(g.slug)

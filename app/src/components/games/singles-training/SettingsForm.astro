@@ -1,0 +1,81 @@
+---
+import RadioCard from "@components/ui/RadioCard.astro";
+import {
+  DEFAULT_DIRECTION,
+  DEFAULT_MODE,
+  DEFAULT_SCORING,
+} from "@lib/shared/games/singles-training/constants";
+
+const defaultDirection = String(DEFAULT_DIRECTION);
+const defaultMode = String(DEFAULT_MODE);
+const defaultScoring = String(DEFAULT_SCORING);
+---
+
+<fieldset class="space-y-3">
+  <legend class="section-label">Direction</legend>
+  <p class="text-xs text-text-muted">Score as many points as possible. Throw 3 darts on each target.</p>
+  <div class="flex gap-3">
+    <RadioCard
+      name="direction"
+      value="low-to-high"
+      title="Low > high"
+      checked={defaultDirection === "low-to-high"}
+      />
+    <RadioCard
+      name="direction"
+      value="high-to-low"
+      title="High > low"
+      checked={defaultDirection === "high-to-low"}
+    />
+    <RadioCard
+      name="direction"
+      value="random"
+      title="Random"
+      checked={defaultDirection === "random"}
+    />
+  </div>
+</fieldset>
+
+<fieldset class="space-y-3">
+  <legend class="section-label">Game mode</legend>
+  <p class="text-xs text-text-muted">How strict each 3-dart visit must be to continue. <br>Hard mode = minimum of 1 hit per target. <br>Extreme mode = minimum of 2 hits per target.</p>
+  <div class="flex gap-3">
+    <RadioCard
+      name="mode"
+      value="normal"
+      title="Normal"
+      checked={defaultMode === "normal"}
+    />
+    <RadioCard
+      name="mode"
+      value="hard"
+      title="Hard"
+      checked={defaultMode === "hard"}
+    />
+    <RadioCard
+      name="mode"
+      value="extreme"
+      title="Extreme"
+      checked={defaultMode === "extreme"}
+    />
+  </div>
+</fieldset>
+
+<fieldset class="space-y-3">
+  <legend class="section-label">Scoring</legend>
+    <p class="text-xs text-text-muted">How points are awarded for each dart. <br>Traditional = single 1, double 2, triple 3. <br>Uniform = every hit scores 1 point, regardless of segment.</p>
+  <div class="flex gap-3">
+    <RadioCard
+      name="scoring"
+      value="traditional"
+      title="Traditional"
+      checked={defaultScoring === "traditional"}
+    />
+    <RadioCard
+      name="scoring"
+      value="uniform"
+      title="Uniform"
+      checked={defaultScoring === "uniform"}
+    />
+  </div>
+</fieldset>

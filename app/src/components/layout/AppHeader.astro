@@ -1,13 +1,42 @@
 ---
-// Components
 import UserMenu from "@components/auth/UserMenu.astro";
+import IconBtn from "@components/ui/IconBtn.astro";
+import LeaveIcon from "@icons/leave.svg";
 
+interface Props {
+  title?: string;
+  description?: string;
+  backHref?: string;
+}
+
+const { title, description, backHref } = Astro.props;
+const hasPageChrome = Boolean(title || description);
 ---
 
 <header
   role="banner"
-  class="bg-surface-page/80 sticky top-0 z-20 flex justify-end items-center p-4 backdrop-blur-sm"
+  class="bg-surface-page/80 z-20 flex shrink-0 items-center justify-between gap-3 border-b border-border p-4 backdrop-blur-sm"
 >
-
+  <div class="flex min-w-0 flex-1 items-center gap-2">
+  {
+    backHref ? (
+      <IconBtn href={backHref} ariaLabel="Go back" class="shrink-0">
+        <LeaveIcon class="size-6 rotate-180 text-text-muted" />
+      </IconBtn>
+    ) : null
+  }
+  {
+    hasPageChrome ? (
+      <div class="min-w-0">
+        {title ? (
+          <h1 class="text-text-primary truncate text-lg font-semibold leading-tight">{title}</h1>
+        ) : null}
+        {description ? (
+          <p class="text-text-muted truncate text-xs">{description}</p>
+        ) : null}
+      </div>
+    ) : null
+  }
+  </div>
   <UserMenu />
 </header>

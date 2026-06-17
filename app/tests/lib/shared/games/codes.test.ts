@@ -10,6 +10,10 @@ describe("game codes", () => {
     expect(getGameCode("score-training")).toBeUndefined();
   });
 
+  it("returns st for singles-training", () => {
+    expect(getGameCode("singles-training")).toBe("st");
+  });
+
   it("formats code for display", () => {
     expect(formatGameCode("tuod")).toBe("TUOD");
   });

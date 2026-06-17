@@ -13,12 +13,8 @@ try {
 }
 ---
 
-<AppLayout>
-  <main class="mx-auto w-full max-w-2xl flex-1 p-4 @sm:p-6">
-    <header class="mb-6 space-y-1">
-      <h1 class="text-text-primary text-2xl font-semibold">Settings</h1>
-      <p class="text-text-muted text-sm">Manage your account preferences.</p>
-    </header>
+<AppLayout title="Settings" description="Manage your account preferences.">
+  <main class="mx-auto w-full max-w-2xl p-4 @sm:p-6">
     <DisplayNameSetting initialDisplayName={initialDisplayName} />
   </main>
 </AppLayout>

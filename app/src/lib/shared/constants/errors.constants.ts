@@ -15,6 +15,8 @@ export const MessageCode = {
   INVALID_SCORE: "INVALID_SCORE",
   GAME_COMPLETED: "GAME_COMPLETED",
   NO_ROUNDS_TO_UNDO: "NO_ROUNDS_TO_UNDO",
+  INVALID_DART_OUTCOME: "INVALID_DART_OUTCOME",
+  NO_DARTS_TO_UNDO: "NO_DARTS_TO_UNDO",
 } as const;
 
 export type MessageCode = (typeof MessageCode)[keyof typeof MessageCode];
@@ -36,4 +38,6 @@ export const errorMessages: Record<MessageCode, string> = {
   [MessageCode.INVALID_SCORE]: "Visit score must be 0–180.",
   [MessageCode.GAME_COMPLETED]: "Game is already completed.",
   [MessageCode.NO_ROUNDS_TO_UNDO]: "No rounds to undo.",
+  [MessageCode.INVALID_DART_OUTCOME]: "Invalid dart outcome for the current target.",
+  [MessageCode.NO_DARTS_TO_UNDO]: "No darts to undo.",
 };

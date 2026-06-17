@@ -3,15 +3,21 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import AppHeader from "@components/layout/AppHeader.astro";
 import BottomNav from "@components/layout/BottomNav.astro";
 
-const url = Astro.url;
-const pageTitle =
-  url.pathname === "/" ? "Dart Counter" : `${url.pathname.slice(1)}`;
+interface Props {
+  title?: string;
+  description?: string;
+  backHref?: string;
+}
+
+const { title, description, backHref } = Astro.props;
 ---
 
 <BaseLayout>
-  <AppHeader pageTitle={pageTitle} />
-  <div class="flex flex-1 flex-col">
-    <slot />
+  <div class="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+    <AppHeader title={title} description={description} backHref={backHref} />
+    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
+      <slot />
+    </div>
+    <BottomNav />
   </div>
-  <BottomNav />
 </BaseLayout>

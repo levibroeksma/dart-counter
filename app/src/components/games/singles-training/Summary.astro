@@ -1,0 +1,63 @@
+---
+interface Props {
+  showSummaryModel?: string;
+  summaryModel?: string;
+  loadingModel?: string;
+}
+
+const {
+  showSummaryModel = "showSummary",
+  summaryModel = "summary",
+  loadingModel = "loading",
+} = Astro.props;
+---
+
+<article class="game-panel p-6 flex flex-col gap-4" x-show={showSummaryModel} x-cloak>
+  <h2 class="text-xl font-semibold" x-text={`${summaryModel}?.status === 'dead' ? 'Game Over' : 'Game Complete'`}>
+    Game Complete
+  </h2>
+  <dl class="grid grid-cols-2 gap-3 text-sm">
+    <dt class="text-text-muted">Score</dt>
+    <dd x-text={`${summaryModel}?.score ?? 0`}>0</dd>
+
+    <dt class="text-text-muted">Miss</dt>
+    <dd x-text={`${summaryModel}?.segmentCounts?.miss ?? 0`}>0</dd>
+
+    <dt class="text-text-muted">Single</dt>
+    <dd x-text={`${summaryModel}?.segmentCounts?.single ?? 0`}>0</dd>
+
+    <dt class="text-text-muted">Double</dt>
+    <dd x-text={`${summaryModel}?.segmentCounts?.double ?? 0`}>0</dd>
+
+    <dt class="text-text-muted">Triple</dt>
+    <dd x-text={`${summaryModel}?.segmentCounts?.triple ?? 0`}>0</dd>
+
+    <dt class="text-text-muted">Hit ratio</dt>
+    <dd x-text={`((${summaryModel}?.hitRatio ?? 0) * 100).toFixed(1) + '%'`}>0.0%</dd>
+
+    <dt class="text-text-muted">D1 success rate</dt>
+    <dd x-text={`((${summaryModel}?.dartPositionSuccessRates?.[0] ?? 0) * 100).toFixed(1) + '%'`}>0.0%</dd>
+
+    <dt class="text-text-muted">D2 success rate</dt>
+    <dd x-text={`((${summaryModel}?.dartPositionSuccessRates?.[1] ?? 0) * 100).toFixed(1) + '%'`}>0.0%</dd>
+
+    <dt class="text-text-muted">D3 success rate</dt>
+    <dd x-text={`((${summaryModel}?.dartPositionSuccessRates?.[2] ?? 0) * 100).toFixed(1) + '%'`}>0.0%</dd>
+  </dl>
+
+  <p class="text-sm text-text-muted">Do you want to play again?</p>
+
+  <div class="grid grid-cols-2 gap-2">
+    <button
+      type="button"
+      class="btn-primary btn-press"
+      :disabled={loadingModel}
+      @click="playAgain()"
+    >
+      Yes
+    </button>
+    <button type="button" class="btn-secondary btn-press" :disabled={loadingModel} @click="window.location.href='/games'">
+      No
+    </button>
+  </div>
+</article>

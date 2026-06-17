@@ -1,4 +1,11 @@
-<label class="block space-y-1">
-  <span class="text-text-muted text-sm">Starting score</span>
-  <input type="number" name="startingScore" value="501" class="input-field" />
-</label>
+---
+import Input from "@components/ui/Input.astro";
+---
+
+<Input
+  id="starting-score"
+  name="startingScore"
+  label="Starting score"
+  type="number"
+  value={501}
+/>

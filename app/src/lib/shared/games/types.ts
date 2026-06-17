@@ -33,4 +33,11 @@ export const SEED_GAMES: GameType[] = [
     enabled: true,
     released: true,
   },
+  {
+    slug: "singles-training",
+    displayName: "Singles Training",
+    sortOrder: 5,
+    enabled: true,
+    released: true,
+  },
 ];

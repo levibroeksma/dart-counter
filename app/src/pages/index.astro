@@ -21,12 +21,17 @@ try {
 ---
 
 <AppLayout>
-  <main class="mx-auto w-full max-w-2xl flex-1 p-4 @sm:p-6 space-y-12">
+  <main class="mx-auto w-full max-w-2xl space-y-6 p-4 @sm:p-6">
     <section class="grid grid-cols-2 gap-x-4 gap-y-6">
-      <div class="col-span-2 flex justify-between items-center gap-4">
+      <article class="space-y-2 col-span-2">
+        <div class="col-span-2 flex justify-between items-center gap-4">
         <h2 class="text-text-muted text-2xl font-semibold">Statistics</h2>
         <div class="bg-text-muted/20 pt-px w-full"></div>
       </div>
+       <p class="text-text-muted text-sm">
+          Your personal statistics will be displayed here.
+        </p>
+      </article>
       <Card />
       <Card />
       <Card />

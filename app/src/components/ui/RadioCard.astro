@@ -1,0 +1,36 @@
+---
+interface Props {
+  name: string;
+  value: string;
+  title: string;
+  checked?: boolean;
+  "x-model"?: string;
+  [key: string]: unknown;
+}
+
+const {
+  name,
+  value,
+  title,
+  checked = false,
+  "x-model": xModel,
+  ...rest
+} = Astro.props;
+---
+
+<label
+  class="card-interactive btn-press relative flex cursor-pointer border-border has-[:checked]:border-accent has-[:checked]:bg-accent/10 has-[:checked]:ring-1 has-[:checked]:ring-accent/40 flex items-center justify-center"
+>
+  <input
+    type="radio"
+    name={name}
+    value={value}
+    checked={checked}
+    x-model={xModel}
+    class="sr-only"
+    {...rest}
+  />
+  <span class="flex flex-col gap-1">
+    <span class="font-bold text-text-primary text-xs">{title}</span>
+  </span>
+</label>
