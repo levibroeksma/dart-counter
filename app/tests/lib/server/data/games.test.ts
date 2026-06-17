@@ -59,6 +59,21 @@ describe("games data layer", () => {
     });
   });
 
+  it("getGameBySlug returns singles-training from catalog", async () => {
+    mockGet.mockImplementation((store: string, key: string) => {
+      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
+      return Promise.resolve(null);
+    });
+    const game = await getGameBySlug("singles-training");
+    expect(game).toEqual({
+      slug: "singles-training",
+      displayName: "Singles Training",
+      sortOrder: 5,
+      enabled: true,
+      released: true,
+    });
+  });
+
   it("getGameBySlug returns null for unknown slug", async () => {
     mockGet.mockImplementation((store: string, key: string) => {
       if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
@@ -140,6 +155,20 @@ describe("games data layer", () => {
     expect(games).toEqual(RELEASED_GAMES);
   });
 
+  it("reconciles stale catalog missing singles-training", async () => {
+    const staleCatalog = SEED_GAMES.filter((g) => g.slug !== "singles-training");
+    mockGet.mockImplementation((store: string, key: string) => {
+      if (store === "game-types" && key === "catalog") return Promise.resolve(staleCatalog);
+      return Promise.resolve(null);
+    });
+
+    const games = await getGameTypes();
+
+    expect(games.map((g) => g.slug)).toContain("singles-training");
+    expect(mockSetJSON).toHaveBeenCalledWith("game-types", "catalog", SEED_GAMES);
+    expect(games).toEqual(RELEASED_GAMES);
+  });
+
   it("reconciliation is idempotent when catalog already matches seed", async () => {
     mockGet.mockImplementation((store: string, key: string) => {
       if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
@@ -159,6 +188,7 @@ describe("games data layer", () => {
     expect(games.map((g) => g.slug)).toEqual([
       "ten-up-one-down",
       "score-training",
+      "singles-training",
     ]);
   });
 
