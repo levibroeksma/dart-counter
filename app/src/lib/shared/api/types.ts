@@ -2,6 +2,8 @@ import type { MessageCode } from "@lib/shared/constants/errors.constants";
 import type { GameConfig, GameType } from "@lib/shared/games/types";
 import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
 import type { ScoreTrainingSummary } from "@lib/shared/games/score-training/summary";
+import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
+import type { SinglesTrainingSummary } from "@lib/shared/games/singles-training/summary";
 import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
 
 export type PreferencesSuccess = { ok: true; displayName?: string };
@@ -18,12 +20,19 @@ export type ScoreTrainingSessionSuccess = {
   completed?: boolean;
   summary?: ScoreTrainingSummary;
 };
+export type SinglesTrainingSessionSuccess = {
+  ok: true;
+  session: SinglesTrainingSession;
+  terminal?: boolean;
+  summary?: SinglesTrainingSummary;
+};
 export type ApiSuccess =
   | { ok: true }
   | PreferencesSuccess
   | GamesCatalogSuccess
   | GameConfigSuccess
   | TenUpOneDownSessionSuccess
-  | ScoreTrainingSessionSuccess;
+  | ScoreTrainingSessionSuccess
+  | SinglesTrainingSessionSuccess;
 export type ApiError = { ok: false; code: MessageCode };
 export type ApiResponse = ApiSuccess | ApiError;
