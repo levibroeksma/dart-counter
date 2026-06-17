@@ -7,6 +7,8 @@ import Settings121 from "@components/games/121/SettingsForm.astro";
 import Play121 from "@components/games/121/Play.astro";
 import SettingsScoreTraining from "@components/games/score-training/SettingsForm.astro";
 import PlayScoreTraining from "@components/games/score-training/Play.astro";
+import SettingsSinglesTraining from "@components/games/singles-training/SettingsForm.astro";
+import PlaySinglesTraining from "@components/games/singles-training/Play.astro";
 
 type GameComponentPair = {
   settingsForm: AstroComponentFactory;
@@ -20,6 +22,10 @@ const REGISTRY: Record<string, GameComponentPair> = {
   "score-training": {
     settingsForm: SettingsScoreTraining,
     play: PlayScoreTraining,
+  },
+  "singles-training": {
+    settingsForm: SettingsSinglesTraining,
+    play: PlaySinglesTraining,
   },
 };
 
