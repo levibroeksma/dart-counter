@@ -11,6 +11,34 @@ const CATALOG_KEY = "catalog";
 const STATS_STORE = "user-game-stats";
 const SESSIONS_STORE = "game-sessions";
 
+/**
+ * Merge stored catalog with SEED_GAMES metadata by slug.
+ * Seed entries win on conflict; unknown stored entries are preserved at the end.
+ */
+export function reconcileCatalog(stored: GameType[]): GameType[] {
+  const bySlug = new Map(stored.map((game) => [game.slug, game]));
+  const seedSlugs = new Set(SEED_GAMES.map((game) => game.slug));
+
+  for (const seed of SEED_GAMES) {
+    bySlug.set(seed.slug, { ...bySlug.get(seed.slug), ...seed });
+  }
+
+  const merged = [
+    ...SEED_GAMES.map((seed) => bySlug.get(seed.slug)!),
+    ...stored.filter((game) => !seedSlugs.has(game.slug)),
+  ];
+
+  return merged;
+}
+
+function catalogsEqual(a: GameType[], b: GameType[]): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function isVisibleGame(game: GameType): boolean {
+  return game.enabled && game.released;
+}
+
 async function readCatalog(): Promise<GameType[]> {
   const store = getStore(CATALOG_STORE);
   const data = await store.get(CATALOG_KEY, { type: "json" });
@@ -18,21 +46,27 @@ async function readCatalog(): Promise<GameType[]> {
     await store.setJSON(CATALOG_KEY, SEED_GAMES);
     return SEED_GAMES;
   }
-  return data as GameType[];
+
+  const stored = data as GameType[];
+  const merged = reconcileCatalog(stored);
+  if (!catalogsEqual(merged, stored)) {
+    await store.setJSON(CATALOG_KEY, merged);
+  }
+  return merged;
 }
 
 /**
- * Return all enabled game types sorted by sortOrder.
+ * Return all released, enabled game types sorted by sortOrder.
  */
 export async function getGameTypes(): Promise<GameType[]> {
   const catalog = await readCatalog();
   return catalog
-    .filter((game) => game.enabled)
+    .filter(isVisibleGame)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 /**
- * Look up a single enabled game by slug.
+ * Look up a single released, enabled game by slug.
  */
 export async function getGameBySlug(slug: string): Promise<GameType | null> {
   const games = await getGameTypes();
@@ -59,7 +93,9 @@ export async function getQuickStartGames(
     return a.sortOrder - b.sortOrder;
   });
 
-  const hasPlays = Object.values(stats.playCounts).some((count) => count > 0);
+  const hasPlays = catalog.some(
+    (game) => (stats.playCounts[game.slug] ?? 0) > 0
+  );
   if (!hasPlays) {
     return catalog.slice(0, limit);
   }
