@@ -6,6 +6,7 @@ import {
   incrementPlayCount,
 } from "@lib/server/data/games";
 import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
+import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
 import { getSession } from "@lib/server/auth/session";
 
@@ -38,7 +39,16 @@ const tenUpOneDownSession =
     ? await getTenUpOneDownSession(session.username)
     : null;
 
+const scoreTrainingSession =
+  slug === "score-training" && session.isLoggedIn && session.username
+    ? await getScoreTrainingSession(session.username)
+    : null;
+
 if (slug === "ten-up-one-down" && !tenUpOneDownSession) {
+  return Astro.redirect(`/games/settings-${slug}`);
+}
+
+if (slug === "score-training" && !scoreTrainingSession) {
   return Astro.redirect(`/games/settings-${slug}`);
 }
 
@@ -49,6 +59,8 @@ const Play = getPlayComponent(slug)!;
   <GamePlayShell game={game}>
     {slug === "ten-up-one-down" ? (
       <Play displayName={game.displayName} gameSession={tenUpOneDownSession!} />
+    ) : slug === "score-training" ? (
+      <Play displayName={game.displayName} gameSession={scoreTrainingSession!} />
     ) : (
       <Play displayName={game.displayName} slug={game.slug} />
     )}

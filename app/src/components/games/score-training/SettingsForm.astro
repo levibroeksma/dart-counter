@@ -1,0 +1,47 @@
+---
+import {
+  DEFAULT_ROUND_COUNT,
+  MAX_ROUND_COUNT,
+  MIN_ROUND_COUNT,
+} from "@lib/shared/games/score-training/constants";
+
+const DEFAULT_PLAYTIME_MINUTES = 10;
+const MIN_PLAYTIME_MINUTES = 5;
+const MAX_PLAYTIME_MINUTES = 30;
+---
+
+<fieldset class="space-y-2">
+  <legend class="text-text-muted text-sm">End mode</legend>
+  <label class="flex items-center gap-2">
+    <input type="radio" name="endMode" value="rounds" x-model="endMode" />
+    <span>Rounds</span>
+  </label>
+  <label class="flex items-center gap-2">
+    <input type="radio" name="endMode" value="timed" x-model="endMode" />
+    <span>Timed</span>
+  </label>
+</fieldset>
+
+<label class="block space-y-1" x-show="endMode === 'rounds'">
+  <span class="text-text-muted text-sm">Number of rounds</span>
+  <input
+    type="number"
+    name="roundCount"
+    value={DEFAULT_ROUND_COUNT}
+    min={MIN_ROUND_COUNT}
+    max={MAX_ROUND_COUNT}
+    class="input-field"
+  />
+</label>
+
+<label class="block space-y-1" x-show="endMode === 'timed'" x-cloak>
+  <span class="text-text-muted text-sm">Play time (minutes)</span>
+  <input
+    type="number"
+    name="playtimeMinutes"
+    value={DEFAULT_PLAYTIME_MINUTES}
+    min={MIN_PLAYTIME_MINUTES}
+    max={MAX_PLAYTIME_MINUTES}
+    class="input-field"
+  />
+</label>

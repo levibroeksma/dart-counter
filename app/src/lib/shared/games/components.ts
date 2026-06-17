@@ -5,6 +5,8 @@ import SettingsTenUp from "@components/games/ten-up-one-down/SettingsForm.astro"
 import PlayTenUp from "@components/games/ten-up-one-down/Play.astro";
 import Settings121 from "@components/games/121/SettingsForm.astro";
 import Play121 from "@components/games/121/Play.astro";
+import SettingsScoreTraining from "@components/games/score-training/SettingsForm.astro";
+import PlayScoreTraining from "@components/games/score-training/Play.astro";
 
 type GameComponentPair = {
   settingsForm: AstroComponentFactory;
@@ -15,6 +17,10 @@ const REGISTRY: Record<string, GameComponentPair> = {
   "501": { settingsForm: Settings501, play: Play501 },
   "ten-up-one-down": { settingsForm: SettingsTenUp, play: PlayTenUp },
   "121": { settingsForm: Settings121, play: Play121 },
+  "score-training": {
+    settingsForm: SettingsScoreTraining,
+    play: PlayScoreTraining,
+  },
 };
 
 export function hasGameComponents(slug: string): boolean {

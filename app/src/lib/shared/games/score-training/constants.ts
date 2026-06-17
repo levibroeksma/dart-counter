@@ -1,0 +1,10 @@
+export const DARTS_PER_VISIT = 3;
+export const STARTING_SCORE = 0;
+export const MIN_VISIT_SCORE = 0;
+export const MAX_VISIT_SCORE = 180;
+export const DEFAULT_ROUND_COUNT = 10;
+export const MIN_ROUND_COUNT = 1;
+export const MAX_ROUND_COUNT = 100;
+export const DEFAULT_PLAYTIME_SECONDS = 600;
+export const MIN_PLAYTIME_SECONDS = 300;
+export const MAX_PLAYTIME_SECONDS = 1800;

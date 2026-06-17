@@ -1,0 +1,36 @@
+---
+interface Props {
+  showSummaryModel?: string;
+  totalScoreModel?: string;
+  summaryAverageDisplayModel?: string;
+  roundsPlayedModel?: string;
+  dartsThrownModel?: string;
+}
+
+const {
+  showSummaryModel = "showSummary",
+  totalScoreModel = "summary.totalScore",
+  summaryAverageDisplayModel = "summaryAverageDisplay",
+  roundsPlayedModel = "summary.roundsPlayed",
+  dartsThrownModel = "summary.dartsThrown",
+} = Astro.props;
+---
+
+<article
+  class="game-panel p-6 flex flex-col gap-4"
+  x-show={showSummaryModel}
+  x-cloak
+>
+  <h2 class="text-xl font-semibold">Game Complete</h2>
+  <dl class="grid grid-cols-2 gap-3 text-sm">
+    <dt class="text-text-muted">Total score</dt>
+    <dd x-text={totalScoreModel}></dd>
+    <dt class="text-text-muted">3-dart average</dt>
+    <dd x-text={summaryAverageDisplayModel}></dd>
+    <dt class="text-text-muted">Rounds played</dt>
+    <dd x-text={roundsPlayedModel}></dd>
+    <dt class="text-text-muted">Darts thrown</dt>
+    <dd x-text={dartsThrownModel}></dd>
+  </dl>
+  <a href="/games" class="btn-primary text-center">Back to games</a>
+</article>
