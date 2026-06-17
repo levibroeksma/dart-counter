@@ -2,6 +2,7 @@
 import AppLayout from "@layouts/AppLayout.astro";
 import GameSettingsShell from "@components/games/GameSettingsShell.astro";
 import TenUpOneDownSettingsShell from "@components/games/ten-up-one-down/TenUpOneDownSettingsShell.astro";
+import ScoreTrainingSettingsShell from "@components/games/score-training/ScoreTrainingSettingsShell.astro";
 import { getGameBySlug } from "@lib/server/data/games";
 import {
   getSettingsFormComponent,
@@ -10,6 +11,8 @@ import {
 import { getSession } from "@lib/server/auth/session";
 import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
 import { isTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
+import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
+import { isScoreTrainingSession } from "@lib/shared/games/score-training/session";
 
 const { game: slug } = Astro.params;
 
@@ -36,6 +39,14 @@ if (slug === "ten-up-one-down") {
     hasActiveSession = isTenUpOneDownSession(activeSession);
   }
 }
+
+if (slug === "score-training") {
+  const auth = await getSession(Astro.cookies);
+  if (auth.isLoggedIn && auth.username) {
+    const activeSession = await getScoreTrainingSession(auth.username);
+    hasActiveSession = isScoreTrainingSession(activeSession);
+  }
+}
 ---
 
 <AppLayout>
@@ -44,6 +55,10 @@ if (slug === "ten-up-one-down") {
       <TenUpOneDownSettingsShell game={game} hasActiveSession={hasActiveSession}>
         <SettingsForm />
       </TenUpOneDownSettingsShell>
+    ) : slug === "score-training" ? (
+      <ScoreTrainingSettingsShell game={game} hasActiveSession={hasActiveSession}>
+        <SettingsForm />
+      </ScoreTrainingSettingsShell>
     ) : (
       <GameSettingsShell game={game}>
         <SettingsForm />
