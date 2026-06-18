@@ -49,4 +49,12 @@ describe("score-training play page assembly", () => {
     const source = readSource("src/lib/client/alpine/app.factory.ts");
     expect(source).toContain('Alpine.data("scoreTrainingPlay", scoreTrainingPlay);');
   });
+
+  it("guards summary bindings when summary is null before game completes", () => {
+    const source = readSource("src/components/games/score-training/Summary.astro");
+
+    expect(source).toContain("?.totalScore ?? 0");
+    expect(source).toContain("?.roundsPlayed ?? 0");
+    expect(source).toContain("?.dartsThrown ?? 0");
+  });
 });

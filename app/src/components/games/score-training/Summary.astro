@@ -1,18 +1,14 @@
 ---
 interface Props {
   showSummaryModel?: string;
-  totalScoreModel?: string;
+  summaryModel?: string;
   summaryAverageDisplayModel?: string;
-  roundsPlayedModel?: string;
-  dartsThrownModel?: string;
 }
 
 const {
   showSummaryModel = "showSummary",
-  totalScoreModel = "summary.totalScore",
+  summaryModel = "summary",
   summaryAverageDisplayModel = "summaryAverageDisplay",
-  roundsPlayedModel = "summary.roundsPlayed",
-  dartsThrownModel = "summary.dartsThrown",
 } = Astro.props;
 ---
 
@@ -24,13 +20,13 @@ const {
   <h2 class="text-xl font-semibold">Game Complete</h2>
   <dl class="grid grid-cols-2 gap-3 text-sm">
     <dt class="text-text-muted">Total score</dt>
-    <dd x-text={totalScoreModel}></dd>
+    <dd x-text={`${summaryModel}?.totalScore ?? 0`}>0</dd>
     <dt class="text-text-muted">3-dart average</dt>
     <dd x-text={summaryAverageDisplayModel}></dd>
     <dt class="text-text-muted">Rounds played</dt>
-    <dd x-text={roundsPlayedModel}></dd>
+    <dd x-text={`${summaryModel}?.roundsPlayed ?? 0`}>0</dd>
     <dt class="text-text-muted">Darts thrown</dt>
-    <dd x-text={dartsThrownModel}></dd>
+    <dd x-text={`${summaryModel}?.dartsThrown ?? 0`}>0</dd>
   </dl>
   <a href="/games" class="btn-primary text-center">Back to games</a>
 </article>
