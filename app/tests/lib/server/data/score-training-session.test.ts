@@ -76,7 +76,7 @@ describe("score-training session data layer", () => {
     expect(session?.state.currentScore).toBe(45);
   });
 
-  it("returns null for legacy config blobs", async () => {
+  it("returns null for legacy config-only shapes", async () => {
     mockDb.tables.gameSessions.set(sessionScopedKey("alex", "score-training"), {
       userId: "alex",
       gameSlug: "score-training",
