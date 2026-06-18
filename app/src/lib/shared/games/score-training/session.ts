@@ -21,7 +21,7 @@ export type ScoreTrainingSession = {
 };
 
 /**
- * Runtime guard for blob-loaded session documents (rejects legacy config blobs).
+ * Runtime guard for persisted session documents (rejects legacy config-only shapes).
  */
 export function isScoreTrainingSession(value: unknown): value is ScoreTrainingSession {
   if (!value || typeof value !== "object") return false;
