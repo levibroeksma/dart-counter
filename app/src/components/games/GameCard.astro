@@ -2,7 +2,7 @@
 import Card from "@components/ui/Card.astro";
 import { settingsPath } from "@lib/shared/games/paths";
 import type { GameType } from "@lib/shared/games/types";
-
+import DartIcon from "@icons/dart.svg";
 interface Props {
   game: GameType;
 }
@@ -11,7 +11,8 @@ const { game } = Astro.props;
 ---
 
 <Card>
-  <a href={settingsPath(game.slug)} class="game-card-link block font-medium text-text-primary">
+  <a href={settingsPath(game.slug)} class="game-card-link inline-flex items-center justify-between gap-2 w-full block font-medium text-text-primary">
     {game.displayName}
+    <DartIcon class="size-6 text-text-muted -rotate-45" />
   </a>
 </Card>
