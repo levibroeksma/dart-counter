@@ -1,5 +1,5 @@
 /** Prefix for all Neon Auth cookies (matches @neondatabase/auth SDK). */
-export const NEON_AUTH_COOKIE_PREFIX = "__Secure-neon-auth";
+const NEON_AUTH_COOKIE_PREFIX = "__Secure-neon-auth";
 
 const PROXY_REQUEST_HEADERS = [
   "user-agent",
@@ -23,7 +23,7 @@ export type NeonProxyConfig = {
  * Extract Neon Auth cookies from a Cookie header (prefix-filtered).
  * @param cookieHeader - Raw Cookie header value
  */
-export function extractNeonAuthCookies(cookieHeader: string | null): string {
+function extractNeonAuthCookies(cookieHeader: string | null): string {
   if (!cookieHeader) return "";
   const pairs: string[] = [];
   for (const part of cookieHeader.split(";")) {

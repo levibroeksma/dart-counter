@@ -50,14 +50,3 @@ export function solveCheckoutConstraints(target: number): CheckoutConstraint | n
   return { minFinish, maxFinish };
 }
 
-/**
- * Build the full constraints table for scores 2–170.
- */
-export function buildCheckoutConstraintsTable(): Record<number, CheckoutConstraint> {
-  const table: Record<number, CheckoutConstraint> = {};
-  for (let score = 2; score <= 170; score++) {
-    const constraint = solveCheckoutConstraints(score);
-    if (constraint) table[score] = constraint;
-  }
-  return table;
-}

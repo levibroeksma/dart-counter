@@ -10,7 +10,7 @@ import {
  * Merge stored catalog with SEED_GAMES metadata by slug.
  * Seed entries win on conflict; unknown stored entries are preserved at the end.
  */
-export function reconcileCatalog(stored: GameType[]): GameType[] {
+function reconcileCatalog(stored: GameType[]): GameType[] {
   const bySlug = new Map(stored.map((game) => [game.slug, game]));
   const seedSlugs = new Set(SEED_GAMES.map((game) => game.slug));
 

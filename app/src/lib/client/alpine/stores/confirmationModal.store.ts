@@ -1,6 +1,6 @@
 import type { Alpine } from "alpinejs";
 
-export type OpenOptions = {
+type OpenOptions = {
   title: string;
   message: string;
   onConfirm: () => void;

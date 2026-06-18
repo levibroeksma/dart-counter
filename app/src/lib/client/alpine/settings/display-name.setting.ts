@@ -3,7 +3,7 @@ import { MessageCode } from "@lib/shared/constants/errors.constants";
 import { t } from "@lib/shared/i18n";
 import { validateDisplayName } from "@lib/shared/validation/display-name";
 
-export type DisplayNameMode = "empty" | "view" | "edit";
+type DisplayNameMode = "empty" | "view" | "edit";
 
 interface DisplayNameSettingState {
   displayName: string;

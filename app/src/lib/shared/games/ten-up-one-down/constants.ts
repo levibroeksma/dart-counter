@@ -1,6 +1,5 @@
 export const STARTING_TARGET = 41;
 export const DARTS_PER_ROUND = 3;
-export const PLAYER_COUNT = 1;
 export const MIN_TARGET = 2;
 export const MAX_TARGET = 170;
 export const SUCCESS_DELTA = 10;

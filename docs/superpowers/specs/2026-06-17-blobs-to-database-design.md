@@ -1,5 +1,7 @@
 # Blobs → Netlify Database Migration — Design Spec
 
+> **Superseded (2026-06-18):** Migration tasks are complete on branch `blob-to-database-migration`; the current source of truth is the implemented app code and follow-up cleanup commit `chore(db): remove Netlify Blobs and triage fallow dead-code findings`.
+
 > Input for `writing-plans` skill.
 
 **Date:** 2026-06-17  

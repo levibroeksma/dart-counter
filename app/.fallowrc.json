@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "dynamicallyLoaded": ["src/lib/client/alpine/app.factory.ts"],
+  "ignoreDependencies": [
+    "@astrojs/alpinejs",
+    "@astrojs/netlify",
+    "@tailwindcss/vite",
+    "@neondatabase/serverless",
+    "prettier-plugin-astro",
+    "prettier-plugin-tailwindcss",
+    "@icons/backspace.svg",
+    "@icons/leave.svg",
+    "@icons/undo.svg"
+  ],
+  "rules": {
+    "duplicate-exports": "off"
+  }
+}
