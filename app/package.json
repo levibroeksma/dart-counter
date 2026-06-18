@@ -16,7 +16,7 @@
     "seed:auth": "npx tsx scripts/seed-neon-auth-user.ts",
     "deploy": "netlify deploy --prod",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "npx tsx scripts/db-migrate.ts"
   },
   "dependencies": {
     "@astrojs/alpinejs": "^0.5.0",
