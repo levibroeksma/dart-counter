@@ -21,7 +21,7 @@ export type TenUpOneDownSession = {
 };
 
 /**
- * Runtime guard for blob-loaded session documents (rejects legacy config blobs).
+ * Runtime guard for persisted session documents (rejects legacy config-only shapes).
  */
 export function isTenUpOneDownSession(value: unknown): value is TenUpOneDownSession {
   if (!value || typeof value !== "object") return false;
