@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import "@tests/helpers/mock-db";
-import { mockDb } from "@tests/helpers/mock-db";
+import { mockDb, TEST_ENTRY_ENV, userScopedKey } from "@tests/helpers/mock-db";
 import { TEST_USER_ID } from "@tests/helpers/constants";
 import { createEmptyPlayerDartStats } from "@lib/shared/stats/double-stats";
 
@@ -23,8 +23,9 @@ describe("player-dart-stats data layer", () => {
   });
 
   it("returns stored stats when found", async () => {
-    mockDb.tables.playerDartStats.set(TEST_USER_ID, {
+    mockDb.tables.playerDartStats.set(userScopedKey(TEST_USER_ID), {
       userId: TEST_USER_ID,
+      entryEnv: TEST_ENTRY_ENV,
       doubleAttempts: 12,
       doubleHits: 6,
       totalCheckouts: 4,
@@ -44,8 +45,9 @@ describe("player-dart-stats data layer", () => {
 
     await savePlayerDartStats(TEST_USER_ID, stats);
 
-    expect(mockDb.tables.playerDartStats.get(TEST_USER_ID)).toEqual({
+    expect(mockDb.tables.playerDartStats.get(userScopedKey(TEST_USER_ID))).toEqual({
       userId: TEST_USER_ID,
+      entryEnv: TEST_ENTRY_ENV,
       doubleAttempts: 10,
       doubleHits: 0,
       totalCheckouts: 5,
