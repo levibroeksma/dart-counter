@@ -81,7 +81,7 @@ describe("singles-training session data layer", () => {
     expect(session?.state.score).toBe(4);
   });
 
-  it("returns null for invalid blob shape", async () => {
+  it("returns null for invalid session shape", async () => {
     mockDb.tables.gameSessions.set(sessionScopedKey("alex", "singles-training"), {
       userId: "alex",
       gameSlug: "singles-training",
