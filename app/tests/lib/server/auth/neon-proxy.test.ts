@@ -12,6 +12,29 @@ describe("proxyNeonAuthUpstream", () => {
     vi.unstubAllGlobals();
   });
 
+  it("uses URL env as Origin on Netlify instead of internal request.url", async () => {
+    process.env.URL = "https://my-dart-counter.netlify.app";
+    const mockFetch = vi.mocked(fetch);
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    const request = new Request("http://127.0.0.1:9999/.netlify/functions/ssr", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "a@b.com", password: "secret" }),
+    });
+
+    await proxyNeonAuthUpstream(request, "sign-in/email", { baseUrl: BASE_URL });
+
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const upstreamHeaders = new Headers(init.headers);
+    expect(upstreamHeaders.get("origin")).toBe("https://my-dart-counter.netlify.app");
+    expect(upstreamHeaders.get("referer")).toBe("https://my-dart-counter.netlify.app/");
+
+    delete process.env.URL;
+  });
+
   it("forwards Neon Auth cookies and POST body to upstream URL", async () => {
     const mockFetch = vi.mocked(fetch);
     mockFetch.mockResolvedValue(
