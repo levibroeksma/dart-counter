@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { ENTRY_ENV } from "@lib/shared/constants/entry-env";
 import {
   userPreferences,
   gameCatalog,
@@ -27,6 +28,20 @@ const tables = {
   playerSinglesTrainingStats: new Map<string, PlayerSinglesTrainingStatsRow>(),
 };
 
+export const TEST_ENTRY_ENV = ENTRY_ENV.DEV;
+
+export function userScopedKey(userId: string): string {
+  return scopedKey(userId, TEST_ENTRY_ENV);
+}
+
+export function sessionScopedKey(userId: string, gameSlug: string): string {
+  return scopedKey(userId, gameSlug, TEST_ENTRY_ENV);
+}
+
+export function playCountScopedKey(userId: string, gameSlug: string): string {
+  return scopedKey(userId, gameSlug, TEST_ENTRY_ENV);
+}
+
 export const mockDb = {
   tables,
   reset() {
@@ -40,12 +55,8 @@ export const mockDb = {
   },
 };
 
-function playCountKey(userId: string, gameSlug: string): string {
-  return `${userId}:${gameSlug}`;
-}
-
-function gameSessionKey(userId: string, gameSlug: string): string {
-  return `${userId}:${gameSlug}`;
+function scopedKey(...parts: string[]): string {
+  return parts.join(":");
 }
 
 function extractEqValues(filter: unknown): string[] {
@@ -102,35 +113,51 @@ function filterRowsByEq(table: unknown, filter: unknown): unknown[] {
   if (eqValues.length === 0) return getTableRows(table);
 
   if (table === userPreferences) {
-    const row = tables.userPreferences.get(eqValues[0]!);
+    const [entryEnv, userId] = eqValues;
+    if (!entryEnv || !userId) return getTableRows(table);
+    const row = tables.userPreferences.get(scopedKey(userId, entryEnv));
     return row ? [row] : [];
   }
 
+  if (table === gameCatalog) {
+    const [entryEnv] = eqValues;
+    if (!entryEnv) return getTableRows(table);
+    return [...tables.gameCatalog.values()].filter((row) => row.entryEnv === entryEnv);
+  }
+
   if (table === userGamePlayCounts) {
+    const [entryEnv, userId] = eqValues;
+    if (!entryEnv || !userId) return getTableRows(table);
     return [...tables.userGamePlayCounts.values()].filter(
-      (row) => row.userId === eqValues[0],
+      (row) => row.entryEnv === entryEnv && row.userId === userId,
     );
   }
 
   if (table === gameSessions) {
-    const [userId, gameSlug] = eqValues;
-    if (!userId || !gameSlug) return [...tables.gameSessions.values()];
-    const row = tables.gameSessions.get(gameSessionKey(userId, gameSlug));
+    const [entryEnv, userId, gameSlug] = eqValues;
+    if (!entryEnv || !userId || !gameSlug) return [...tables.gameSessions.values()];
+    const row = tables.gameSessions.get(scopedKey(userId, gameSlug, entryEnv));
     return row ? [row] : [];
   }
 
   if (table === playerDartStats) {
-    const row = tables.playerDartStats.get(eqValues[0]!);
+    const [entryEnv, userId] = eqValues;
+    if (!entryEnv || !userId) return getTableRows(table);
+    const row = tables.playerDartStats.get(scopedKey(userId, entryEnv));
     return row ? [row] : [];
   }
 
   if (table === playerScoreTrainingStats) {
-    const row = tables.playerScoreTrainingStats.get(eqValues[0]!);
+    const [entryEnv, userId] = eqValues;
+    if (!entryEnv || !userId) return getTableRows(table);
+    const row = tables.playerScoreTrainingStats.get(scopedKey(userId, entryEnv));
     return row ? [row] : [];
   }
 
   if (table === playerSinglesTrainingStats) {
-    const row = tables.playerSinglesTrainingStats.get(eqValues[0]!);
+    const [entryEnv, userId] = eqValues;
+    if (!entryEnv || !userId) return getTableRows(table);
+    const row = tables.playerSinglesTrainingStats.get(scopedKey(userId, entryEnv));
     return row ? [row] : [];
   }
 
@@ -141,7 +168,10 @@ function insertRows(table: unknown, rows: unknown | unknown[]): void {
   const list = Array.isArray(rows) ? rows : [rows];
   if (table === userPreferences) {
     for (const row of list as UserPreferencesRow[]) {
-      tables.userPreferences.set(row.userId, row);
+      tables.userPreferences.set(
+        scopedKey(row.userId, row.entryEnv ?? ENTRY_ENV.DEV),
+        row,
+      );
     }
   } else if (table === gameCatalog) {
     for (const row of list as GameCatalogRow[]) {
@@ -149,26 +179,38 @@ function insertRows(table: unknown, rows: unknown | unknown[]): void {
     }
   } else if (table === gameSessions) {
     for (const row of list as GameSessionsRow[]) {
-      tables.gameSessions.set(gameSessionKey(row.userId, row.gameSlug), row);
+      tables.gameSessions.set(
+        scopedKey(row.userId, row.gameSlug, row.entryEnv ?? ENTRY_ENV.DEV),
+        row,
+      );
     }
   } else if (table === userGamePlayCounts) {
     for (const row of list as UserGamePlayCountsRow[]) {
       tables.userGamePlayCounts.set(
-        playCountKey(row.userId, row.gameSlug),
+        scopedKey(row.userId, row.gameSlug, row.entryEnv ?? ENTRY_ENV.DEV),
         row,
       );
     }
   } else if (table === playerDartStats) {
     for (const row of list as PlayerDartStatsRow[]) {
-      tables.playerDartStats.set(row.userId, row);
+      tables.playerDartStats.set(
+        scopedKey(row.userId, row.entryEnv ?? ENTRY_ENV.DEV),
+        row,
+      );
     }
   } else if (table === playerScoreTrainingStats) {
     for (const row of list as PlayerScoreTrainingStatsRow[]) {
-      tables.playerScoreTrainingStats.set(row.userId, row);
+      tables.playerScoreTrainingStats.set(
+        scopedKey(row.userId, row.entryEnv ?? ENTRY_ENV.DEV),
+        row,
+      );
     }
   } else if (table === playerSinglesTrainingStats) {
     for (const row of list as PlayerSinglesTrainingStatsRow[]) {
-      tables.playerSinglesTrainingStats.set(row.userId, row);
+      tables.playerSinglesTrainingStats.set(
+        scopedKey(row.userId, row.entryEnv ?? ENTRY_ENV.DEV),
+        row,
+      );
     }
   }
 }
@@ -180,21 +222,31 @@ function upsertRow(
 ): void {
   if (table === userPreferences) {
     const r = row as UserPreferencesRow;
-    tables.userPreferences.set(r.userId, { ...r, ...set } as UserPreferencesRow);
+    const entryEnv = r.entryEnv ?? ENTRY_ENV.DEV;
+    tables.userPreferences.set(scopedKey(r.userId, entryEnv), {
+      ...r,
+      entryEnv,
+      ...set,
+    } as UserPreferencesRow);
   } else if (table === gameCatalog) {
     const r = row as GameCatalogRow;
     tables.gameCatalog.set(r.slug, { ...r, ...set } as GameCatalogRow);
   } else if (table === gameSessions) {
     const r = row as GameSessionsRow;
-    const key = gameSessionKey(r.userId, r.gameSlug);
+    const entryEnv = r.entryEnv ?? ENTRY_ENV.DEV;
+    const key = scopedKey(r.userId, r.gameSlug, entryEnv);
     const existing = tables.gameSessions.get(key);
-    tables.gameSessions.set(
-      key,
-      { ...(existing ?? r), ...set, userId: r.userId, gameSlug: r.gameSlug } as GameSessionsRow,
-    );
+    tables.gameSessions.set(key, {
+      ...(existing ?? r),
+      ...set,
+      userId: r.userId,
+      gameSlug: r.gameSlug,
+      entryEnv,
+    } as GameSessionsRow);
   } else if (table === userGamePlayCounts) {
     const r = row as UserGamePlayCountsRow;
-    const key = playCountKey(r.userId, r.gameSlug);
+    const entryEnv = r.entryEnv ?? ENTRY_ENV.DEV;
+    const key = scopedKey(r.userId, r.gameSlug, entryEnv);
     const existing = tables.userGamePlayCounts.get(key);
     if (existing) {
       const updated = { ...existing };
@@ -211,37 +263,42 @@ function upsertRow(
     }
   } else if (table === playerDartStats) {
     const r = row as PlayerDartStatsRow;
-    const existing = tables.playerDartStats.get(r.userId);
-    tables.playerDartStats.set(
-      r.userId,
-      { ...(existing ?? r), ...set, userId: r.userId } as PlayerDartStatsRow,
-    );
+    const entryEnv = r.entryEnv ?? ENTRY_ENV.DEV;
+    const existing = tables.playerDartStats.get(scopedKey(r.userId, entryEnv));
+    tables.playerDartStats.set(scopedKey(r.userId, entryEnv), {
+      ...(existing ?? r),
+      ...set,
+      userId: r.userId,
+      entryEnv,
+    } as PlayerDartStatsRow);
   } else if (table === playerScoreTrainingStats) {
     const r = row as PlayerScoreTrainingStatsRow;
-    const existing = tables.playerScoreTrainingStats.get(r.userId);
-    tables.playerScoreTrainingStats.set(
-      r.userId,
-      { ...(existing ?? r), ...set, userId: r.userId } as PlayerScoreTrainingStatsRow,
-    );
+    const entryEnv = r.entryEnv ?? ENTRY_ENV.DEV;
+    const existing = tables.playerScoreTrainingStats.get(scopedKey(r.userId, entryEnv));
+    tables.playerScoreTrainingStats.set(scopedKey(r.userId, entryEnv), {
+      ...(existing ?? r),
+      ...set,
+      userId: r.userId,
+      entryEnv,
+    } as PlayerScoreTrainingStatsRow);
   } else if (table === playerSinglesTrainingStats) {
     const r = row as PlayerSinglesTrainingStatsRow;
-    const existing = tables.playerSinglesTrainingStats.get(r.userId);
-    tables.playerSinglesTrainingStats.set(
-      r.userId,
-      {
-        ...(existing ?? r),
-        ...set,
-        userId: r.userId,
-      } as PlayerSinglesTrainingStatsRow,
-    );
+    const entryEnv = r.entryEnv ?? ENTRY_ENV.DEV;
+    const existing = tables.playerSinglesTrainingStats.get(scopedKey(r.userId, entryEnv));
+    tables.playerSinglesTrainingStats.set(scopedKey(r.userId, entryEnv), {
+      ...(existing ?? r),
+      ...set,
+      userId: r.userId,
+      entryEnv,
+    } as PlayerSinglesTrainingStatsRow);
   }
 }
 
 function deleteRows(table: unknown, filter: unknown): void {
   if (table === gameSessions) {
-    const [userId, gameSlug] = extractEqValues(filter);
-    if (!userId || !gameSlug) return;
-    tables.gameSessions.delete(gameSessionKey(userId, gameSlug));
+    const [entryEnv, userId, gameSlug] = extractEqValues(filter);
+    if (!entryEnv || !userId || !gameSlug) return;
+    tables.gameSessions.delete(scopedKey(userId, gameSlug, entryEnv));
   }
 }
 
