@@ -1,13 +1,10 @@
-import { getStore } from "@netlify/blobs";
-import { eq, sql } from "drizzle-orm";
-import { db, gameCatalog, userGamePlayCounts } from "@db/index";
+import { and, eq, sql } from "drizzle-orm";
+import { db, gameCatalog, gameSessions, userGamePlayCounts } from "@db/index";
 import {
   SEED_GAMES,
   type GameConfig,
   type GameType,
 } from "@lib/shared/games/types";
-
-const SESSIONS_STORE = "game-sessions";
 
 /**
  * Merge stored catalog with SEED_GAMES metadata by slug.
@@ -141,13 +138,24 @@ export async function saveGameConfig(
   slug: string,
   settings: Record<string, unknown>
 ): Promise<GameConfig> {
+  const now = new Date();
   const config: GameConfig = {
     slug,
     settings,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now.toISOString(),
   };
-  const store = getStore(SESSIONS_STORE);
-  await store.setJSON(`${userId}:${slug}`, config);
+  await db
+    .insert(gameSessions)
+    .values({
+      userId,
+      gameSlug: slug,
+      sessionData: config,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [gameSessions.userId, gameSessions.gameSlug],
+      set: { sessionData: config, updatedAt: new Date() },
+    });
   return config;
 }
 
@@ -158,9 +166,18 @@ export async function getGameConfig(
   userId: string,
   slug: string
 ): Promise<GameConfig | null> {
-  const store = getStore(SESSIONS_STORE);
-  const data = await store.get(`${userId}:${slug}`, { type: "json" });
-  return (data as GameConfig | null) ?? null;
+  const rows = await db
+    .select()
+    .from(gameSessions)
+    .where(
+      and(eq(gameSessions.userId, userId), eq(gameSessions.gameSlug, slug))
+    )
+    .limit(1);
+  const data = rows[0]?.sessionData;
+  if (!data || typeof data !== "object") return null;
+  const record = data as Record<string, unknown>;
+  if (!record.settings || typeof record.settings !== "object") return null;
+  return data as GameConfig;
 }
 
 /**

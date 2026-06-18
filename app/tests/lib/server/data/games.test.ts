@@ -1,14 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const mockGet = vi.fn();
-const mockSetJSON = vi.fn();
-
-vi.mock("@netlify/blobs", () => ({
-  getStore: vi.fn((name: string) => ({
-    get: (...args: unknown[]) => mockGet(name, ...args),
-    setJSON: (...args: unknown[]) => mockSetJSON(name, ...args),
-  })),
-}));
+import { describe, it, expect, beforeEach } from "vitest";
 
 import "@tests/helpers/mock-db";
 import { mockDb } from "@tests/helpers/mock-db";
@@ -51,8 +41,6 @@ function seedCatalog(games: GameType[] = SEED_GAMES): void {
 describe("games data layer", () => {
   beforeEach(() => {
     mockDb.reset();
-    mockGet.mockReset();
-    mockSetJSON.mockReset();
   });
 
   it("seeds catalog when store is empty", async () => {
@@ -113,22 +101,11 @@ describe("games data layer", () => {
   });
 
   it("saveGameConfig and getGameConfig round-trip", async () => {
-    const saved: Record<string, unknown> = {};
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-sessions" && key === "alex:501") {
-        return Promise.resolve(saved[key] ?? null);
-      }
-      return Promise.resolve(null);
-    });
-    mockSetJSON.mockImplementation((store: string, key: string, value: unknown) => {
-      if (store === "game-sessions") saved[key] = value;
-      return Promise.resolve();
-    });
-
     await saveGameConfig("alex", "501", { startingScore: 501 });
     const config = await getGameConfig("alex", "501");
     expect(config?.settings).toEqual({ startingScore: 501 });
     expect(config?.slug).toBe("501");
+    expect(mockDb.tables.gameSessions.get("alex:501")?.gameSlug).toBe("501");
   });
 
   it("incrementPlayCount updates user stats", async () => {

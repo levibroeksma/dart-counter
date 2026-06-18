@@ -1,4 +1,5 @@
-import { getStore } from "@netlify/blobs";
+import { and, eq } from "drizzle-orm";
+import { db, gameSessions } from "@db/index";
 import { createInitialGameState } from "@lib/shared/games/ten-up-one-down/state";
 import {
   isTenUpOneDownSession,
@@ -6,12 +7,7 @@ import {
 } from "@lib/shared/games/ten-up-one-down/session";
 import type { TenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/settings";
 
-const STORE_NAME = "game-sessions";
 const GAME_SLUG = "ten-up-one-down";
-
-function sessionKey(userId: string): string {
-  return `${userId}:${GAME_SLUG}`;
-}
 
 /**
  * Reads the active Ten Up One Down session for a user.
@@ -19,8 +15,14 @@ function sessionKey(userId: string): string {
 export async function getTenUpOneDownSession(
   userId: string
 ): Promise<TenUpOneDownSession | null> {
-  const store = getStore(STORE_NAME);
-  const data = await store.get(sessionKey(userId), { type: "json" });
+  const rows = await db
+    .select()
+    .from(gameSessions)
+    .where(
+      and(eq(gameSessions.userId, userId), eq(gameSessions.gameSlug, GAME_SLUG))
+    )
+    .limit(1);
+  const data = rows[0]?.sessionData;
   if (!isTenUpOneDownSession(data)) return null;
   return data;
 }
@@ -32,19 +34,33 @@ export async function saveTenUpOneDownSession(
   userId: string,
   session: TenUpOneDownSession
 ): Promise<void> {
-  const store = getStore(STORE_NAME);
-  await store.setJSON(sessionKey(userId), {
+  const updatedSession: TenUpOneDownSession = {
     ...session,
     updatedAt: new Date().toISOString(),
-  });
+  };
+  await db
+    .insert(gameSessions)
+    .values({
+      userId,
+      gameSlug: GAME_SLUG,
+      sessionData: updatedSession,
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [gameSessions.userId, gameSessions.gameSlug],
+      set: { sessionData: updatedSession, updatedAt: new Date() },
+    });
 }
 
 /**
  * Removes the active Ten Up One Down session for a user.
  */
 export async function deleteTenUpOneDownSession(userId: string): Promise<void> {
-  const store = getStore(STORE_NAME);
-  await store.delete(sessionKey(userId));
+  await db
+    .delete(gameSessions)
+    .where(
+      and(eq(gameSessions.userId, userId), eq(gameSessions.gameSlug, GAME_SLUG))
+    );
 }
 
 /**

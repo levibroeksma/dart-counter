@@ -1,20 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { createEmptySinglesTrainingStats } from "@lib/shared/games/singles-training/stats";
 import "@tests/helpers/mock-db";
 import { mockDb } from "@tests/helpers/mock-db";
 import { TEST_USER_ID } from "@tests/helpers/constants";
-
-const mockGet = vi.fn();
-const mockSetJSON = vi.fn();
-const mockDelete = vi.fn();
-
-vi.mock("@netlify/blobs", () => ({
-  getStore: vi.fn(() => ({
-    get: (...args: unknown[]) => mockGet(...args),
-    setJSON: (...args: unknown[]) => mockSetJSON(...args),
-    delete: (...args: unknown[]) => mockDelete(...args),
-  })),
-}));
 
 import {
   createSinglesTrainingSession,
@@ -29,14 +17,10 @@ import {
 
 describe("singles-training session data layer", () => {
   beforeEach(() => {
-    mockGet.mockReset();
-    mockSetJSON.mockReset();
-    mockDelete.mockReset();
+    mockDb.reset();
   });
 
   it("creates session with initial state and target sequence", async () => {
-    mockSetJSON.mockResolvedValue(undefined);
-
     const session = await createSinglesTrainingSession("alex", {
       direction: "low-to-high",
       mode: "normal",
@@ -49,36 +33,45 @@ describe("singles-training session data layer", () => {
     expect(session.state.currentDartInVisit).toBe(0);
     expect(session.state.score).toBe(0);
     expect(session.targetSequence).toEqual([...Array.from({ length: 20 }, (_, i) => i + 1), "bull"]);
-    expect(mockSetJSON).toHaveBeenCalledWith(
-      "alex:singles-training",
-      expect.any(Object)
+    expect(mockDb.tables.gameSessions.get("alex:singles-training")).toEqual(
+      expect.objectContaining({
+        userId: "alex",
+        gameSlug: "singles-training",
+        sessionData: expect.objectContaining({ slug: "singles-training" }),
+      }),
     );
   });
 
   it("gets existing session", async () => {
-    mockGet.mockResolvedValue({
-      slug: "singles-training",
-      settings: {
-        direction: "high-to-low",
-        mode: "hard",
-        scoring: "uniform",
-      },
-      targetSequence: ["bull", 20, 19],
-      state: {
-        status: "active",
-        currentTargetIndex: 1,
-        currentDartInVisit: 2,
-        score: 4,
-        segmentCounts: {
-          miss: 1,
-          single: 2,
-          double: 0,
-          triple: 0,
+    mockDb.tables.gameSessions.set("alex:singles-training", {
+      userId: "alex",
+      gameSlug: "singles-training",
+      sessionData: {
+        slug: "singles-training",
+        settings: {
+          direction: "high-to-low",
+          mode: "hard",
+          scoring: "uniform",
         },
+        targetSequence: ["bull", 20, 19],
+        state: {
+          status: "active",
+          currentTargetIndex: 1,
+          currentDartInVisit: 2,
+          score: 4,
+          segmentCounts: {
+            miss: 1,
+            single: 2,
+            double: 0,
+            triple: 0,
+          },
+        },
+        dartHistory: [],
+        createdAt: "",
+        updatedAt: "",
       },
-      dartHistory: [],
-      createdAt: "",
-      updatedAt: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     const session = await getSinglesTrainingSession("alex");
@@ -88,18 +81,22 @@ describe("singles-training session data layer", () => {
   });
 
   it("returns null for invalid blob shape", async () => {
-    mockGet.mockResolvedValue({
-      slug: "singles-training",
-      settings: { mode: "normal" },
-      updatedAt: "2026-01-01T00:00:00.000Z",
+    mockDb.tables.gameSessions.set("alex:singles-training", {
+      userId: "alex",
+      gameSlug: "singles-training",
+      sessionData: {
+        slug: "singles-training",
+        settings: { mode: "normal" },
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     await expect(getSinglesTrainingSession("alex")).resolves.toBeNull();
   });
 
   it("saves session", async () => {
-    mockSetJSON.mockResolvedValue(undefined);
-
     await saveSinglesTrainingSession("alex", {
       slug: "singles-training",
       settings: {
@@ -125,27 +122,38 @@ describe("singles-training session data layer", () => {
       updatedAt: "2026-06-14T00:00:00.000Z",
     });
 
-    expect(mockSetJSON).toHaveBeenCalledWith(
-      "alex:singles-training",
-      expect.objectContaining({ slug: "singles-training" })
+    expect(
+      mockDb.tables.gameSessions.get("alex:singles-training")?.sessionData,
+    ).toEqual(
+      expect.objectContaining({ slug: "singles-training" }),
     );
   });
 
   it("deletes session", async () => {
-    mockDelete.mockResolvedValue(undefined);
+    mockDb.tables.gameSessions.set("alex:singles-training", {
+      userId: "alex",
+      gameSlug: "singles-training",
+      sessionData: {
+        slug: "singles-training",
+        settings: {
+          direction: "low-to-high",
+          mode: "normal",
+          scoring: "traditional",
+        },
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     await deleteSinglesTrainingSession("alex");
 
-    expect(mockDelete).toHaveBeenCalledWith("alex:singles-training");
+    expect(mockDb.tables.gameSessions.get("alex:singles-training")).toBeUndefined();
   });
 });
 
 describe("player-singles-training-stats data layer", () => {
   beforeEach(() => {
     mockDb.reset();
-    mockGet.mockReset();
-    mockSetJSON.mockReset();
-    mockDelete.mockReset();
   });
 
   it("returns empty stats when none stored", async () => {

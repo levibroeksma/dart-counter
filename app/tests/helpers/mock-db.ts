@@ -2,6 +2,7 @@ import { vi } from "vitest";
 import {
   userPreferences,
   gameCatalog,
+  gameSessions,
   userGamePlayCounts,
   playerDartStats,
   playerScoreTrainingStats,
@@ -10,6 +11,7 @@ import {
 
 type UserPreferencesRow = typeof userPreferences.$inferSelect;
 type GameCatalogRow = typeof gameCatalog.$inferSelect;
+type GameSessionsRow = typeof gameSessions.$inferSelect;
 type UserGamePlayCountsRow = typeof userGamePlayCounts.$inferSelect;
 type PlayerDartStatsRow = typeof playerDartStats.$inferSelect;
 type PlayerScoreTrainingStatsRow = typeof playerScoreTrainingStats.$inferSelect;
@@ -18,6 +20,7 @@ type PlayerSinglesTrainingStatsRow = typeof playerSinglesTrainingStats.$inferSel
 const tables = {
   userPreferences: new Map<string, UserPreferencesRow>(),
   gameCatalog: new Map<string, GameCatalogRow>(),
+  gameSessions: new Map<string, GameSessionsRow>(),
   userGamePlayCounts: new Map<string, UserGamePlayCountsRow>(),
   playerDartStats: new Map<string, PlayerDartStatsRow>(),
   playerScoreTrainingStats: new Map<string, PlayerScoreTrainingStatsRow>(),
@@ -29,6 +32,7 @@ export const mockDb = {
   reset() {
     tables.userPreferences.clear();
     tables.gameCatalog.clear();
+    tables.gameSessions.clear();
     tables.userGamePlayCounts.clear();
     tables.playerDartStats.clear();
     tables.playerScoreTrainingStats.clear();
@@ -40,38 +44,38 @@ function playCountKey(userId: string, gameSlug: string): string {
   return `${userId}:${gameSlug}`;
 }
 
-function extractEqValue(filter: unknown): string | undefined {
-  const visit = (node: unknown): string | undefined => {
-    if (typeof node === "string") {
-      return node;
-    }
-    if (!node || typeof node !== "object") return undefined;
+function gameSessionKey(userId: string, gameSlug: string): string {
+  return `${userId}:${gameSlug}`;
+}
+
+function extractEqValues(filter: unknown): string[] {
+  const values: string[] = [];
+
+  const visit = (node: unknown): void => {
+    if (!node || typeof node !== "object") return;
 
     if ("value" in node) {
       const value = (node as { value: unknown }).value;
       if (typeof value === "string") {
-        return value;
+        values.push(value);
       }
     }
 
     if ("queryChunks" in node) {
       for (const chunk of (node as { queryChunks: unknown[] }).queryChunks) {
-        const found = visit(chunk);
-        if (found) return found;
+        visit(chunk);
       }
     }
 
     if (Array.isArray(node)) {
       for (const item of node) {
-        const found = visit(item);
-        if (found) return found;
+        visit(item);
       }
     }
-
-    return undefined;
   };
 
-  return visit(filter);
+  visit(filter);
+  return values;
 }
 
 function isSqlExpression(val: unknown): boolean {
@@ -81,6 +85,7 @@ function isSqlExpression(val: unknown): boolean {
 function getTableRows(table: unknown): unknown[] {
   if (table === userPreferences) return [...tables.userPreferences.values()];
   if (table === gameCatalog) return [...tables.gameCatalog.values()];
+  if (table === gameSessions) return [...tables.gameSessions.values()];
   if (table === userGamePlayCounts) return [...tables.userGamePlayCounts.values()];
   if (table === playerDartStats) return [...tables.playerDartStats.values()];
   if (table === playerScoreTrainingStats) {
@@ -93,32 +98,39 @@ function getTableRows(table: unknown): unknown[] {
 }
 
 function filterRowsByEq(table: unknown, filter: unknown): unknown[] {
-  const eqValue = extractEqValue(filter);
-  if (!eqValue) return getTableRows(table);
+  const eqValues = extractEqValues(filter);
+  if (eqValues.length === 0) return getTableRows(table);
 
   if (table === userPreferences) {
-    const row = tables.userPreferences.get(eqValue);
+    const row = tables.userPreferences.get(eqValues[0]!);
     return row ? [row] : [];
   }
 
   if (table === userGamePlayCounts) {
     return [...tables.userGamePlayCounts.values()].filter(
-      (row) => row.userId === eqValue,
+      (row) => row.userId === eqValues[0],
     );
   }
 
+  if (table === gameSessions) {
+    const [userId, gameSlug] = eqValues;
+    if (!userId || !gameSlug) return [...tables.gameSessions.values()];
+    const row = tables.gameSessions.get(gameSessionKey(userId, gameSlug));
+    return row ? [row] : [];
+  }
+
   if (table === playerDartStats) {
-    const row = tables.playerDartStats.get(eqValue);
+    const row = tables.playerDartStats.get(eqValues[0]!);
     return row ? [row] : [];
   }
 
   if (table === playerScoreTrainingStats) {
-    const row = tables.playerScoreTrainingStats.get(eqValue);
+    const row = tables.playerScoreTrainingStats.get(eqValues[0]!);
     return row ? [row] : [];
   }
 
   if (table === playerSinglesTrainingStats) {
-    const row = tables.playerSinglesTrainingStats.get(eqValue);
+    const row = tables.playerSinglesTrainingStats.get(eqValues[0]!);
     return row ? [row] : [];
   }
 
@@ -134,6 +146,10 @@ function insertRows(table: unknown, rows: unknown | unknown[]): void {
   } else if (table === gameCatalog) {
     for (const row of list as GameCatalogRow[]) {
       tables.gameCatalog.set(row.slug, row);
+    }
+  } else if (table === gameSessions) {
+    for (const row of list as GameSessionsRow[]) {
+      tables.gameSessions.set(gameSessionKey(row.userId, row.gameSlug), row);
     }
   } else if (table === userGamePlayCounts) {
     for (const row of list as UserGamePlayCountsRow[]) {
@@ -168,6 +184,14 @@ function upsertRow(
   } else if (table === gameCatalog) {
     const r = row as GameCatalogRow;
     tables.gameCatalog.set(r.slug, { ...r, ...set } as GameCatalogRow);
+  } else if (table === gameSessions) {
+    const r = row as GameSessionsRow;
+    const key = gameSessionKey(r.userId, r.gameSlug);
+    const existing = tables.gameSessions.get(key);
+    tables.gameSessions.set(
+      key,
+      { ...(existing ?? r), ...set, userId: r.userId, gameSlug: r.gameSlug } as GameSessionsRow,
+    );
   } else if (table === userGamePlayCounts) {
     const r = row as UserGamePlayCountsRow;
     const key = playCountKey(r.userId, r.gameSlug);
@@ -210,6 +234,14 @@ function upsertRow(
         userId: r.userId,
       } as PlayerSinglesTrainingStatsRow,
     );
+  }
+}
+
+function deleteRows(table: unknown, filter: unknown): void {
+  if (table === gameSessions) {
+    const [userId, gameSlug] = extractEqValues(filter);
+    if (!userId || !gameSlug) return;
+    tables.gameSessions.delete(gameSessionKey(userId, gameSlug));
   }
 }
 
@@ -267,9 +299,15 @@ vi.mock("@db/index", () => ({
         };
       }),
     })),
+    delete: vi.fn((table: unknown) => ({
+      where: vi.fn(async (filter: unknown) => {
+        deleteRows(table, filter);
+      }),
+    })),
   },
   userPreferences,
   gameCatalog,
+  gameSessions,
   userGamePlayCounts,
   playerDartStats,
   playerScoreTrainingStats,

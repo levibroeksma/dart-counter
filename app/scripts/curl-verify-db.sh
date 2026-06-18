@@ -47,4 +47,14 @@ HOME_HTML=$(curl -sf -b "$JAR" -L "$BASE_URL/")
 assert_contains "$HOME_HTML" "Quick Start" "home page SSR"
 assert_contains "$HOME_HTML" "Ten Up One Down" "quick start games from DB"
 
+ORIGIN_HEADER=(-H "Origin: $BASE_URL")
+CONFIG_PUT=$(curl -sf -b "$JAR" -X PUT "$BASE_URL/api/games/ten-up-one-down/config" \
+  "${ORIGIN_HEADER[@]}" \
+  -H "Content-Type: application/json" \
+  -d '{"settings":{"endMode":"rounds","roundCount":10}}')
+assert_contains "$CONFIG_PUT" '"ok":true' "game config PUT"
+
+CONFIG_GET=$(curl -sf -b "$JAR" "$BASE_URL/api/games/ten-up-one-down/config")
+assert_contains "$CONFIG_GET" '"roundCount":10' "game config GET round-trip"
+
 echo "All curl-verify-db checks passed"
