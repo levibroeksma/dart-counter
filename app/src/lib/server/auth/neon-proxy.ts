@@ -38,8 +38,31 @@ function extractNeonAuthCookies(cookieHeader: string | null): string {
   return pairs.join("; ");
 }
 
+/**
+ * Public site origin for Neon Auth sign-in/sign-up (must match trusted domains).
+ * Netlify SSR may expose an internal `request.url` origin; prefer configured URL.
+ */
+function resolvePublicOrigin(request: Request): string | undefined {
+  for (const value of [
+    process.env.APP_ORIGIN,
+    process.env.URL,
+    process.env.DEPLOY_PRIME_URL,
+  ]) {
+    if (value) return value.replace(/\/$/, "");
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const proto = request.headers.get("x-forwarded-proto") ?? "https";
+    return `${proto}://${forwardedHost.split(",")[0]?.trim()}`;
+  }
+
+  return undefined;
+}
+
 function getRequestOrigin(request: Request): string {
   return (
+    resolvePublicOrigin(request) ??
     request.headers.get("origin") ??
     request.headers.get("referer")?.split("/").slice(0, 3).join("/") ??
     new URL(request.url).origin
@@ -48,11 +71,16 @@ function getRequestOrigin(request: Request): string {
 
 function buildUpstreamHeaders(request: Request): Headers {
   const headers = new Headers();
+  const origin = getRequestOrigin(request);
+
   for (const name of PROXY_REQUEST_HEADERS) {
+    if (name === "referer") continue;
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
-  headers.set("Origin", getRequestOrigin(request));
+
+  headers.set("Origin", origin);
+  headers.set("Referer", `${origin}/`);
   headers.set("Cookie", extractNeonAuthCookies(request.headers.get("cookie")));
   headers.set("x-neon-auth-middleware", "true");
   return headers;
