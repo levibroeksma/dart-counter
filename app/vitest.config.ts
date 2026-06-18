@@ -6,9 +6,8 @@ export default getViteConfig({
   test: {
     include: ["tests/**/*.test.ts"],
     env: {
-      AUTH_USERNAME: "testuser",
-      AUTH_PASSWORD: "testpass",
-      SESSION_SECRET: "test-secret-that-is-at-least-32-chars-long",
+      NEON_AUTH_BASE_URL: "https://test.neonauth.example/auth",
+      NEON_AUTH_COOKIE_SECRET: "test-cookie-secret-at-least-32-chars",
       NODE_ENV: "test",
     },
   },
