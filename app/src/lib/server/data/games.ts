@@ -1,13 +1,12 @@
 import { getStore } from "@netlify/blobs";
-import { db, gameCatalog } from "@db/index";
+import { eq, sql } from "drizzle-orm";
+import { db, gameCatalog, userGamePlayCounts } from "@db/index";
 import {
   SEED_GAMES,
   type GameConfig,
   type GameType,
-  type UserGameStats,
 } from "@lib/shared/games/types";
 
-const STATS_STORE = "user-game-stats";
 const SESSIONS_STORE = "game-sessions";
 
 /**
@@ -107,20 +106,25 @@ export async function getQuickStartGames(
   limit: number
 ): Promise<GameType[]> {
   const catalog = await getGameTypes();
-  const store = getStore(STATS_STORE);
-  const stats =
-    ((await store.get(userId, { type: "json" })) as UserGameStats | null) ??
-    { playCounts: {} };
+  const rows = await db
+    .select()
+    .from(userGamePlayCounts)
+    .where(eq(userGamePlayCounts.userId, userId));
+
+  const playCounts: Record<string, number> = {};
+  for (const row of rows) {
+    playCounts[row.gameSlug] = row.playCount;
+  }
 
   const ranked = [...catalog].sort((a, b) => {
-    const aCount = stats.playCounts[a.slug] ?? 0;
-    const bCount = stats.playCounts[b.slug] ?? 0;
+    const aCount = playCounts[a.slug] ?? 0;
+    const bCount = playCounts[b.slug] ?? 0;
     if (bCount !== aCount) return bCount - aCount;
     return a.sortOrder - b.sortOrder;
   });
 
   const hasPlays = catalog.some(
-    (game) => (stats.playCounts[game.slug] ?? 0) > 0
+    (game) => (playCounts[game.slug] ?? 0) > 0
   );
   if (!hasPlays) {
     return catalog.slice(0, limit);
@@ -166,11 +170,11 @@ export async function incrementPlayCount(
   userId: string,
   slug: string
 ): Promise<void> {
-  const store = getStore(STATS_STORE);
-  const existing =
-    ((await store.get(userId, { type: "json" })) as UserGameStats | null) ??
-    { playCounts: {} };
-  const playCounts = { ...existing.playCounts };
-  playCounts[slug] = (playCounts[slug] ?? 0) + 1;
-  await store.setJSON(userId, { playCounts });
+  await db
+    .insert(userGamePlayCounts)
+    .values({ userId, gameSlug: slug, playCount: 1 })
+    .onConflictDoUpdate({
+      target: [userGamePlayCounts.userId, userGamePlayCounts.gameSlug],
+      set: { playCount: sql`${userGamePlayCounts.playCount} + 1` },
+    });
 }

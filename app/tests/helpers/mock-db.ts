@@ -1,12 +1,14 @@
 import { vi } from "vitest";
-import { userPreferences, gameCatalog } from "@db/schema";
+import { userPreferences, gameCatalog, userGamePlayCounts } from "@db/schema";
 
 type UserPreferencesRow = typeof userPreferences.$inferSelect;
 type GameCatalogRow = typeof gameCatalog.$inferSelect;
+type UserGamePlayCountsRow = typeof userGamePlayCounts.$inferSelect;
 
 const tables = {
   userPreferences: new Map<string, UserPreferencesRow>(),
   gameCatalog: new Map<string, GameCatalogRow>(),
+  userGamePlayCounts: new Map<string, UserGamePlayCountsRow>(),
 };
 
 export const mockDb = {
@@ -14,19 +16,24 @@ export const mockDb = {
   reset() {
     tables.userPreferences.clear();
     tables.gameCatalog.clear();
+    tables.userGamePlayCounts.clear();
   },
 };
 
-function extractEqUserId(filter: unknown): string | undefined {
+function playCountKey(userId: string, gameSlug: string): string {
+  return `${userId}:${gameSlug}`;
+}
+
+function extractEqValue(filter: unknown): string | undefined {
   const visit = (node: unknown): string | undefined => {
-    if (typeof node === "string" && /^[0-9a-f-]{36}$/i.test(node)) {
+    if (typeof node === "string") {
       return node;
     }
     if (!node || typeof node !== "object") return undefined;
 
     if ("value" in node) {
       const value = (node as { value: unknown }).value;
-      if (typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value)) {
+      if (typeof value === "string") {
         return value;
       }
     }
@@ -51,10 +58,33 @@ function extractEqUserId(filter: unknown): string | undefined {
   return visit(filter);
 }
 
+function isSqlExpression(val: unknown): boolean {
+  return val !== null && typeof val === "object" && "queryChunks" in val;
+}
+
 function getTableRows(table: unknown): unknown[] {
   if (table === userPreferences) return [...tables.userPreferences.values()];
   if (table === gameCatalog) return [...tables.gameCatalog.values()];
+  if (table === userGamePlayCounts) return [...tables.userGamePlayCounts.values()];
   return [];
+}
+
+function filterRowsByEq(table: unknown, filter: unknown): unknown[] {
+  const eqValue = extractEqValue(filter);
+  if (!eqValue) return getTableRows(table);
+
+  if (table === userPreferences) {
+    const row = tables.userPreferences.get(eqValue);
+    return row ? [row] : [];
+  }
+
+  if (table === userGamePlayCounts) {
+    return [...tables.userGamePlayCounts.values()].filter(
+      (row) => row.userId === eqValue,
+    );
+  }
+
+  return getTableRows(table);
 }
 
 function insertRows(table: unknown, rows: unknown | unknown[]): void {
@@ -66,6 +96,13 @@ function insertRows(table: unknown, rows: unknown | unknown[]): void {
   } else if (table === gameCatalog) {
     for (const row of list as GameCatalogRow[]) {
       tables.gameCatalog.set(row.slug, row);
+    }
+  } else if (table === userGamePlayCounts) {
+    for (const row of list as UserGamePlayCountsRow[]) {
+      tables.userGamePlayCounts.set(
+        playCountKey(row.userId, row.gameSlug),
+        row,
+      );
     }
   }
 }
@@ -81,6 +118,23 @@ function upsertRow(
   } else if (table === gameCatalog) {
     const r = row as GameCatalogRow;
     tables.gameCatalog.set(r.slug, { ...r, ...set } as GameCatalogRow);
+  } else if (table === userGamePlayCounts) {
+    const r = row as UserGamePlayCountsRow;
+    const key = playCountKey(r.userId, r.gameSlug);
+    const existing = tables.userGamePlayCounts.get(key);
+    if (existing) {
+      const updated = { ...existing };
+      for (const [col, val] of Object.entries(set)) {
+        if (isSqlExpression(val) && col === "playCount") {
+          updated.playCount = existing.playCount + 1;
+        } else {
+          (updated as Record<string, unknown>)[col] = val;
+        }
+      }
+      tables.userGamePlayCounts.set(key, updated);
+    } else {
+      tables.userGamePlayCounts.set(key, r);
+    }
   }
 }
 
@@ -91,18 +145,20 @@ vi.mock("@db/index", () => ({
         const allRows = () => Promise.resolve(getTableRows(table));
 
         return {
-          where: vi.fn((filter: unknown) => ({
-            limit: vi.fn(async () => {
-              if (table === userPreferences) {
-                const userId = extractEqUserId(filter);
-                if (userId) {
-                  const row = tables.userPreferences.get(userId);
-                  return row ? [row] : [];
-                }
-              }
-              return getTableRows(table);
-            }),
-          })),
+          where: vi.fn((filter: unknown) => {
+            const filteredRows = () =>
+              Promise.resolve(filterRowsByEq(table, filter));
+
+            return {
+              limit: vi.fn(filteredRows),
+              then(
+                onFulfilled?: (value: unknown) => unknown,
+                onRejected?: (reason: unknown) => unknown,
+              ) {
+                return filteredRows().then(onFulfilled, onRejected);
+              },
+            };
+          }),
           then(
             onFulfilled?: (value: unknown) => unknown,
             onRejected?: (reason: unknown) => unknown,
@@ -139,4 +195,5 @@ vi.mock("@db/index", () => ({
   },
   userPreferences,
   gameCatalog,
+  userGamePlayCounts,
 }));

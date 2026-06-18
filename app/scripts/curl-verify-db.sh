@@ -43,4 +43,8 @@ GAMES_HTML=$(curl -sf -b "$JAR" -L "$BASE_URL/games")
 assert_contains "$GAMES_HTML" "Ten Up One Down" "games page catalog from DB"
 assert_contains "$GAMES_HTML" "Score Training" "games page includes score-training"
 
+HOME_HTML=$(curl -sf -b "$JAR" -L "$BASE_URL/")
+assert_contains "$HOME_HTML" "Quick Start" "home page SSR"
+assert_contains "$HOME_HTML" "Ten Up One Down" "quick start games from DB"
+
 echo "All curl-verify-db checks passed"

@@ -24,6 +24,18 @@ import { SEED_GAMES, type GameType } from "@lib/shared/games/types";
 
 const RELEASED_GAMES = SEED_GAMES.filter((g) => g.released);
 
+function seedPlayCounts(
+  userId: string,
+  counts: Record<string, number>,
+): void {
+  for (const [gameSlug, playCount] of Object.entries(counts)) {
+    mockDb.tables.userGamePlayCounts.set(`${userId}:${gameSlug}`, {
+      userId,
+      gameSlug,
+      playCount,
+    });
+  }
+}
 function seedCatalog(games: GameType[] = SEED_GAMES): void {
   for (const game of games) {
     mockDb.tables.gameCatalog.set(game.slug, {
@@ -86,23 +98,15 @@ describe("games data layer", () => {
 
   it("getQuickStartGames falls back to first N when no stats", async () => {
     seedCatalog();
-    mockGet.mockImplementation((store: string) => {
-      if (store === "user-game-stats") return Promise.resolve(null);
-      return Promise.resolve(null);
-    });
     const games = await getQuickStartGames("alex", 2);
     expect(games.map((g) => g.slug)).toEqual(["ten-up-one-down", "score-training"]);
   });
 
   it("getQuickStartGames sorts by play count when stats exist", async () => {
     seedCatalog();
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "user-game-stats" && key === "alex") {
-        return Promise.resolve({
-          playCounts: { "score-training": 5, "ten-up-one-down": 2 },
-        });
-      }
-      return Promise.resolve(null);
+    seedPlayCounts("alex", {
+      "score-training": 5,
+      "ten-up-one-down": 2,
     });
     const games = await getQuickStartGames("alex", 2);
     expect(games.map((g) => g.slug)).toEqual(["score-training", "ten-up-one-down"]);
@@ -128,18 +132,13 @@ describe("games data layer", () => {
   });
 
   it("incrementPlayCount updates user stats", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "user-game-stats" && key === "alex") {
-        return Promise.resolve({ playCounts: { "501": 1 } });
-      }
-      return Promise.resolve(null);
+    mockDb.tables.userGamePlayCounts.set("alex:501", {
+      userId: "alex",
+      gameSlug: "501",
+      playCount: 1,
     });
     await incrementPlayCount("alex", "501");
-    expect(mockSetJSON).toHaveBeenCalledWith(
-      "user-game-stats",
-      "alex",
-      { playCounts: { "501": 2 } },
-    );
+    expect(mockDb.tables.userGamePlayCounts.get("alex:501")?.playCount).toBe(2);
   });
 
   it("reconciles stale catalog missing score-training", async () => {
