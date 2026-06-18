@@ -1,5 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db, playerDartStats } from "@db/index";
+import { getEntryEnv } from "@lib/shared/constants/entry-env";
+import { withEntryEnv } from "@lib/server/data/entry-env";
 import { createEmptyPlayerDartStats } from "@lib/shared/stats/double-stats";
 import type { PlayerDartStats } from "@lib/shared/stats/types";
 
@@ -21,7 +23,7 @@ export async function getPlayerDartStats(
   const rows = await db
     .select()
     .from(playerDartStats)
-    .where(eq(playerDartStats.userId, userId))
+    .where(withEntryEnv(playerDartStats.entryEnv, eq(playerDartStats.userId, userId)))
     .limit(1);
   const row = rows[0];
   if (!row) return createEmptyPlayerDartStats();
@@ -43,9 +45,9 @@ export async function savePlayerDartStats(
 ): Promise<void> {
   await db
     .insert(playerDartStats)
-    .values({ userId, ...mapStatsToColumns(stats) })
+    .values({ userId, entryEnv: getEntryEnv(), ...mapStatsToColumns(stats) })
     .onConflictDoUpdate({
-      target: playerDartStats.userId,
+      target: [playerDartStats.userId, playerDartStats.entryEnv],
       set: mapStatsToColumns(stats),
     });
 }
