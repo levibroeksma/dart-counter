@@ -1,7 +1,5 @@
 import type { APIRoute } from "astro";
-import { getAuthHandler } from "@lib/server/auth/neon";
-
-type AuthMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+import { proxyAuthRequest } from "@lib/server/auth/neon";
 
 function toPathSegments(param: string | undefined): string[] {
   if (!param) return [];
@@ -10,16 +8,7 @@ function toPathSegments(param: string | undefined): string[] {
 
 const handle: APIRoute = async (context) => {
   const segments = toPathSegments(context.params.path);
-  const method = context.request.method.toUpperCase() as AuthMethod;
-  const handler = getAuthHandler()[method];
-
-  if (!handler) {
-    return new Response("Method Not Allowed", { status: 405 });
-  }
-
-  return handler(context.request, {
-    params: Promise.resolve({ path: segments }),
-  });
+  return proxyAuthRequest(context.request, segments);
 };
 
 export const GET = handle;
