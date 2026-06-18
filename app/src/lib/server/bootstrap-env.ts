@@ -35,10 +35,6 @@ function loadEnvFile(filePath: string): void {
  */
 export function bootstrapEnv(): void {
   if (loaded) return;
-  if (process.env.NEON_AUTH_BASE_URL && process.env.NEON_AUTH_COOKIE_SECRET) {
-    loaded = true;
-    return;
-  }
 
   const cwd = process.cwd();
   const mode = process.env.NODE_ENV === "production" ? "production" : "development";
