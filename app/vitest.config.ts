@@ -10,6 +10,7 @@ export default getViteConfig({
       NEON_AUTH_BASE_URL: "https://test.neonauth.example/auth",
       NEON_AUTH_COOKIE_SECRET: "test-cookie-secret-at-least-32-chars",
       NODE_ENV: "test",
+      ENTRY_ENV: "dev",
     },
   },
   resolve: {
