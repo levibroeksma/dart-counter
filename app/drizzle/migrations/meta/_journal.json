@@ -15,6 +15,13 @@
       "when": 1781871914899,
       "tag": "0001_seed_game_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781958314899,
+      "tag": "0002_entry_env",
+      "breakpoints": true
     }
   ]
 }
