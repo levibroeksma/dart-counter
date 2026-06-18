@@ -39,12 +39,12 @@ Protected page ──middleware──► getSession() ──proxy──► get-s
 
 POST /api/auth/logout ──► logout wrapper ──proxy──► sign-out
 
-/api/auth/[...path] ──► authApiHandler (catch-all proxy for Neon Auth API)
+/api/auth/[...path] ──► proxyAuthRequest → fetch upstream (catch-all Neon Auth API)
 ```
 
-**SDK choice:** `@neondatabase/auth` exports `authApiHandler` — framework-agnostic, uses standard `Request`/`Response`. Suitable for Astro without Next.js `cookies()` / `headers()`.
+**Proxy choice:** Server-side auth uses a fetch-based upstream proxy (`src/lib/server/auth/neon-proxy.ts`) — no `@neondatabase/auth` server import. The SDK's `@neondatabase/auth/next/server` entry eagerly imports `next/headers` and fails under Astro SSR Node ESM. Our proxy forwards `__Secure-neon-auth.*` cookies to `NEON_AUTH_BASE_URL` and passes `Set-Cookie` back to the client.
 
-**Not used:** `createNeonAuth()` from `@neondatabase/auth/next/server` — its `signIn` / `getSession` helpers depend on `next/headers` and are incompatible with Astro.
+**Not used:** `@neondatabase/auth` server SDK (`createNeonAuth`, `authApiHandler`) — Next.js-coupled bundle. Session-data JWT cache is skipped (every `get-session` hits upstream; acceptable for single-user app).
 
 **Route precedence:** Named routes `/api/auth/login` and `/api/auth/logout` take priority over the catch-all `[...path]` route.
 
