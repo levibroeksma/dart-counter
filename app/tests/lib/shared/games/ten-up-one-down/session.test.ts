@@ -21,7 +21,7 @@ describe("isTenUpOneDownSession", () => {
     expect(isTenUpOneDownSession(validSession)).toBe(true);
   });
 
-  it("rejects legacy config blobs without state", () => {
+  it("rejects legacy config-only shapes without state", () => {
     expect(
       isTenUpOneDownSession({
         slug: "ten-up-one-down",
