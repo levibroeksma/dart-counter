@@ -239,7 +239,7 @@ Historical plans remain for archaeology; update active context files so agents d
 | `docs/superpowers/context/login-feature-context.md` | Rewrite auth section: Neon Auth, email login, `userId`, remove iron-session / env credentials |
 | `docs/superpowers/context/logout-button-context.md` | Update session description: Neon Auth cookies, proxy logout |
 | `docs/superpowers/specs/2026-06-13-login-design.md` | Add superseded banner at top pointing to this spec |
-| `docs/superpowers/specs/2026-06-17-blobs-to-database-design.md` | Update § referencing `session.username` → `session.userId` (one line in schema table) |
+| Prior blobs-to-database spec | Removed — superseded by Neon database migration |
 
 **Not updated (historical):** `docs/superpowers/plans/2026-06-13-login.md` and other completed plan files — snapshots only.
 
@@ -325,7 +325,7 @@ Optional manual/integration: login against real Neon branch in dev.
 
 - Signup UI, OAuth providers, password-reset UI
 - Migrating blob data from old `username` keys to Neon `user.id`
-- Netlify Blobs → Neon Postgres (separate spec: `2026-06-17-blobs-to-database-design.md`)
+- Netlify Blobs → Neon Postgres (see `2026-06-18-neon-database-migration-design.md`)
 - Account settings / password change UI
 - Removing `@neondatabase/serverless` (database connectivity, not auth)
 
