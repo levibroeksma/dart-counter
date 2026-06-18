@@ -9,7 +9,10 @@ let games: GameType[] = [];
 
 try {
   games = await getGameTypes();
-} catch {
+} catch (error) {
+  if (import.meta.env.DEV) {
+    console.error("Failed to load game catalog:", error);
+  }
   games = [];
 }
 ---
