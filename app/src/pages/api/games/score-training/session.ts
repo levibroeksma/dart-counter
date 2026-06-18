@@ -16,9 +16,9 @@ function jsonResponse(body: ApiResponse, status: number): Response {
   });
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const POST: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
@@ -35,26 +35,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    const existing = await getScoreTrainingSession(auth.username);
+    const existing = await getScoreTrainingSession(auth.userId);
     if (existing) {
       return jsonResponse({ ok: false, code: MessageCode.SESSION_EXISTS }, 409);
     }
 
-    const created = await createScoreTrainingSession(auth.username, validated.value);
+    const created = await createScoreTrainingSession(auth.userId, validated.value);
     return jsonResponse({ ok: true, session: created }, 200);
   } catch {
     return jsonResponse({ ok: false, code: MessageCode.SERVER_ERROR }, 500);
   }
 };
 
-export const GET: APIRoute = async ({ cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const GET: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
   try {
-    const active = await getScoreTrainingSession(auth.username);
+    const active = await getScoreTrainingSession(auth.userId);
     if (!active) {
       return jsonResponse(
         { ok: false, code: MessageCode.NO_ACTIVE_SESSION },
@@ -67,14 +67,14 @@ export const GET: APIRoute = async ({ cookies }) => {
   }
 };
 
-export const DELETE: APIRoute = async ({ cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const DELETE: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
   try {
-    await deleteScoreTrainingSession(auth.username);
+    await deleteScoreTrainingSession(auth.userId);
     return jsonResponse({ ok: true }, 200);
   } catch {
     return jsonResponse({ ok: false, code: MessageCode.SERVER_ERROR }, 500);

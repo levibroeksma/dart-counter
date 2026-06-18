@@ -16,8 +16,8 @@ function jsonResponse(body: ApiResponse, status: number): Response {
   });
 }
 
-export const GET: APIRoute = async ({ cookies }) => {
-  const session = await getSession(cookies);
+export const GET: APIRoute = async ({ request }) => {
+  const session = await getSession(request);
   if (!session.isLoggedIn) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
@@ -34,8 +34,8 @@ export const GET: APIRoute = async ({ cookies }) => {
   }
 };
 
-export const PUT: APIRoute = async ({ request, cookies }) => {
-  const session = await getSession(cookies);
+export const PUT: APIRoute = async ({ request }) => {
+  const session = await getSession(request);
   if (!session.isLoggedIn) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }

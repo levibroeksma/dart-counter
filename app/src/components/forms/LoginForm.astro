@@ -28,13 +28,13 @@ const redirect = sanitizeRedirect(Astro.url.searchParams.get("redirect"));
       <legend class="sr-only">Sign in</legend>
 
       <Input
-        id="username"
-        name="username"
-        label="Username"
-        type="text"
-        autocomplete="username"
+        id="email"
+        name="email"
+        label="Email"
+        type="email"
+        autocomplete="email"
         required
-        x-model="username"
+        x-model="email"
       />
 
       <Input

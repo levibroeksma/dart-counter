@@ -35,7 +35,7 @@ describe("score-training play page assembly", () => {
       'import { getScoreTrainingSession } from "@lib/server/data/score-training-session";'
     );
     expect(source).toContain('slug === "score-training"');
-    expect(source).toContain("await getScoreTrainingSession(session.username)");
+    expect(source).toContain("await getScoreTrainingSession(session.userId)");
     expect(source).toContain(
       'if (slug === "score-training" && !scoreTrainingSession)'
     );

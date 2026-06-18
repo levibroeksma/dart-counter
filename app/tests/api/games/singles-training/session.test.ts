@@ -21,7 +21,7 @@ vi.mock("@lib/server/data/singles-training-session", () => ({
     mockDeleteSinglesTrainingSession(...args),
 }));
 
-const authState: { isLoggedIn: boolean; username?: string } = {
+const authState: { isLoggedIn: boolean; userId?: string } = {
   isLoggedIn: false,
 };
 
@@ -66,7 +66,7 @@ function createContext(method: string, body?: unknown): APIContext {
 describe("singles-training session API route", () => {
   beforeEach(() => {
     authState.isLoggedIn = false;
-    authState.username = undefined;
+    authState.userId = undefined;
     mockCreateSinglesTrainingSession.mockReset();
     mockGetSinglesTrainingSession.mockReset();
     mockDeleteSinglesTrainingSession.mockReset();
@@ -85,7 +85,7 @@ describe("singles-training session API route", () => {
 
   it("POST returns 409 when session already exists", async () => {
     authState.isLoggedIn = true;
-    authState.username = "alex";
+    authState.userId = "00000000-0000-4000-8000-000000000001";
     mockGetSinglesTrainingSession.mockResolvedValue({ slug: "singles-training" });
 
     const response = await POST(createContext("POST", settings));
@@ -99,7 +99,7 @@ describe("singles-training session API route", () => {
 
   it("POST creates session with valid settings", async () => {
     authState.isLoggedIn = true;
-    authState.username = "alex";
+    authState.userId = "00000000-0000-4000-8000-000000000001";
     mockGetSinglesTrainingSession.mockResolvedValue(null);
     mockCreateSinglesTrainingSession.mockResolvedValue(structuredClone(session));
 
@@ -114,7 +114,7 @@ describe("singles-training session API route", () => {
 
   it("GET returns active session", async () => {
     authState.isLoggedIn = true;
-    authState.username = "alex";
+    authState.userId = "00000000-0000-4000-8000-000000000001";
     mockGetSinglesTrainingSession.mockResolvedValue(structuredClone(session));
 
     const response = await GET(createContext("GET"));
@@ -127,13 +127,13 @@ describe("singles-training session API route", () => {
 
   it("DELETE abandons session", async () => {
     authState.isLoggedIn = true;
-    authState.username = "alex";
+    authState.userId = "00000000-0000-4000-8000-000000000001";
     mockDeleteSinglesTrainingSession.mockResolvedValue(undefined);
 
     const response = await DELETE(createContext("DELETE"));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
-    expect(mockDeleteSinglesTrainingSession).toHaveBeenCalledWith("alex");
+    expect(mockDeleteSinglesTrainingSession).toHaveBeenCalledWith("00000000-0000-4000-8000-000000000001");
   });
 });

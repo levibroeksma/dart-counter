@@ -41,13 +41,13 @@ function isDartOutcome(value: unknown): value is DartOutcome {
   );
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const POST: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
-  const session = await getSinglesTrainingSession(auth.username);
+  const session = await getSinglesTrainingSession(auth.userId);
   if (!session) {
     return jsonResponse({ ok: false, code: MessageCode.NO_ACTIVE_SESSION }, 404);
   }
@@ -83,17 +83,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       nextSession.state.status === "dead"
     ) {
       const summary = buildSummary(nextSession);
-      const stats = await getPlayerSinglesTrainingStats(auth.username);
+      const stats = await getPlayerSinglesTrainingStats(auth.userId);
       applyGameCompletionToStats(stats, nextSession);
-      await savePlayerSinglesTrainingStats(auth.username, stats);
-      await deleteSinglesTrainingSession(auth.username);
+      await savePlayerSinglesTrainingStats(auth.userId, stats);
+      await deleteSinglesTrainingSession(auth.userId);
       return jsonResponse(
         { ok: true, session: nextSession, terminal: true, summary },
         200,
       );
     }
 
-    await saveSinglesTrainingSession(auth.username, nextSession);
+    await saveSinglesTrainingSession(auth.userId, nextSession);
     return jsonResponse({ ok: true, session: nextSession }, 200);
   } catch {
     return jsonResponse({ ok: false, code: MessageCode.SERVER_ERROR }, 500);

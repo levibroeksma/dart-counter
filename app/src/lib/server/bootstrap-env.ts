@@ -35,11 +35,7 @@ function loadEnvFile(filePath: string): void {
  */
 export function bootstrapEnv(): void {
   if (loaded) return;
-  if (
-    process.env.SESSION_SECRET &&
-    process.env.AUTH_USERNAME &&
-    process.env.AUTH_PASSWORD
-  ) {
+  if (process.env.NEON_AUTH_BASE_URL && process.env.NEON_AUTH_COOKIE_SECRET) {
     loaded = true;
     return;
   }

@@ -61,7 +61,7 @@ function createContext(): APIContext {
 
 describe("DELETE /api/games/ten-up-one-down/session/round/last", () => {
   beforeEach(() => {
-    mockGetSession.mockResolvedValue({ isLoggedIn: true, username: "alex" });
+    mockGetSession.mockResolvedValue({ isLoggedIn: true, userId: "00000000-0000-4000-8000-000000000001" });
     mockGetTuodSession.mockResolvedValue(structuredClone(activeSession));
     const stats = createEmptyPlayerDartStats();
     stats.doubleAttempts = 1;

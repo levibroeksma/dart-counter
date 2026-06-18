@@ -10,7 +10,7 @@ vi.mock("@lib/server/data/games", () => ({
   getGameTypes: (...args: unknown[]) => mockGetGameTypes(...args),
 }));
 
-const mockSession: { isLoggedIn: boolean; username?: string } = {
+const mockSession: { isLoggedIn: boolean; userId?: string } = {
   isLoggedIn: false,
 };
 
@@ -27,7 +27,7 @@ function createGetContext(): APIContext {
 describe("GET /api/games", () => {
   beforeEach(() => {
     mockSession.isLoggedIn = false;
-    mockSession.username = undefined;
+    mockSession.userId = undefined;
     mockGetGameTypes.mockReset();
   });
 
@@ -39,7 +39,7 @@ describe("GET /api/games", () => {
     expect(data).toEqual({ ok: false, code: MessageCode.UNAUTHORIZED });
   });
 
-  it("returns 401 when logged in without username", async () => {
+  it("returns 401 when logged in without userId", async () => {
     mockSession.isLoggedIn = true;
 
     const response = await GET(createGetContext());
@@ -51,7 +51,7 @@ describe("GET /api/games", () => {
 
   it("returns games catalog when logged in", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameTypes.mockResolvedValue(SEED_GAMES);
 
     const response = await GET(createGetContext());
@@ -66,7 +66,7 @@ describe("GET /api/games", () => {
 
   it("returns 500 when catalog read fails", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameTypes.mockRejectedValue(new Error("blob down"));
 
     const response = await GET(createGetContext());

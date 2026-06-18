@@ -17,6 +17,7 @@ vi.mock("@lib/server/auth/session", () => ({
 function createContext(pathname: string, search = "") {
   return {
     url: new URL(`http://localhost${pathname}${search}`),
+    request: new Request(`http://localhost${pathname}${search}`),
     redirect: mockRedirect,
   };
 }

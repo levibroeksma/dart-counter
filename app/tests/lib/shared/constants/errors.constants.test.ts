@@ -27,10 +27,10 @@ describe("errors.constants", () => {
 
   it("maps codes to expected English messages", () => {
     expect(errorMessages[MessageCode.INVALID_CREDENTIALS]).toBe(
-      "Invalid username or password"
+      "Invalid email or password"
     );
     expect(errorMessages[MessageCode.MISSING_FIELDS]).toBe(
-      "Username and password are required"
+      "Email and password are required"
     );
     expect(errorMessages[MessageCode.SERVER_CONFIG]).toBe(
       "Server configuration error"

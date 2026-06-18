@@ -26,28 +26,28 @@ if (!hasGameComponents(slug)) {
   return Astro.redirect("/games?error=unavailable-game");
 }
 
-const session = await getSession(Astro.cookies);
-if (session.isLoggedIn && session.username) {
+const session = await getSession(Astro.request);
+if (session.isLoggedIn && session.userId) {
   try {
-    await incrementPlayCount(session.username, slug);
+    await incrementPlayCount(session.userId, slug);
   } catch {
     // Non-fatal for prototype
   }
 }
 
 const tenUpOneDownSession =
-  slug === "ten-up-one-down" && session.isLoggedIn && session.username
-    ? await getTenUpOneDownSession(session.username)
+  slug === "ten-up-one-down" && session.isLoggedIn && session.userId
+    ? await getTenUpOneDownSession(session.userId)
     : null;
 
 const scoreTrainingSession =
-  slug === "score-training" && session.isLoggedIn && session.username
-    ? await getScoreTrainingSession(session.username)
+  slug === "score-training" && session.isLoggedIn && session.userId
+    ? await getScoreTrainingSession(session.userId)
     : null;
 
 const singlesTrainingSession =
-  slug === "singles-training" && session.isLoggedIn && session.username
-    ? await getSinglesTrainingSession(session.username)
+  slug === "singles-training" && session.isLoggedIn && session.userId
+    ? await getSinglesTrainingSession(session.userId)
     : null;
 
 if (slug === "ten-up-one-down" && !tenUpOneDownSession) {

@@ -20,13 +20,13 @@ function jsonResponse(body: ApiResponse, status: number): Response {
   });
 }
 
-export const DELETE: APIRoute = async ({ cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const DELETE: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
-  const session = await getTenUpOneDownSession(auth.username);
+  const session = await getTenUpOneDownSession(auth.userId);
   if (!session || session.roundHistory.length === 0) {
     return jsonResponse({ ok: false, code: MessageCode.INVALID_ROUND }, 400);
   }
@@ -37,12 +37,12 @@ export const DELETE: APIRoute = async ({ cookies }) => {
   }
 
   try {
-    const stats = await getPlayerDartStats(auth.username);
+    const stats = await getPlayerDartStats(auth.userId);
     revertRoundFromStats(stats, removed);
     session.state = revertRoundFromState(session.state, removed);
 
-    await savePlayerDartStats(auth.username, stats);
-    await saveTenUpOneDownSession(auth.username, session);
+    await savePlayerDartStats(auth.userId, stats);
+    await saveTenUpOneDownSession(auth.userId, session);
     return jsonResponse({ ok: true, session }, 200);
   } catch {
     return jsonResponse({ ok: false, code: MessageCode.SERVER_ERROR }, 500);

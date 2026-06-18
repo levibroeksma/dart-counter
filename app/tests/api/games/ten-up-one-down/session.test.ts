@@ -18,7 +18,7 @@ vi.mock("@lib/server/data/ten-up-one-down-session", () => ({
   deleteTenUpOneDownSession: (...args: unknown[]) => mockDeleteSession(...args),
 }));
 
-const authState: { isLoggedIn: boolean; username?: string } = {
+const authState: { isLoggedIn: boolean; userId?: string } = {
   isLoggedIn: false,
 };
 
@@ -41,7 +41,7 @@ function createContext(method: string, body?: unknown): APIContext {
 describe("ten-up-one-down session API route", () => {
   beforeEach(() => {
     authState.isLoggedIn = false;
-    authState.username = undefined;
+    authState.userId = undefined;
     mockCreateSession.mockReset();
     mockGetTuodSession.mockReset();
     mockDeleteSession.mockReset();
@@ -62,7 +62,7 @@ describe("ten-up-one-down session API route", () => {
 
   it("POST creates session with valid settings", async () => {
     authState.isLoggedIn = true;
-    authState.username = "alex";
+    authState.userId = "00000000-0000-4000-8000-000000000001";
     mockGetTuodSession.mockResolvedValue(null);
     mockCreateSession.mockResolvedValue({
       slug: "ten-up-one-down",
@@ -91,7 +91,7 @@ describe("ten-up-one-down session API route", () => {
 
   it("POST returns 409 when session already exists", async () => {
     authState.isLoggedIn = true;
-    authState.username = "alex";
+    authState.userId = "00000000-0000-4000-8000-000000000001";
     mockGetTuodSession.mockResolvedValue({ slug: "ten-up-one-down" });
 
     const response = await POST(
@@ -107,7 +107,7 @@ describe("ten-up-one-down session API route", () => {
 
   it("GET returns 404 when no session", async () => {
     authState.isLoggedIn = true;
-    authState.username = "alex";
+    authState.userId = "00000000-0000-4000-8000-000000000001";
     mockGetTuodSession.mockResolvedValue(null);
 
     const response = await GET(createContext("GET"));
@@ -121,13 +121,13 @@ describe("ten-up-one-down session API route", () => {
 
   it("DELETE abandons session", async () => {
     authState.isLoggedIn = true;
-    authState.username = "alex";
+    authState.userId = "00000000-0000-4000-8000-000000000001";
     mockDeleteSession.mockResolvedValue(undefined);
 
     const response = await DELETE(createContext("DELETE"));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
-    expect(mockDeleteSession).toHaveBeenCalledWith("alex");
+    expect(mockDeleteSession).toHaveBeenCalledWith("00000000-0000-4000-8000-000000000001");
   });
 });

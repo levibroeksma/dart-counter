@@ -25,7 +25,8 @@ Create a **logout button component** that:
 | ---------------- | ------------------------------------------------------------------------------- |
 | Stack            | Astro 6, Tailwind CSS 4, Alpine.js 3, TypeScript                                |
 | Hosting          | Netlify (Functions)                                                             |
-| Auth session     | `iron-session` signed HTTP-only cookie (`dart-counter-session`, 30-day max age) |
+| Auth session     | Neon Auth cookies via `createNeonAuth().handler()` proxy (`NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`) |
+| Identity key     | `session.userId` (Neon user UUID) — not `username` |
 | Route protection | `app/src/middleware.ts` — unauthenticated users → `/login?redirect=<path>`      |
 | Layout           | `app/src/layouts/BaseLayout.astro` (no nav/header yet)                          |
 | Related context  | `docs/superpowers/context/login-feature-context.md`                             |

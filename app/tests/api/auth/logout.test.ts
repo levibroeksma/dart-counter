@@ -2,12 +2,15 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "../../../src/pages/api/auth/logout";
 
-const mockDestroy = vi.fn();
-const mockSession = { isLoggedIn: true, destroy: mockDestroy };
+const mockProxy = vi.fn();
 
-vi.mock("@lib/server/auth/session", () => ({
-  getSession: vi.fn(async () => mockSession),
-}));
+vi.mock("@lib/server/auth/neon", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@lib/server/auth/neon")>();
+  return {
+    ...actual,
+    proxyAuthRequest: (...args: unknown[]) => mockProxy(...args),
+  };
+});
 
 function createContext(): APIContext {
   return {
@@ -18,16 +21,31 @@ function createContext(): APIContext {
 
 describe("POST /api/auth/logout", () => {
   beforeEach(() => {
-    mockDestroy.mockClear();
-    mockSession.isLoggedIn = true;
+    mockProxy.mockReset();
+    process.env.NEON_AUTH_BASE_URL = "https://test.neonauth.example/auth";
+    process.env.NEON_AUTH_COOKIE_SECRET = "test-cookie-secret-at-least-32-chars";
   });
 
-  it("destroys session and returns ok: true", async () => {
+  it("proxies sign-out and forwards clearing cookies", async () => {
+    mockProxy.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Set-Cookie": "neon_session=; Max-Age=0; Path=/" },
+      })
+    );
+
     const response = await POST(createContext());
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data).toEqual({ ok: true });
-    expect(mockDestroy).toHaveBeenCalledOnce();
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(Request),
+      ["sign-out"],
+      expect.objectContaining({ method: "POST" })
+    );
+    expect(response.headers.getSetCookie()).toEqual([
+      "neon_session=; Max-Age=0; Path=/",
+    ]);
   });
 });

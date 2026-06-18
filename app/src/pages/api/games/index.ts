@@ -11,9 +11,9 @@ function jsonResponse(body: ApiResponse, status: number): Response {
   });
 }
 
-export const GET: APIRoute = async ({ cookies }) => {
-  const session = await getSession(cookies);
-  if (!session.isLoggedIn || !session.username) {
+export const GET: APIRoute = async ({ request }) => {
+  const session = await getSession(request);
+  if (!session.isLoggedIn || !session.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 

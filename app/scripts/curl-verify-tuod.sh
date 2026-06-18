@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:4321}"
-USER="${AUTH_USERNAME:-testuser}"
+EMAIL="${AUTH_EMAIL:-test@example.com}"
 PASS="${AUTH_PASSWORD:-testpass}"
 ORIGIN_HEADER=(-H "Origin: $BASE_URL")
 JAR="$(mktemp)"
@@ -11,7 +11,7 @@ trap 'rm -f "$JAR"' EXIT
 login() {
   curl -sf -c "$JAR" -X POST "$BASE_URL/api/auth/login" \
     -H "Content-Type: application/json" \
-    -d "{\"username\":\"$USER\",\"password\":\"$PASS\"}" > /dev/null
+    -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\"}" > /dev/null
 }
 
 assert_contains() {

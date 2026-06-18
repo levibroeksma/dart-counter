@@ -3,7 +3,7 @@ import { MessageCode } from "@lib/shared/constants/errors.constants";
 import { t } from "@lib/shared/i18n";
 
 interface LoginFormState {
-  username: string;
+  email: string;
   password: string;
   loading: boolean;
   error: string;
@@ -16,7 +16,7 @@ interface LoginFormState {
  */
 export function loginForm(): LoginFormState {
   return {
-    username: "",
+    email: "",
     password: "",
     loading: false,
     error: "",
@@ -34,7 +34,7 @@ export function loginForm(): LoginFormState {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            username: this.username,
+            email: this.email,
             password: this.password,
           }),
         });

@@ -20,7 +20,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (isPublicPath(pathname) || isStaticAsset(pathname)) {
     if (pathname === "/login") {
-      const session = await getSession(context.cookies);
+      const session = await getSession(context.request);
       if (session.isLoggedIn) {
         const redirect = sanitizeRedirect(searchParams.get("redirect"));
         return context.redirect(redirect);
@@ -29,7 +29,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  const session = await getSession(context.cookies);
+  const session = await getSession(context.request);
   if (!session.isLoggedIn) {
     const redirect = encodeURIComponent(pathname);
     return context.redirect(`/login?redirect=${redirect}`);

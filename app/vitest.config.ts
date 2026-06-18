@@ -5,6 +5,7 @@ import { getViteConfig } from "astro/config";
 export default getViteConfig({
   test: {
     include: ["tests/**/*.test.ts"],
+    setupFiles: ["./tests/setup.ts"],
     env: {
       NEON_AUTH_BASE_URL: "https://test.neonauth.example/auth",
       NEON_AUTH_COOKIE_SECRET: "test-cookie-secret-at-least-32-chars",

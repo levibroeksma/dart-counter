@@ -15,9 +15,9 @@ function jsonResponse(body: ApiResponse, status: number): Response {
   });
 }
 
-export const GET: APIRoute = async ({ params, cookies }) => {
-  const session = await getSession(cookies);
-  if (!session.isLoggedIn || !session.username) {
+export const GET: APIRoute = async ({ params, request }) => {
+  const session = await getSession(request);
+  if (!session.isLoggedIn || !session.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ params, cookies }) => {
   }
 
   try {
-    const config = await getGameConfig(session.username, slug);
+    const config = await getGameConfig(session.userId, slug);
     const body: GameConfigSuccess = {
       ok: true,
       config: config ?? { slug, settings: {}, updatedAt: "" },
@@ -39,9 +39,9 @@ export const GET: APIRoute = async ({ params, cookies }) => {
   }
 };
 
-export const PUT: APIRoute = async ({ params, request, cookies }) => {
-  const session = await getSession(cookies);
-  if (!session.isLoggedIn || !session.username) {
+export const PUT: APIRoute = async ({ params, request }) => {
+  const session = await getSession(request);
+  if (!session.isLoggedIn || !session.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
@@ -64,7 +64,7 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
 
   try {
     const config = await saveGameConfig(
-      session.username,
+      session.userId,
       slug,
       body.settings
     );

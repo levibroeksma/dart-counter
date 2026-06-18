@@ -2,13 +2,29 @@
 
 > Living document for handoff between agents/context windows. Updated after each brainstorming decision.
 
-**Status:** Design complete — spec written, pending user review  
-**Last updated:** 2026-06-13  
-**Branch:** `login-interface`
+**Status:** Superseded by Neon Auth migration (2026-06-18)  
+**Last updated:** 2026-06-18  
+**Branch:** `blob-to-database-migration`
 
 ---
 
-## Project Snapshot
+## Auth (current — Neon Auth)
+
+| Item | Value |
+|---|---|
+| Platform | Neon Auth (managed Better Auth) |
+| Login | Email + password via Alpine `LoginForm` → `POST /api/auth/login` → proxy `sign-in/email` |
+| Session | `getSession(request)` proxies `get-session`; returns `AppSession` with `userId`, `email`, `name` |
+| Logout | `POST /api/auth/logout` → proxy `sign-out` |
+| Catch-all | `/api/auth/[...path]` via `createNeonAuth().handler()` |
+| Env | `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET` (not `AUTH_USERNAME` / `SESSION_SECRET`) |
+| User provisioning | `npm run seed:auth` — one-time `sign-up/email`; no signup UI |
+
+**Spec:** `docs/superpowers/specs/2026-06-18-neon-auth-migration-design.md`
+
+---
+
+## Project Snapshot (historical pre-Neon)
 
 | Item | Value |
 |---|---|

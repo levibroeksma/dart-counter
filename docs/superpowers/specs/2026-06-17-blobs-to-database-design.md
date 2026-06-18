@@ -106,7 +106,7 @@ Hybrid layout: typed columns where fields are flat/scalar; `jsonb` for large, fr
 
 | Column | Type | Notes |
 |---|---|---|
-| `user_id` | `varchar` PK | `session.username` |
+| `user_id` | `varchar` PK | `session.userId` |
 | `display_name` | `varchar(20)` nullable | |
 | `updated_at` | `timestamp` | default now |
 
@@ -207,8 +207,8 @@ setPreferences(userId: string, prefs: UserPreferences): Promise<void>
 ```
 
 Callers updated:
-- `src/pages/api/settings/preferences.ts` — pass `session.username`
-- `src/pages/settings.astro` — call `getSession(Astro.cookies)` and pass `session.username` (middleware already requires login for this route)
+- `src/pages/api/settings/preferences.ts` — pass `session.userId`
+- `src/pages/settings.astro` — call `getSession(Astro.request)` and pass `session.userId` (middleware already requires login for this route)
 
 ### All other modules
 

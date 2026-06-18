@@ -3,15 +3,15 @@ import type { APIContext } from "astro";
 import { POST } from "../../../src/pages/api/auth/login";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 
-const mockSave = vi.fn();
-const mockSession: { isLoggedIn: boolean; username?: string; save: typeof mockSave } = {
-  isLoggedIn: false,
-  save: mockSave,
-};
+const mockProxy = vi.fn();
 
-vi.mock("@lib/server/auth/session", () => ({
-  getSession: vi.fn(async () => mockSession),
-}));
+vi.mock("@lib/server/auth/neon", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@lib/server/auth/neon")>();
+  return {
+    ...actual,
+    proxyAuthRequest: (...args: unknown[]) => mockProxy(...args),
+  };
+});
 
 function createContext(body: unknown): APIContext {
   return {
@@ -26,35 +26,51 @@ function createContext(body: unknown): APIContext {
 
 describe("POST /api/auth/login", () => {
   beforeEach(() => {
-    mockSave.mockClear();
-    mockSession.isLoggedIn = false;
-    delete mockSession.username;
-    process.env.AUTH_USERNAME = "testuser";
-    process.env.AUTH_PASSWORD = "testpass";
-    process.env.SESSION_SECRET = "test-secret-that-is-at-least-32-chars-long";
+    mockProxy.mockReset();
+    process.env.NEON_AUTH_BASE_URL = "https://test.neonauth.example/auth";
+    process.env.NEON_AUTH_COOKIE_SECRET = "test-cookie-secret-at-least-32-chars";
   });
 
-  it("returns 200 and sets session for valid credentials", async () => {
-    const response = await POST(createContext({ username: "testuser", password: "testpass" }));
+  it("returns 200 and forwards Set-Cookie on success", async () => {
+    mockProxy.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Set-Cookie": "neon_session=abc; Path=/; HttpOnly" },
+      })
+    );
+
+    const response = await POST(
+      createContext({ email: "test@example.com", password: "testpass" })
+    );
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data).toEqual({ ok: true });
-    expect(mockSession.isLoggedIn).toBe(true);
-    expect(mockSession.username).toBe("testuser");
-    expect(mockSave).toHaveBeenCalledOnce();
+    expect(response.headers.getSetCookie()).toEqual([
+      "neon_session=abc; Path=/; HttpOnly",
+    ]);
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(Request),
+      ["sign-in", "email"],
+      expect.objectContaining({ method: "POST" })
+    );
   });
 
   it("returns 401 for invalid credentials", async () => {
-    const response = await POST(createContext({ username: "wrong", password: "wrong" }));
+    mockProxy.mockResolvedValue(
+      new Response(JSON.stringify({ error: "bad" }), { status: 401 })
+    );
+
+    const response = await POST(
+      createContext({ email: "wrong@example.com", password: "wrong" })
+    );
     const data = await response.json();
 
     expect(response.status).toBe(401);
     expect(data).toEqual({ ok: false, code: MessageCode.INVALID_CREDENTIALS });
-    expect(mockSession.isLoggedIn).toBe(false);
   });
 
-  it("returns 400 when username is missing", async () => {
+  it("returns 400 when email is missing", async () => {
     const response = await POST(createContext({ password: "testpass" }));
     const data = await response.json();
 
@@ -63,19 +79,33 @@ describe("POST /api/auth/login", () => {
   });
 
   it("returns 400 when password is missing", async () => {
-    const response = await POST(createContext({ username: "testuser" }));
+    const response = await POST(createContext({ email: "test@example.com" }));
     const data = await response.json();
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ ok: false, code: MessageCode.MISSING_FIELDS });
   });
 
-  it("returns 500 when env vars are missing", async () => {
-    delete process.env.SESSION_SECRET;
-    const response = await POST(createContext({ username: "testuser", password: "testpass" }));
+  it("returns 500 when Neon auth env is missing", async () => {
+    delete process.env.NEON_AUTH_COOKIE_SECRET;
+    const response = await POST(
+      createContext({ email: "test@example.com", password: "testpass" })
+    );
     const data = await response.json();
 
     expect(response.status).toBe(500);
     expect(data).toEqual({ ok: false, code: MessageCode.SERVER_CONFIG });
+  });
+
+  it("returns 500 when Neon is unreachable", async () => {
+    mockProxy.mockRejectedValue(new Error("network"));
+
+    const response = await POST(
+      createContext({ email: "test@example.com", password: "testpass" })
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(data).toEqual({ ok: false, code: MessageCode.NETWORK_ERROR });
   });
 });
