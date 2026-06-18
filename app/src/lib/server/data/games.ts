@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { db, gameCatalog } from "@db/index";
 import {
   SEED_GAMES,
   type GameConfig,
@@ -6,8 +7,6 @@ import {
   type UserGameStats,
 } from "@lib/shared/games/types";
 
-const CATALOG_STORE = "game-types";
-const CATALOG_KEY = "catalog";
 const STATS_STORE = "user-game-stats";
 const SESSIONS_STORE = "game-sessions";
 
@@ -31,26 +30,53 @@ export function reconcileCatalog(stored: GameType[]): GameType[] {
   return merged;
 }
 
-function catalogsEqual(a: GameType[], b: GameType[]): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
 function isVisibleGame(game: GameType): boolean {
   return game.enabled && game.released;
 }
 
 async function readCatalog(): Promise<GameType[]> {
-  const store = getStore(CATALOG_STORE);
-  const data = await store.get(CATALOG_KEY, { type: "json" });
-  if (!data) {
-    await store.setJSON(CATALOG_KEY, SEED_GAMES);
+  const rows = await db.select().from(gameCatalog);
+  const stored: GameType[] = rows.map((row) => ({
+    slug: row.slug,
+    displayName: row.displayName,
+    sortOrder: row.sortOrder,
+    enabled: row.enabled,
+    released: row.released,
+  }));
+
+  if (stored.length === 0) {
+    await db.insert(gameCatalog).values(
+      SEED_GAMES.map((g) => ({
+        slug: g.slug,
+        displayName: g.displayName,
+        sortOrder: g.sortOrder,
+        enabled: g.enabled,
+        released: g.released,
+      })),
+    );
     return SEED_GAMES;
   }
 
-  const stored = data as GameType[];
   const merged = reconcileCatalog(stored);
-  if (!catalogsEqual(merged, stored)) {
-    await store.setJSON(CATALOG_KEY, merged);
+  for (const game of merged) {
+    await db
+      .insert(gameCatalog)
+      .values({
+        slug: game.slug,
+        displayName: game.displayName,
+        sortOrder: game.sortOrder,
+        enabled: game.enabled,
+        released: game.released,
+      })
+      .onConflictDoUpdate({
+        target: gameCatalog.slug,
+        set: {
+          displayName: game.displayName,
+          sortOrder: game.sortOrder,
+          enabled: game.enabled,
+          released: game.released,
+        },
+      });
   }
   return merged;
 }

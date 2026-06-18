@@ -10,6 +10,8 @@ vi.mock("@netlify/blobs", () => ({
   })),
 }));
 
+import "@tests/helpers/mock-db";
+import { mockDb } from "@tests/helpers/mock-db";
 import {
   getGameTypes,
   getGameBySlug,
@@ -18,37 +20,43 @@ import {
   getGameConfig,
   incrementPlayCount,
 } from "@lib/server/data/games";
-import { SEED_GAMES } from "@lib/shared/games/types";
+import { SEED_GAMES, type GameType } from "@lib/shared/games/types";
 
 const RELEASED_GAMES = SEED_GAMES.filter((g) => g.released);
 
+function seedCatalog(games: GameType[] = SEED_GAMES): void {
+  for (const game of games) {
+    mockDb.tables.gameCatalog.set(game.slug, {
+      slug: game.slug,
+      displayName: game.displayName,
+      sortOrder: game.sortOrder,
+      enabled: game.enabled,
+      released: game.released,
+    });
+  }
+}
+
 describe("games data layer", () => {
   beforeEach(() => {
+    mockDb.reset();
     mockGet.mockReset();
     mockSetJSON.mockReset();
   });
 
   it("seeds catalog when store is empty", async () => {
-    mockGet.mockResolvedValue(null);
     const games = await getGameTypes();
     expect(games).toEqual(RELEASED_GAMES);
-    expect(mockSetJSON).toHaveBeenCalledWith("game-types", "catalog", SEED_GAMES);
+    expect(mockDb.tables.gameCatalog.size).toBe(SEED_GAMES.length);
   });
 
   it("getGameBySlug returns released game", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
-      return Promise.resolve(null);
-    });
+    seedCatalog();
     const game = await getGameBySlug("ten-up-one-down");
     expect(game?.slug).toBe("ten-up-one-down");
   });
 
   it("getGameBySlug returns score-training from catalog", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
-      return Promise.resolve(null);
-    });
+    seedCatalog();
     const game = await getGameBySlug("score-training");
     expect(game).toEqual({
       slug: "score-training",
@@ -60,10 +68,7 @@ describe("games data layer", () => {
   });
 
   it("getGameBySlug returns singles-training from catalog", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
-      return Promise.resolve(null);
-    });
+    seedCatalog();
     const game = await getGameBySlug("singles-training");
     expect(game).toEqual({
       slug: "singles-training",
@@ -75,16 +80,13 @@ describe("games data layer", () => {
   });
 
   it("getGameBySlug returns null for unknown slug", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
-      return Promise.resolve(null);
-    });
+    seedCatalog();
     await expect(getGameBySlug("invalid")).resolves.toBeNull();
   });
 
   it("getQuickStartGames falls back to first N when no stats", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
+    seedCatalog();
+    mockGet.mockImplementation((store: string) => {
       if (store === "user-game-stats") return Promise.resolve(null);
       return Promise.resolve(null);
     });
@@ -93,8 +95,8 @@ describe("games data layer", () => {
   });
 
   it("getQuickStartGames sorts by play count when stats exist", async () => {
+    seedCatalog();
     mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
       if (store === "user-game-stats" && key === "alex") {
         return Promise.resolve({
           playCounts: { "score-training": 5, "ten-up-one-down": 2 },
@@ -112,7 +114,6 @@ describe("games data layer", () => {
       if (store === "game-sessions" && key === "alex:501") {
         return Promise.resolve(saved[key] ?? null);
       }
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
       return Promise.resolve(null);
     });
     mockSetJSON.mockImplementation((store: string, key: string, value: unknown) => {
@@ -137,53 +138,44 @@ describe("games data layer", () => {
     expect(mockSetJSON).toHaveBeenCalledWith(
       "user-game-stats",
       "alex",
-      { playCounts: { "501": 2 } }
+      { playCounts: { "501": 2 } },
     );
   });
 
   it("reconciles stale catalog missing score-training", async () => {
     const staleCatalog = SEED_GAMES.filter((g) => g.slug !== "score-training");
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(staleCatalog);
-      return Promise.resolve(null);
-    });
+    seedCatalog(staleCatalog);
 
     const games = await getGameTypes();
 
     expect(games.map((g) => g.slug)).toContain("score-training");
-    expect(mockSetJSON).toHaveBeenCalledWith("game-types", "catalog", SEED_GAMES);
+    expect(mockDb.tables.gameCatalog.has("score-training")).toBe(true);
     expect(games).toEqual(RELEASED_GAMES);
   });
 
   it("reconciles stale catalog missing singles-training", async () => {
     const staleCatalog = SEED_GAMES.filter((g) => g.slug !== "singles-training");
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(staleCatalog);
-      return Promise.resolve(null);
-    });
+    seedCatalog(staleCatalog);
 
     const games = await getGameTypes();
 
     expect(games.map((g) => g.slug)).toContain("singles-training");
-    expect(mockSetJSON).toHaveBeenCalledWith("game-types", "catalog", SEED_GAMES);
+    expect(mockDb.tables.gameCatalog.has("singles-training")).toBe(true);
     expect(games).toEqual(RELEASED_GAMES);
   });
 
   it("reconciliation is idempotent when catalog already matches seed", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
-      return Promise.resolve(null);
-    });
+    seedCatalog();
+    const before = [...mockDb.tables.gameCatalog.values()];
 
     await getGameTypes();
-    expect(mockSetJSON).not.toHaveBeenCalled();
+
+    const after = [...mockDb.tables.gameCatalog.values()];
+    expect(after).toEqual(before);
   });
 
   it("getGameTypes returns only released games", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
-      return Promise.resolve(null);
-    });
+    seedCatalog();
     const games = await getGameTypes();
     expect(games.map((g) => g.slug)).toEqual([
       "ten-up-one-down",
@@ -193,10 +185,7 @@ describe("games data layer", () => {
   });
 
   it("getGameBySlug returns null for unreleased game", async () => {
-    mockGet.mockImplementation((store: string, key: string) => {
-      if (store === "game-types" && key === "catalog") return Promise.resolve(SEED_GAMES);
-      return Promise.resolve(null);
-    });
+    seedCatalog();
     await expect(getGameBySlug("501")).resolves.toBeNull();
   });
 });

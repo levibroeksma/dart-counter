@@ -8,6 +8,13 @@
       "when": 1781785514899,
       "tag": "0000_living_night_nurse",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781871914899,
+      "tag": "0001_seed_game_catalog",
+      "breakpoints": true
     }
   ]
 }

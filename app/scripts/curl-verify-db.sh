@@ -39,4 +39,8 @@ assert_contains "$PREFS_PUT" '"displayName":"CurlTest"' "preferences PUT"
 PREFS_ROUNDTRIP=$(curl -sf -b "$JAR" "$BASE_URL/api/settings/preferences")
 assert_contains "$PREFS_ROUNDTRIP" '"displayName":"CurlTest"' "preferences round-trip"
 
+GAMES_HTML=$(curl -sf -b "$JAR" -L "$BASE_URL/games")
+assert_contains "$GAMES_HTML" "Ten Up One Down" "games page catalog from DB"
+assert_contains "$GAMES_HTML" "Score Training" "games page includes score-training"
+
 echo "All curl-verify-db checks passed"
