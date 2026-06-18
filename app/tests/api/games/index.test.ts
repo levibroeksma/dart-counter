@@ -67,7 +67,7 @@ describe("GET /api/games", () => {
   it("returns 500 when catalog read fails", async () => {
     mockSession.isLoggedIn = true;
     mockSession.userId = "00000000-0000-4000-8000-000000000001";
-    mockGetGameTypes.mockRejectedValue(new Error("blob down"));
+    mockGetGameTypes.mockRejectedValue(new Error("database down"));
 
     const response = await GET(createGetContext());
     const data = await response.json();
