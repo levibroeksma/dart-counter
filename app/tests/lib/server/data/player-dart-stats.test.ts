@@ -1,15 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
+import "@tests/helpers/mock-db";
+import { mockDb } from "@tests/helpers/mock-db";
+import { TEST_USER_ID } from "@tests/helpers/constants";
 import { createEmptyPlayerDartStats } from "@lib/shared/stats/double-stats";
-
-const mockGet = vi.fn();
-const mockSetJSON = vi.fn();
-
-vi.mock("@netlify/blobs", () => ({
-  getStore: vi.fn(() => ({
-    get: (...args: unknown[]) => mockGet(...args),
-    setJSON: (...args: unknown[]) => mockSetJSON(...args),
-  })),
-}));
 
 import {
   getPlayerDartStats,
@@ -18,14 +11,11 @@ import {
 
 describe("player-dart-stats data layer", () => {
   beforeEach(() => {
-    mockGet.mockReset();
-    mockSetJSON.mockReset();
+    mockDb.reset();
   });
 
   it("returns empty stats when none stored", async () => {
-    mockGet.mockResolvedValue(null);
-
-    const stats = await getPlayerDartStats("alex");
+    const stats = await getPlayerDartStats(TEST_USER_ID);
 
     expect(stats.totalCheckouts).toBe(0);
     expect(stats.doubleAttempts).toBe(0);
@@ -33,25 +23,33 @@ describe("player-dart-stats data layer", () => {
   });
 
   it("returns stored stats when found", async () => {
-    mockGet.mockResolvedValue({
-      ...createEmptyPlayerDartStats(),
+    mockDb.tables.playerDartStats.set(TEST_USER_ID, {
+      userId: TEST_USER_ID,
+      doubleAttempts: 12,
+      doubleHits: 6,
       totalCheckouts: 4,
       totalCheckoutDarts: 9,
     });
 
-    const stats = await getPlayerDartStats("alex");
+    const stats = await getPlayerDartStats(TEST_USER_ID);
 
     expect(stats.totalCheckouts).toBe(4);
     expect(stats.totalCheckoutDarts).toBe(9);
   });
 
   it("saves stats for user key", async () => {
-    mockSetJSON.mockResolvedValue(undefined);
     const stats = createEmptyPlayerDartStats();
     stats.totalCheckouts = 5;
+    stats.doubleAttempts = 10;
 
-    await savePlayerDartStats("alex", stats);
+    await savePlayerDartStats(TEST_USER_ID, stats);
 
-    expect(mockSetJSON).toHaveBeenCalledWith("alex", stats);
+    expect(mockDb.tables.playerDartStats.get(TEST_USER_ID)).toEqual({
+      userId: TEST_USER_ID,
+      doubleAttempts: 10,
+      doubleHits: 0,
+      totalCheckouts: 5,
+      totalCheckoutDarts: 0,
+    });
   });
 });

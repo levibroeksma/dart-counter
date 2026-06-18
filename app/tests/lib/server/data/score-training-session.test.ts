@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@tests/helpers/mock-db";
+import { mockDb } from "@tests/helpers/mock-db";
+import { TEST_USER_ID } from "@tests/helpers/constants";
+import { createEmptyScoreTrainingStats } from "@lib/shared/games/score-training/stats";
 
 const mockGet = vi.fn();
 const mockSetJSON = vi.fn();
@@ -18,6 +22,10 @@ import {
   saveScoreTrainingSession,
   deleteScoreTrainingSession,
 } from "@lib/server/data/score-training-session";
+import {
+  getPlayerScoreTrainingStats,
+  savePlayerScoreTrainingStats,
+} from "@lib/server/data/player-score-training-stats";
 
 describe("score-training session data layer", () => {
   beforeEach(() => {
@@ -116,5 +124,55 @@ describe("score-training session data layer", () => {
     await deleteScoreTrainingSession("alex");
 
     expect(mockDelete).toHaveBeenCalledWith("alex:score-training");
+  });
+});
+
+describe("player-score-training-stats data layer", () => {
+  beforeEach(() => {
+    mockDb.reset();
+    mockGet.mockReset();
+    mockSetJSON.mockReset();
+    mockDelete.mockReset();
+  });
+
+  it("returns empty stats when none stored", async () => {
+    await expect(getPlayerScoreTrainingStats(TEST_USER_ID)).resolves.toEqual(
+      createEmptyScoreTrainingStats(),
+    );
+  });
+
+  it("returns stored stats when found", async () => {
+    mockDb.tables.playerScoreTrainingStats.set(TEST_USER_ID, {
+      userId: TEST_USER_ID,
+      gamesCompleted: 4,
+      totalDartsThrown: 120,
+      totalPointsScored: 345,
+      bestVisitScore: 120,
+      bestGameAverage: 68.75,
+    });
+
+    const stats = await getPlayerScoreTrainingStats(TEST_USER_ID);
+
+    expect(stats.gamesCompleted).toBe(4);
+    expect(stats.totalPointsScored).toBe(345);
+    expect(stats.bestGameAverage).toBe(68.75);
+  });
+
+  it("saves stats for user key", async () => {
+    const stats = createEmptyScoreTrainingStats();
+    stats.gamesCompleted = 2;
+    stats.totalDartsThrown = 60;
+    stats.totalPointsScored = 180;
+
+    await savePlayerScoreTrainingStats(TEST_USER_ID, stats);
+
+    expect(mockDb.tables.playerScoreTrainingStats.get(TEST_USER_ID)).toEqual({
+      userId: TEST_USER_ID,
+      gamesCompleted: 2,
+      totalDartsThrown: 60,
+      totalPointsScored: 180,
+      bestVisitScore: 0,
+      bestGameAverage: 0,
+    });
   });
 });

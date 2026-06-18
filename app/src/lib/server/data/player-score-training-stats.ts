@@ -1,10 +1,19 @@
-import { getStore } from "@netlify/blobs";
+import { eq } from "drizzle-orm";
+import { db, playerScoreTrainingStats } from "@db/index";
 import {
   createEmptyScoreTrainingStats,
   type PlayerScoreTrainingStats,
 } from "@lib/shared/games/score-training/stats";
 
-const STORE_NAME = "player-score-training-stats";
+function mapStatsToColumns(stats: PlayerScoreTrainingStats) {
+  return {
+    gamesCompleted: stats.gamesCompleted,
+    totalDartsThrown: stats.totalDartsThrown,
+    totalPointsScored: stats.totalPointsScored,
+    bestVisitScore: stats.bestVisitScore,
+    bestGameAverage: stats.bestGameAverage,
+  };
+}
 
 /**
  * Reads lifetime Score Training stats for a user.
@@ -12,9 +21,21 @@ const STORE_NAME = "player-score-training-stats";
 export async function getPlayerScoreTrainingStats(
   userId: string
 ): Promise<PlayerScoreTrainingStats> {
-  const store = getStore(STORE_NAME);
-  const data = await store.get(userId, { type: "json" });
-  return (data as PlayerScoreTrainingStats | null) ?? createEmptyScoreTrainingStats();
+  const rows = await db
+    .select()
+    .from(playerScoreTrainingStats)
+    .where(eq(playerScoreTrainingStats.userId, userId))
+    .limit(1);
+  const row = rows[0];
+  if (!row) return createEmptyScoreTrainingStats();
+
+  return {
+    gamesCompleted: row.gamesCompleted,
+    totalDartsThrown: row.totalDartsThrown,
+    totalPointsScored: row.totalPointsScored,
+    bestVisitScore: row.bestVisitScore,
+    bestGameAverage: row.bestGameAverage,
+  };
 }
 
 /**
@@ -24,6 +45,11 @@ export async function savePlayerScoreTrainingStats(
   userId: string,
   stats: PlayerScoreTrainingStats
 ): Promise<void> {
-  const store = getStore(STORE_NAME);
-  await store.setJSON(userId, stats);
+  await db
+    .insert(playerScoreTrainingStats)
+    .values({ userId, ...mapStatsToColumns(stats) })
+    .onConflictDoUpdate({
+      target: playerScoreTrainingStats.userId,
+      set: mapStatsToColumns(stats),
+    });
 }

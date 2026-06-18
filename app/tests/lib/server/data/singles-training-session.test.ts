@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createEmptySinglesTrainingStats } from "@lib/shared/games/singles-training/stats";
+import "@tests/helpers/mock-db";
+import { mockDb } from "@tests/helpers/mock-db";
+import { TEST_USER_ID } from "@tests/helpers/constants";
 
 const mockGet = vi.fn();
 const mockSetJSON = vi.fn();
@@ -139,39 +142,57 @@ describe("singles-training session data layer", () => {
 
 describe("player-singles-training-stats data layer", () => {
   beforeEach(() => {
+    mockDb.reset();
     mockGet.mockReset();
     mockSetJSON.mockReset();
     mockDelete.mockReset();
   });
 
   it("returns empty stats when none stored", async () => {
-    mockGet.mockResolvedValue(null);
-
-    const stats = await getPlayerSinglesTrainingStats("alex");
+    const stats = await getPlayerSinglesTrainingStats(TEST_USER_ID);
 
     expect(stats).toEqual(createEmptySinglesTrainingStats());
   });
 
   it("returns stored stats when found", async () => {
-    mockGet.mockResolvedValue({
-      ...createEmptySinglesTrainingStats(),
+    mockDb.tables.playerSinglesTrainingStats.set(TEST_USER_ID, {
+      userId: TEST_USER_ID,
       gamesCompleted: 4,
+      gamesFailed: 1,
+      totalDartsThrown: 90,
+      totalHits: 40,
       totalScore: 123,
+      dartPositionHits: [10, 14, 16],
+      dartPositionAttempts: [30, 30, 30],
+      bestHitRatio: 0.45,
+      bestScore: 50,
     });
 
-    const stats = await getPlayerSinglesTrainingStats("alex");
+    const stats = await getPlayerSinglesTrainingStats(TEST_USER_ID);
 
     expect(stats.gamesCompleted).toBe(4);
     expect(stats.totalScore).toBe(123);
   });
 
   it("saves stats for user key", async () => {
-    mockSetJSON.mockResolvedValue(undefined);
     const stats = createEmptySinglesTrainingStats();
     stats.gamesCompleted = 2;
+    stats.dartPositionHits = [1, 2, 3];
+    stats.dartPositionAttempts = [3, 3, 3];
 
-    await savePlayerSinglesTrainingStats("alex", stats);
+    await savePlayerSinglesTrainingStats(TEST_USER_ID, stats);
 
-    expect(mockSetJSON).toHaveBeenCalledWith("alex", stats);
+    expect(mockDb.tables.playerSinglesTrainingStats.get(TEST_USER_ID)).toEqual({
+      userId: TEST_USER_ID,
+      gamesCompleted: 2,
+      gamesFailed: 0,
+      totalDartsThrown: 0,
+      totalHits: 0,
+      totalScore: 0,
+      dartPositionHits: [1, 2, 3],
+      dartPositionAttempts: [3, 3, 3],
+      bestHitRatio: 0,
+      bestScore: 0,
+    });
   });
 });
