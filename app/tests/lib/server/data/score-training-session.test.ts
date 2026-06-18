@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import "@tests/helpers/mock-db";
-import { mockDb } from "@tests/helpers/mock-db";
+import { mockDb, sessionScopedKey, TEST_ENTRY_ENV, userScopedKey } from "@tests/helpers/mock-db";
 import { TEST_USER_ID } from "@tests/helpers/constants";
 import { createEmptyScoreTrainingStats } from "@lib/shared/games/score-training/stats";
 
@@ -30,7 +30,7 @@ describe("score-training session data layer", () => {
     expect(session.state.currentScore).toBe(0);
     expect(session.state.currentRound).toBe(1);
     expect(session.timeRemainingSeconds).toBeNull();
-    expect(mockDb.tables.gameSessions.get("alex:score-training")).toEqual(
+    expect(mockDb.tables.gameSessions.get(sessionScopedKey("alex", "score-training"))).toEqual(
       expect.objectContaining({
         userId: "alex",
         gameSlug: "score-training",
@@ -49,9 +49,10 @@ describe("score-training session data layer", () => {
   });
 
   it("gets existing session", async () => {
-    mockDb.tables.gameSessions.set("alex:score-training", {
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "score-training"), {
       userId: "alex",
       gameSlug: "score-training",
+      entryEnv: TEST_ENTRY_ENV,
       sessionData: {
         slug: "score-training",
         settings: { endMode: "rounds", roundCount: 10 },
@@ -76,9 +77,10 @@ describe("score-training session data layer", () => {
   });
 
   it("returns null for legacy config blobs", async () => {
-    mockDb.tables.gameSessions.set("alex:score-training", {
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "score-training"), {
       userId: "alex",
       gameSlug: "score-training",
+      entryEnv: TEST_ENTRY_ENV,
       sessionData: {
         slug: "score-training",
         settings: { targetScore: 10 },
@@ -107,15 +109,16 @@ describe("score-training session data layer", () => {
       updatedAt: "2026-06-14T00:00:00.000Z",
     });
 
-    expect(mockDb.tables.gameSessions.get("alex:score-training")?.sessionData).toEqual(
+    expect(mockDb.tables.gameSessions.get(sessionScopedKey("alex", "score-training"))?.sessionData).toEqual(
       expect.objectContaining({ slug: "score-training" }),
     );
   });
 
   it("deletes session", async () => {
-    mockDb.tables.gameSessions.set("alex:score-training", {
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "score-training"), {
       userId: "alex",
       gameSlug: "score-training",
+      entryEnv: TEST_ENTRY_ENV,
       sessionData: {
         slug: "score-training",
         settings: { endMode: "rounds", roundCount: 10 },
@@ -126,7 +129,7 @@ describe("score-training session data layer", () => {
 
     await deleteScoreTrainingSession("alex");
 
-    expect(mockDb.tables.gameSessions.get("alex:score-training")).toBeUndefined();
+    expect(mockDb.tables.gameSessions.get(sessionScopedKey("alex", "score-training"))).toBeUndefined();
   });
 });
 
@@ -142,8 +145,9 @@ describe("player-score-training-stats data layer", () => {
   });
 
   it("returns stored stats when found", async () => {
-    mockDb.tables.playerScoreTrainingStats.set(TEST_USER_ID, {
+    mockDb.tables.playerScoreTrainingStats.set(userScopedKey(TEST_USER_ID), {
       userId: TEST_USER_ID,
+      entryEnv: TEST_ENTRY_ENV,
       gamesCompleted: 4,
       totalDartsThrown: 120,
       totalPointsScored: 345,
@@ -166,8 +170,9 @@ describe("player-score-training-stats data layer", () => {
 
     await savePlayerScoreTrainingStats(TEST_USER_ID, stats);
 
-    expect(mockDb.tables.playerScoreTrainingStats.get(TEST_USER_ID)).toEqual({
+    expect(mockDb.tables.playerScoreTrainingStats.get(userScopedKey(TEST_USER_ID))).toEqual({
       userId: TEST_USER_ID,
+      entryEnv: TEST_ENTRY_ENV,
       gamesCompleted: 2,
       totalDartsThrown: 60,
       totalPointsScored: 180,
