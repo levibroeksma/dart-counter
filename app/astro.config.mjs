@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, sessionDrivers } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import alpinejs from "@astrojs/alpinejs";
 import netlify from "@astrojs/netlify";
@@ -7,6 +7,7 @@ import netlify from "@astrojs/netlify";
 export default defineConfig({
   output: "server",
   adapter: netlify(),
+  session: { driver: sessionDrivers.lruCache() },
   vite: {
     plugins: [tailwindcss()],
   },
