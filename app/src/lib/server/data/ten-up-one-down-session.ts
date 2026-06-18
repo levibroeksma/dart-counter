@@ -1,5 +1,7 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, gameSessions } from "@db/index";
+import { getEntryEnv } from "@lib/shared/constants/entry-env";
+import { withEntryEnv } from "@lib/server/data/entry-env";
 import { createInitialGameState } from "@lib/shared/games/ten-up-one-down/state";
 import {
   isTenUpOneDownSession,
@@ -19,7 +21,11 @@ export async function getTenUpOneDownSession(
     .select()
     .from(gameSessions)
     .where(
-      and(eq(gameSessions.userId, userId), eq(gameSessions.gameSlug, GAME_SLUG))
+      withEntryEnv(
+        gameSessions.entryEnv,
+        eq(gameSessions.userId, userId),
+        eq(gameSessions.gameSlug, GAME_SLUG),
+      ),
     )
     .limit(1);
   const data = rows[0]?.sessionData;
@@ -43,11 +49,12 @@ export async function saveTenUpOneDownSession(
     .values({
       userId,
       gameSlug: GAME_SLUG,
+      entryEnv: getEntryEnv(),
       sessionData: updatedSession,
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
-      target: [gameSessions.userId, gameSessions.gameSlug],
+      target: [gameSessions.userId, gameSessions.gameSlug, gameSessions.entryEnv],
       set: { sessionData: updatedSession, updatedAt: new Date() },
     });
 }
@@ -59,7 +66,11 @@ export async function deleteTenUpOneDownSession(userId: string): Promise<void> {
   await db
     .delete(gameSessions)
     .where(
-      and(eq(gameSessions.userId, userId), eq(gameSessions.gameSlug, GAME_SLUG))
+      withEntryEnv(
+        gameSessions.entryEnv,
+        eq(gameSessions.userId, userId),
+        eq(gameSessions.gameSlug, GAME_SLUG),
+      ),
     );
 }
 
