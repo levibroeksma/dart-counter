@@ -18,6 +18,7 @@ export default getViteConfig({
       "@components": path.resolve(__dirname, "./src/components"),
       "@icons": path.resolve(__dirname, "./src/icons"),
       "@db": path.resolve(__dirname, "./db"),
+      "@tests": path.resolve(__dirname, "./tests"),
     },
   },
 });

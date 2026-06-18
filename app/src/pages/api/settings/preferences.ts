@@ -23,7 +23,7 @@ export const GET: APIRoute = async ({ request }) => {
   }
 
   try {
-    const prefs = await getPreferences();
+    const prefs = await getPreferences(session.userId!);
     const body: PreferencesSuccess = { ok: true };
     if (prefs.displayName) {
       body.displayName = prefs.displayName;
@@ -58,7 +58,7 @@ export const PUT: APIRoute = async ({ request }) => {
   }
 
   try {
-    await setPreferences(prefs);
+    await setPreferences(session.userId!, prefs);
     const response: PreferencesSuccess = { ok: true };
     if (validated.value) {
       response.displayName = validated.value;

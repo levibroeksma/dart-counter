@@ -9,6 +9,7 @@ export async function getSession(request: Request): Promise<AppSession> {
   try {
     const response = await proxyAuthRequest(request, ["get-session"], {
       method: "GET",
+      body: null,
     });
 
     if (!response.ok) {

@@ -1,42 +1,36 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const mockGet = vi.fn();
-const mockSetJSON = vi.fn();
-
-vi.mock("@netlify/blobs", () => ({
-  getStore: vi.fn(() => ({
-    get: mockGet,
-    setJSON: mockSetJSON,
-  })),
-}));
-
+import { describe, it, expect, beforeEach } from "vitest";
+import "@tests/helpers/mock-db";
+import { mockDb } from "@tests/helpers/mock-db";
+import { TEST_USER_ID } from "@tests/helpers/constants";
 import { getPreferences, setPreferences } from "@lib/server/data/preferences";
 
 describe("preferences", () => {
-  beforeEach(() => {
-    mockGet.mockReset();
-    mockSetJSON.mockReset();
-  });
+  beforeEach(() => mockDb.reset());
 
-  it("returns empty object when blob is missing", async () => {
-    mockGet.mockResolvedValue(null);
-    await expect(getPreferences()).resolves.toEqual({});
+  it("returns empty object when row is missing", async () => {
+    await expect(getPreferences(TEST_USER_ID)).resolves.toEqual({});
   });
 
   it("returns stored preferences", async () => {
-    mockGet.mockResolvedValue({ displayName: "Alex" });
-    await expect(getPreferences()).resolves.toEqual({ displayName: "Alex" });
-  });
-
-  it("writes preferences to blob store", async () => {
-    await setPreferences({ displayName: "Alex" });
-    expect(mockSetJSON).toHaveBeenCalledWith("default", {
+    mockDb.tables.userPreferences.set(TEST_USER_ID, {
+      userId: TEST_USER_ID,
+      displayName: "Alex",
+      updatedAt: new Date(),
+    });
+    await expect(getPreferences(TEST_USER_ID)).resolves.toEqual({
       displayName: "Alex",
     });
   });
 
+  it("writes preferences via upsert", async () => {
+    await setPreferences(TEST_USER_ID, { displayName: "Alex" });
+    const row = mockDb.tables.userPreferences.get(TEST_USER_ID);
+    expect(row?.displayName).toBe("Alex");
+  });
+
   it("writes empty object when clearing display name", async () => {
-    await setPreferences({});
-    expect(mockSetJSON).toHaveBeenCalledWith("default", {});
+    await setPreferences(TEST_USER_ID, {});
+    const row = mockDb.tables.userPreferences.get(TEST_USER_ID);
+    expect(row?.displayName).toBeNull();
   });
 });
