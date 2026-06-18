@@ -1,5 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db, playerSinglesTrainingStats } from "@db/index";
+import { getEntryEnv } from "@lib/shared/constants/entry-env";
+import { withEntryEnv } from "@lib/server/data/entry-env";
 import {
   createEmptySinglesTrainingStats,
   type PlayerSinglesTrainingStats,
@@ -28,7 +30,12 @@ export async function getPlayerSinglesTrainingStats(
   const rows = await db
     .select()
     .from(playerSinglesTrainingStats)
-    .where(eq(playerSinglesTrainingStats.userId, userId))
+    .where(
+      withEntryEnv(
+        playerSinglesTrainingStats.entryEnv,
+        eq(playerSinglesTrainingStats.userId, userId),
+      ),
+    )
     .limit(1);
   const row = rows[0];
   if (!row) return createEmptySinglesTrainingStats();
@@ -63,9 +70,9 @@ export async function savePlayerSinglesTrainingStats(
 ): Promise<void> {
   await db
     .insert(playerSinglesTrainingStats)
-    .values({ userId, ...mapStatsToColumns(stats) })
+    .values({ userId, entryEnv: getEntryEnv(), ...mapStatsToColumns(stats) })
     .onConflictDoUpdate({
-      target: playerSinglesTrainingStats.userId,
+      target: [playerSinglesTrainingStats.userId, playerSinglesTrainingStats.entryEnv],
       set: mapStatsToColumns(stats),
     });
 }
