@@ -42,7 +42,11 @@ describe("POST /api/auth/logout", () => {
     expect(mockProxy).toHaveBeenCalledWith(
       expect.any(Request),
       ["sign-out"],
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      })
     );
     expect(response.headers.getSetCookie()).toEqual([
       "neon_session=; Max-Age=0; Path=/",

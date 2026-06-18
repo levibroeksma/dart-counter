@@ -16,6 +16,8 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const neonResponse = await proxyAuthRequest(request, ["sign-out"], {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
     });
 
     const json = new Response(JSON.stringify({ ok: true } satisfies ApiResponse), {
