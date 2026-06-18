@@ -107,17 +107,10 @@ export async function proxyNeonAuthUpstream(
     body = await request.text();
   }
 
-  const headerRecord: Record<string, string> = {};
-  headers.forEach((value, key) => {
-    headerRecord[
-      key === "content-type" ? "Content-Type" : key === "cookie" ? "Cookie" : key
-    ] = value;
-  });
-
   try {
     const upstream = await fetch(upstreamUrl.toString(), {
       method,
-      headers: headerRecord,
+      headers,
       body,
     });
     return buildClientResponse(upstream);

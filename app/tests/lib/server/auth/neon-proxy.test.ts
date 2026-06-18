@@ -34,11 +34,11 @@ describe("proxyNeonAuthUpstream", () => {
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(url).toBe(`${BASE_URL}/sign-in/email`);
     expect(init.method).toBe("POST");
-    expect(init.headers).toMatchObject({
-      "Content-Type": "application/json",
-      Cookie:
-        "__Secure-neon-auth.session_token=abc; __Secure-neon-auth.local.session_data=xyz",
-    });
+    const upstreamHeaders = new Headers(init.headers);
+    expect(upstreamHeaders.get("content-type")).toBe("application/json");
+    expect(upstreamHeaders.get("cookie")).toBe(
+      "__Secure-neon-auth.session_token=abc; __Secure-neon-auth.local.session_data=xyz"
+    );
     expect(init.body).toBe(JSON.stringify({ email: "a@b.com", password: "secret" }));
   });
 
