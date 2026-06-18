@@ -1,5 +1,7 @@
-import { and, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, gameCatalog, gameSessions, userGamePlayCounts } from "@db/index";
+import { CATALOG_ENTRY_ENV, getEntryEnv } from "@lib/shared/constants/entry-env";
+import { withEntryEnv } from "@lib/server/data/entry-env";
 import {
   SEED_GAMES,
   type GameConfig,
@@ -31,7 +33,10 @@ function isVisibleGame(game: GameType): boolean {
 }
 
 async function readCatalog(): Promise<GameType[]> {
-  const rows = await db.select().from(gameCatalog);
+  const rows = await db
+    .select()
+    .from(gameCatalog)
+    .where(eq(gameCatalog.entryEnv, CATALOG_ENTRY_ENV));
   const stored: GameType[] = rows.map((row) => ({
     slug: row.slug,
     displayName: row.displayName,
@@ -44,6 +49,7 @@ async function readCatalog(): Promise<GameType[]> {
     await db.insert(gameCatalog).values(
       SEED_GAMES.map((g) => ({
         slug: g.slug,
+        entryEnv: CATALOG_ENTRY_ENV,
         displayName: g.displayName,
         sortOrder: g.sortOrder,
         enabled: g.enabled,
@@ -59,6 +65,7 @@ async function readCatalog(): Promise<GameType[]> {
       .insert(gameCatalog)
       .values({
         slug: game.slug,
+        entryEnv: CATALOG_ENTRY_ENV,
         displayName: game.displayName,
         sortOrder: game.sortOrder,
         enabled: game.enabled,
@@ -106,7 +113,7 @@ export async function getQuickStartGames(
   const rows = await db
     .select()
     .from(userGamePlayCounts)
-    .where(eq(userGamePlayCounts.userId, userId));
+    .where(withEntryEnv(userGamePlayCounts.entryEnv, eq(userGamePlayCounts.userId, userId)));
 
   const playCounts: Record<string, number> = {};
   for (const row of rows) {
@@ -149,11 +156,12 @@ export async function saveGameConfig(
     .values({
       userId,
       gameSlug: slug,
+      entryEnv: getEntryEnv(),
       sessionData: config,
       updatedAt: now,
     })
     .onConflictDoUpdate({
-      target: [gameSessions.userId, gameSessions.gameSlug],
+      target: [gameSessions.userId, gameSessions.gameSlug, gameSessions.entryEnv],
       set: { sessionData: config, updatedAt: new Date() },
     });
   return config;
@@ -170,7 +178,11 @@ export async function getGameConfig(
     .select()
     .from(gameSessions)
     .where(
-      and(eq(gameSessions.userId, userId), eq(gameSessions.gameSlug, slug))
+      withEntryEnv(
+        gameSessions.entryEnv,
+        eq(gameSessions.userId, userId),
+        eq(gameSessions.gameSlug, slug),
+      ),
     )
     .limit(1);
   const data = rows[0]?.sessionData;
@@ -189,9 +201,13 @@ export async function incrementPlayCount(
 ): Promise<void> {
   await db
     .insert(userGamePlayCounts)
-    .values({ userId, gameSlug: slug, playCount: 1 })
+    .values({ userId, gameSlug: slug, entryEnv: getEntryEnv(), playCount: 1 })
     .onConflictDoUpdate({
-      target: [userGamePlayCounts.userId, userGamePlayCounts.gameSlug],
+      target: [
+        userGamePlayCounts.userId,
+        userGamePlayCounts.gameSlug,
+        userGamePlayCounts.entryEnv,
+      ],
       set: { playCount: sql`${userGamePlayCounts.playCount} + 1` },
     });
 }
