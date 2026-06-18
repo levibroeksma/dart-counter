@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import "@tests/helpers/mock-db";
-import { mockDb } from "@tests/helpers/mock-db";
+import { mockDb, sessionScopedKey, TEST_ENTRY_ENV } from "@tests/helpers/mock-db";
 
 import {
   createTenUpOneDownSession,
@@ -23,7 +23,7 @@ describe("ten-up-one-down session data layer", () => {
     expect(session.slug).toBe("ten-up-one-down");
     expect(session.state.currentTarget).toBe(41);
     expect(session.timeRemainingSeconds).toBeNull();
-    expect(mockDb.tables.gameSessions.get("alex:ten-up-one-down")).toEqual(
+    expect(mockDb.tables.gameSessions.get(sessionScopedKey("alex", "ten-up-one-down"))).toEqual(
       expect.objectContaining({
         userId: "alex",
         gameSlug: "ten-up-one-down",
@@ -42,9 +42,10 @@ describe("ten-up-one-down session data layer", () => {
   });
 
   it("gets existing session", async () => {
-    mockDb.tables.gameSessions.set("alex:ten-up-one-down", {
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "ten-up-one-down"), {
       userId: "alex",
       gameSlug: "ten-up-one-down",
+      entryEnv: TEST_ENTRY_ENV,
       sessionData: {
         slug: "ten-up-one-down",
         settings: { endMode: "rounds", roundCount: 10 },
@@ -69,9 +70,10 @@ describe("ten-up-one-down session data layer", () => {
   });
 
   it("returns null for legacy config blobs", async () => {
-    mockDb.tables.gameSessions.set("alex:ten-up-one-down", {
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "ten-up-one-down"), {
       userId: "alex",
       gameSlug: "ten-up-one-down",
+      entryEnv: TEST_ENTRY_ENV,
       sessionData: {
         slug: "ten-up-one-down",
         settings: { targetScore: 10 },
@@ -101,16 +103,17 @@ describe("ten-up-one-down session data layer", () => {
     });
 
     expect(
-      mockDb.tables.gameSessions.get("alex:ten-up-one-down")?.sessionData,
+      mockDb.tables.gameSessions.get(sessionScopedKey("alex", "ten-up-one-down"))?.sessionData,
     ).toEqual(
       expect.objectContaining({ slug: "ten-up-one-down" }),
     );
   });
 
   it("deletes session", async () => {
-    mockDb.tables.gameSessions.set("alex:ten-up-one-down", {
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "ten-up-one-down"), {
       userId: "alex",
       gameSlug: "ten-up-one-down",
+      entryEnv: TEST_ENTRY_ENV,
       sessionData: {
         slug: "ten-up-one-down",
         settings: { endMode: "rounds", roundCount: 10 },
@@ -121,6 +124,6 @@ describe("ten-up-one-down session data layer", () => {
 
     await deleteTenUpOneDownSession("alex");
 
-    expect(mockDb.tables.gameSessions.get("alex:ten-up-one-down")).toBeUndefined();
+    expect(mockDb.tables.gameSessions.get(sessionScopedKey("alex", "ten-up-one-down"))).toBeUndefined();
   });
 });
