@@ -1,6 +1,6 @@
-import { createNeonAuth } from "@neondatabase/auth/next/server";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import { bootstrapEnv } from "@lib/server/bootstrap-env";
+import { proxyNeonAuthUpstream } from "@lib/server/auth/neon-proxy";
 
 bootstrapEnv();
 
@@ -13,33 +13,20 @@ export type AppSession = {
   name?: string;
 };
 
-type NeonAuthHandler = ReturnType<
-  ReturnType<typeof createNeonAuth>["handler"]
->;
-
-let cachedHandler: NeonAuthHandler | null = null;
-
 function resolveNeonAuthConfig() {
   const baseUrl = process.env.NEON_AUTH_BASE_URL;
   const secret = process.env.NEON_AUTH_COOKIE_SECRET;
   if (!baseUrl || !secret) {
     throw new Error(MessageCode.SERVER_CONFIG);
   }
-  return {
-    baseUrl,
-    cookies: { secret },
-  };
+  if (secret.length < 32) {
+    throw new Error(MessageCode.SERVER_CONFIG);
+  }
+  return { baseUrl };
 }
 
 export function assertNeonAuthConfig(): void {
   resolveNeonAuthConfig();
-}
-
-export function getAuthHandler(): NeonAuthHandler {
-  if (!cachedHandler) {
-    cachedHandler = createNeonAuth(resolveNeonAuthConfig()).handler();
-  }
-  return cachedHandler;
 }
 
 export function forwardSetCookieHeaders(
@@ -66,33 +53,7 @@ export async function proxyAuthRequest(
     headers?: HeadersInit;
   }
 ): Promise<Response> {
-  const origin = new URL(request.url).origin;
-  const proxyUrl = new URL(
-    `/api/auth/${pathSegments.join("/")}`,
-    origin
-  ).toString();
-
-  const headers = new Headers(request.headers);
-  if (overrides?.headers) {
-    new Headers(overrides.headers).forEach((value, key) => {
-      headers.set(key, value);
-    });
-  }
-
-  const proxyRequest = new Request(proxyUrl, {
-    method: overrides?.method ?? request.method,
-    headers,
-    body: overrides?.body ?? null,
-  });
-
-  const method = (overrides?.method ?? request.method).toUpperCase();
-  const handler = getAuthHandler();
-  const routeHandler = handler[method as keyof NeonAuthHandler];
-  if (!routeHandler) {
-    return new Response("Method Not Allowed", { status: 405 });
-  }
-
-  return routeHandler(proxyRequest, {
-    params: Promise.resolve({ path: pathSegments }),
-  });
+  const config = resolveNeonAuthConfig();
+  const path = pathSegments.join("/");
+  return proxyNeonAuthUpstream(request, path, config, overrides);
 }

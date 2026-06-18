@@ -1,18 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  forwardSetCookieHeaders,
-  proxyAuthRequest,
-  getAuthHandler,
-} from "@lib/server/auth/neon";
-
-vi.mock("@neondatabase/auth/next/server", () => ({
-  createNeonAuth: vi.fn(() => ({
-    POST: vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 })),
-    handler: vi.fn(() => ({
-      POST: vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 })),
-    })),
-  })),
-}));
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { forwardSetCookieHeaders, proxyAuthRequest } from "@lib/server/auth/neon";
 
 describe("forwardSetCookieHeaders", () => {
   it("copies Set-Cookie headers onto the target response", () => {
@@ -38,9 +25,19 @@ describe("proxyAuthRequest", () => {
   beforeEach(() => {
     process.env.NEON_AUTH_BASE_URL = "https://test.neonauth.example/auth";
     process.env.NEON_AUTH_COOKIE_SECRET = "test-cookie-secret-at-least-32-chars";
+    vi.stubGlobal("fetch", vi.fn());
   });
 
-  it("routes POST to authApiHandler with path segments", async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("proxies POST to upstream sign-in/email", async () => {
+    const mockFetch = vi.mocked(fetch);
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
     const request = new Request("http://localhost/api/auth/login", {
       method: "POST",
     });
@@ -51,7 +48,17 @@ describe("proxyAuthRequest", () => {
     });
 
     expect(response.status).toBe(200);
-    const handler = getAuthHandler();
-    expect(handler.POST).toHaveBeenCalledOnce();
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://test.neonauth.example/auth/sign-in/email");
+  });
+
+  it("throws SERVER_CONFIG when env is missing", async () => {
+    delete process.env.NEON_AUTH_COOKIE_SECRET;
+
+    const request = new Request("http://localhost/", { method: "GET" });
+
+    await expect(proxyAuthRequest(request, ["get-session"])).rejects.toThrow(
+      "SERVER_CONFIG"
+    );
   });
 });
