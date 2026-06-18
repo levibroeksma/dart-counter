@@ -69,7 +69,7 @@ describe("ten-up-one-down session data layer", () => {
     expect(session?.state.currentTarget).toBe(50);
   });
 
-  it("returns null for legacy config blobs", async () => {
+  it("returns null for legacy config-only shapes", async () => {
     mockDb.tables.gameSessions.set(sessionScopedKey("alex", "ten-up-one-down"), {
       userId: "alex",
       gameSlug: "ten-up-one-down",
