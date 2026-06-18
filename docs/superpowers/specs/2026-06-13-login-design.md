@@ -1,3 +1,5 @@
+> **Superseded:** See `docs/superpowers/specs/2026-06-18-neon-auth-migration-design.md` for current auth architecture.
+
 # Login Feature — Design Spec
 
 > Input for `writing-plans` skill. Full brainstorming context: `docs/superpowers/context/login-feature-context.md`

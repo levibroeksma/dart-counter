@@ -22,8 +22,8 @@ export const MessageCode = {
 export type MessageCode = (typeof MessageCode)[keyof typeof MessageCode];
 
 export const errorMessages: Record<MessageCode, string> = {
-  [MessageCode.INVALID_CREDENTIALS]: "Invalid username or password",
-  [MessageCode.MISSING_FIELDS]: "Username and password are required",
+  [MessageCode.INVALID_CREDENTIALS]: "Invalid email or password",
+  [MessageCode.MISSING_FIELDS]: "Email and password are required",
   [MessageCode.SERVER_CONFIG]: "Server configuration error",
   [MessageCode.NETWORK_ERROR]: "Unable to connect. Please try again.",
   [MessageCode.INVALID_DISPLAY_NAME]: "Display name must be 2–20 characters",

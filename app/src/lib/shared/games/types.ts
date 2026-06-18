@@ -12,10 +12,6 @@ export type GameConfig = {
   updatedAt: string;
 };
 
-export type UserGameStats = {
-  playCounts: Record<string, number>;
-};
-
 export const SEED_GAMES: GameType[] = [
   { slug: "501", displayName: "501", sortOrder: 1, enabled: true, released: false },
   {

@@ -71,7 +71,7 @@ describe("POST /api/games/singles-training/session/dart", () => {
     mockGetPlayerSinglesTrainingStats.mockReset();
     mockSavePlayerSinglesTrainingStats.mockReset();
 
-    mockGetSession.mockResolvedValue({ isLoggedIn: true, username: "alex" });
+    mockGetSession.mockResolvedValue({ isLoggedIn: true, userId: "00000000-0000-4000-8000-000000000001" });
     mockGetSinglesTrainingSession.mockResolvedValue(structuredClone(activeSession));
     mockSaveSinglesTrainingSession.mockResolvedValue(undefined);
     mockDeleteSinglesTrainingSession.mockResolvedValue(undefined);

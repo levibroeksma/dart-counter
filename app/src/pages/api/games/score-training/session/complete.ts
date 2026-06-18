@@ -41,13 +41,13 @@ async function parseCompletePayload(request: Request): Promise<CompletePayload> 
   }
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const POST: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
-  const session = await getScoreTrainingSession(auth.username);
+  const session = await getScoreTrainingSession(auth.userId);
   if (!session) {
     return jsonResponse({ ok: false, code: MessageCode.NO_ACTIVE_SESSION }, 404);
   }
@@ -66,11 +66,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     session.state.status = "completed";
     const summary = buildSummary(session);
-    const stats = await getPlayerScoreTrainingStats(auth.username);
+    const stats = await getPlayerScoreTrainingStats(auth.userId);
     applyGameCompletionToStats(stats, session);
 
-    await savePlayerScoreTrainingStats(auth.username, stats);
-    await deleteScoreTrainingSession(auth.username);
+    await savePlayerScoreTrainingStats(auth.userId, stats);
+    await deleteScoreTrainingSession(auth.userId);
 
     return jsonResponse({ ok: true, session, completed: true, summary }, 200);
   } catch {

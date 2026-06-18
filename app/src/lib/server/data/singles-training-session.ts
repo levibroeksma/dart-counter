@@ -1,4 +1,7 @@
-import { getStore } from "@netlify/blobs";
+import { eq } from "drizzle-orm";
+import { db, gameSessions } from "@db/index";
+import { getEntryEnv } from "@lib/shared/constants/entry-env";
+import { withEntryEnv } from "@lib/server/data/entry-env";
 import { createInitialGameState } from "@lib/shared/games/singles-training/state";
 import { buildTargetSequence } from "@lib/shared/games/singles-training/target-sequence";
 import {
@@ -7,12 +10,7 @@ import {
 } from "@lib/shared/games/singles-training/session";
 import type { SinglesTrainingSettings } from "@lib/shared/games/singles-training/settings";
 
-const STORE_NAME = "game-sessions";
 const GAME_SLUG = "singles-training";
-
-function sessionKey(userId: string): string {
-  return `${userId}:${GAME_SLUG}`;
-}
 
 /**
  * Reads the active Singles Training session for a user.
@@ -20,8 +18,18 @@ function sessionKey(userId: string): string {
 export async function getSinglesTrainingSession(
   userId: string
 ): Promise<SinglesTrainingSession | null> {
-  const store = getStore(STORE_NAME);
-  const data = await store.get(sessionKey(userId), { type: "json" });
+  const rows = await db
+    .select()
+    .from(gameSessions)
+    .where(
+      withEntryEnv(
+        gameSessions.entryEnv,
+        eq(gameSessions.userId, userId),
+        eq(gameSessions.gameSlug, GAME_SLUG),
+      ),
+    )
+    .limit(1);
+  const data = rows[0]?.sessionData;
   if (!isSinglesTrainingSession(data)) return null;
   return data;
 }
@@ -33,19 +41,38 @@ export async function saveSinglesTrainingSession(
   userId: string,
   session: SinglesTrainingSession
 ): Promise<void> {
-  const store = getStore(STORE_NAME);
-  await store.setJSON(sessionKey(userId), {
+  const updatedSession: SinglesTrainingSession = {
     ...session,
     updatedAt: new Date().toISOString(),
-  });
+  };
+  await db
+    .insert(gameSessions)
+    .values({
+      userId,
+      gameSlug: GAME_SLUG,
+      entryEnv: getEntryEnv(),
+      sessionData: updatedSession,
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [gameSessions.userId, gameSessions.gameSlug, gameSessions.entryEnv],
+      set: { sessionData: updatedSession, updatedAt: new Date() },
+    });
 }
 
 /**
  * Removes the active Singles Training session for a user.
  */
 export async function deleteSinglesTrainingSession(userId: string): Promise<void> {
-  const store = getStore(STORE_NAME);
-  await store.delete(sessionKey(userId));
+  await db
+    .delete(gameSessions)
+    .where(
+      withEntryEnv(
+        gameSessions.entryEnv,
+        eq(gameSessions.userId, userId),
+        eq(gameSessions.gameSlug, GAME_SLUG),
+      ),
+    );
 }
 
 /**

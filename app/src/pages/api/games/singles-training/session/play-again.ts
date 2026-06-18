@@ -19,7 +19,7 @@ function jsonResponse(body: ApiResponse, status: number): Response {
 
 async function resolveSettings(
   request: Request,
-  username: string,
+  userId: string,
 ): Promise<SinglesTrainingSettings | typeof MessageCode.NO_ACTIVE_SESSION | null> {
   try {
     const payload = (await request.json()) as Record<string, unknown>;
@@ -29,7 +29,7 @@ async function resolveSettings(
     }
     return null;
   } catch {
-    const existing = await getSinglesTrainingSession(username);
+    const existing = await getSinglesTrainingSession(userId);
     if (!existing) {
       return MessageCode.NO_ACTIVE_SESSION;
     }
@@ -37,14 +37,14 @@ async function resolveSettings(
   }
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const POST: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
   try {
-    const settings = await resolveSettings(request, auth.username);
+    const settings = await resolveSettings(request, auth.userId);
     if (settings === MessageCode.NO_ACTIVE_SESSION) {
       return jsonResponse({ ok: false, code: MessageCode.NO_ACTIVE_SESSION }, 404);
     }
@@ -52,8 +52,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       return jsonResponse({ ok: false, code: MessageCode.INVALID_GAME_SETTINGS }, 400);
     }
 
-    await deleteSinglesTrainingSession(auth.username);
-    const nextSession = await createSinglesTrainingSession(auth.username, settings);
+    await deleteSinglesTrainingSession(auth.userId);
+    const nextSession = await createSinglesTrainingSession(auth.userId, settings);
     return jsonResponse({ ok: true, session: nextSession }, 200);
   } catch {
     return jsonResponse({ ok: false, code: MessageCode.SERVER_ERROR }, 500);

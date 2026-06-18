@@ -28,7 +28,7 @@ describe("loginForm", () => {
 
   it("starts with empty fields and no error", () => {
     const component = createComponent();
-    expect(component.username).toBe("");
+    expect(component.email).toBe("");
     expect(component.password).toBe("");
     expect(component.loading).toBe(false);
     expect(component.error).toBe("");
@@ -40,12 +40,12 @@ describe("loginForm", () => {
     } as Response);
 
     const component = createComponent();
-    component.username = "bad";
+    component.email = "bad@example.com";
     component.password = "bad";
 
     await component.submit();
 
-    expect(component.error).toBe("Invalid username or password");
+    expect(component.error).toBe("Invalid email or password");
     expect(component.loading).toBe(false);
   });
 
@@ -53,7 +53,7 @@ describe("loginForm", () => {
     vi.mocked(fetch).mockRejectedValue(new Error("network"));
 
     const component = createComponent();
-    component.username = "testuser";
+    component.email = "test@example.com";
     component.password = "testpass";
 
     await component.submit();
@@ -74,7 +74,7 @@ describe("loginForm", () => {
     } as Response);
 
     const component = createComponent("/games");
-    component.username = "testuser";
+    component.email = "test@example.com";
     component.password = "testpass";
 
     await component.submit();
@@ -88,7 +88,7 @@ describe("loginForm", () => {
     } as Response);
 
     const component = createComponent();
-    component.username = "testuser";
+    component.email = "test@example.com";
     component.password = "testpass";
 
     await component.submit();
@@ -96,7 +96,7 @@ describe("loginForm", () => {
     expect(fetch).toHaveBeenCalledWith("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "testuser", password: "testpass" }),
+      body: JSON.stringify({ email: "test@example.com", password: "testpass" }),
     });
   });
 });

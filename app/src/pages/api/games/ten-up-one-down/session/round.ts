@@ -48,13 +48,13 @@ function parseRoundSubmission(payload: RoundSubmissionPayload): {
   return { round: payload, timerExpired: false };
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const POST: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
-  const session = await getTenUpOneDownSession(auth.username);
+  const session = await getTenUpOneDownSession(auth.userId);
   if (!session) {
     return jsonResponse({ ok: false, code: MessageCode.NO_ACTIVE_SESSION }, 404);
   }
@@ -80,7 +80,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    const stats = await getPlayerDartStats(auth.username);
+    const stats = await getPlayerDartStats(auth.userId);
     applyRoundToStats(stats, round);
     session.state = applyRoundToState(session.state, round, session.settings);
     session.roundHistory.push(round);
@@ -93,13 +93,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       session.state.status = "completed";
     }
 
-    await savePlayerDartStats(auth.username, stats);
+    await savePlayerDartStats(auth.userId, stats);
     if (session.state.status === "completed") {
-      await deleteTenUpOneDownSession(auth.username);
+      await deleteTenUpOneDownSession(auth.userId);
       return jsonResponse({ ok: true, session, completed: true }, 200);
     }
 
-    await saveTenUpOneDownSession(auth.username, session);
+    await saveTenUpOneDownSession(auth.userId, session);
     return jsonResponse({ ok: true, session }, 200);
   } catch {
     return jsonResponse({ ok: false, code: MessageCode.SERVER_ERROR }, 500);

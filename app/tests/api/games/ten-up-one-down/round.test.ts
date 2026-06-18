@@ -28,9 +28,9 @@ vi.mock("@lib/server/data/player-dart-stats", () => ({
   savePlayerDartStats: (...args: unknown[]) => mockSavePlayerStats(...args),
 }));
 
-const authState: { isLoggedIn: boolean; username?: string } = {
+const authState: { isLoggedIn: boolean; userId?: string } = {
   isLoggedIn: true,
-  username: "alex",
+  userId: "00000000-0000-4000-8000-000000000001",
 };
 
 const activeSession = {

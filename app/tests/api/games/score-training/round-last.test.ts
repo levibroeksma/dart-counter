@@ -52,7 +52,7 @@ describe("DELETE /api/games/score-training/session/round/last", () => {
     mockGetScoreTrainingSession.mockReset();
     mockSaveScoreTrainingSession.mockReset();
 
-    mockGetSession.mockResolvedValue({ isLoggedIn: true, username: "alex" });
+    mockGetSession.mockResolvedValue({ isLoggedIn: true, userId: "00000000-0000-4000-8000-000000000001" });
     mockGetScoreTrainingSession.mockResolvedValue(
       structuredClone(sessionWithRounds)
     );

@@ -1,21 +1,18 @@
-import { getStore } from "@netlify/blobs";
+import { eq, sql } from "drizzle-orm";
+import { db, gameCatalog, gameSessions, userGamePlayCounts } from "@db/index";
+import { CATALOG_ENTRY_ENV, getEntryEnv } from "@lib/shared/constants/entry-env";
+import { withEntryEnv } from "@lib/server/data/entry-env";
 import {
   SEED_GAMES,
   type GameConfig,
   type GameType,
-  type UserGameStats,
 } from "@lib/shared/games/types";
-
-const CATALOG_STORE = "game-types";
-const CATALOG_KEY = "catalog";
-const STATS_STORE = "user-game-stats";
-const SESSIONS_STORE = "game-sessions";
 
 /**
  * Merge stored catalog with SEED_GAMES metadata by slug.
  * Seed entries win on conflict; unknown stored entries are preserved at the end.
  */
-export function reconcileCatalog(stored: GameType[]): GameType[] {
+function reconcileCatalog(stored: GameType[]): GameType[] {
   const bySlug = new Map(stored.map((game) => [game.slug, game]));
   const seedSlugs = new Set(SEED_GAMES.map((game) => game.slug));
 
@@ -31,26 +28,58 @@ export function reconcileCatalog(stored: GameType[]): GameType[] {
   return merged;
 }
 
-function catalogsEqual(a: GameType[], b: GameType[]): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
 function isVisibleGame(game: GameType): boolean {
   return game.enabled && game.released;
 }
 
 async function readCatalog(): Promise<GameType[]> {
-  const store = getStore(CATALOG_STORE);
-  const data = await store.get(CATALOG_KEY, { type: "json" });
-  if (!data) {
-    await store.setJSON(CATALOG_KEY, SEED_GAMES);
+  const rows = await db
+    .select()
+    .from(gameCatalog)
+    .where(eq(gameCatalog.entryEnv, CATALOG_ENTRY_ENV));
+  const stored: GameType[] = rows.map((row) => ({
+    slug: row.slug,
+    displayName: row.displayName,
+    sortOrder: row.sortOrder,
+    enabled: row.enabled,
+    released: row.released,
+  }));
+
+  if (stored.length === 0) {
+    await db.insert(gameCatalog).values(
+      SEED_GAMES.map((g) => ({
+        slug: g.slug,
+        entryEnv: CATALOG_ENTRY_ENV,
+        displayName: g.displayName,
+        sortOrder: g.sortOrder,
+        enabled: g.enabled,
+        released: g.released,
+      })),
+    );
     return SEED_GAMES;
   }
 
-  const stored = data as GameType[];
   const merged = reconcileCatalog(stored);
-  if (!catalogsEqual(merged, stored)) {
-    await store.setJSON(CATALOG_KEY, merged);
+  for (const game of merged) {
+    await db
+      .insert(gameCatalog)
+      .values({
+        slug: game.slug,
+        entryEnv: CATALOG_ENTRY_ENV,
+        displayName: game.displayName,
+        sortOrder: game.sortOrder,
+        enabled: game.enabled,
+        released: game.released,
+      })
+      .onConflictDoUpdate({
+        target: gameCatalog.slug,
+        set: {
+          displayName: game.displayName,
+          sortOrder: game.sortOrder,
+          enabled: game.enabled,
+          released: game.released,
+        },
+      });
   }
   return merged;
 }
@@ -81,20 +110,25 @@ export async function getQuickStartGames(
   limit: number
 ): Promise<GameType[]> {
   const catalog = await getGameTypes();
-  const store = getStore(STATS_STORE);
-  const stats =
-    ((await store.get(userId, { type: "json" })) as UserGameStats | null) ??
-    { playCounts: {} };
+  const rows = await db
+    .select()
+    .from(userGamePlayCounts)
+    .where(withEntryEnv(userGamePlayCounts.entryEnv, eq(userGamePlayCounts.userId, userId)));
+
+  const playCounts: Record<string, number> = {};
+  for (const row of rows) {
+    playCounts[row.gameSlug] = row.playCount;
+  }
 
   const ranked = [...catalog].sort((a, b) => {
-    const aCount = stats.playCounts[a.slug] ?? 0;
-    const bCount = stats.playCounts[b.slug] ?? 0;
+    const aCount = playCounts[a.slug] ?? 0;
+    const bCount = playCounts[b.slug] ?? 0;
     if (bCount !== aCount) return bCount - aCount;
     return a.sortOrder - b.sortOrder;
   });
 
   const hasPlays = catalog.some(
-    (game) => (stats.playCounts[game.slug] ?? 0) > 0
+    (game) => (playCounts[game.slug] ?? 0) > 0
   );
   if (!hasPlays) {
     return catalog.slice(0, limit);
@@ -111,13 +145,25 @@ export async function saveGameConfig(
   slug: string,
   settings: Record<string, unknown>
 ): Promise<GameConfig> {
+  const now = new Date();
   const config: GameConfig = {
     slug,
     settings,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now.toISOString(),
   };
-  const store = getStore(SESSIONS_STORE);
-  await store.setJSON(`${userId}:${slug}`, config);
+  await db
+    .insert(gameSessions)
+    .values({
+      userId,
+      gameSlug: slug,
+      entryEnv: getEntryEnv(),
+      sessionData: config,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [gameSessions.userId, gameSessions.gameSlug, gameSessions.entryEnv],
+      set: { sessionData: config, updatedAt: new Date() },
+    });
   return config;
 }
 
@@ -128,9 +174,22 @@ export async function getGameConfig(
   userId: string,
   slug: string
 ): Promise<GameConfig | null> {
-  const store = getStore(SESSIONS_STORE);
-  const data = await store.get(`${userId}:${slug}`, { type: "json" });
-  return (data as GameConfig | null) ?? null;
+  const rows = await db
+    .select()
+    .from(gameSessions)
+    .where(
+      withEntryEnv(
+        gameSessions.entryEnv,
+        eq(gameSessions.userId, userId),
+        eq(gameSessions.gameSlug, slug),
+      ),
+    )
+    .limit(1);
+  const data = rows[0]?.sessionData;
+  if (!data || typeof data !== "object") return null;
+  const record = data as Record<string, unknown>;
+  if (!record.settings || typeof record.settings !== "object") return null;
+  return data as GameConfig;
 }
 
 /**
@@ -140,11 +199,15 @@ export async function incrementPlayCount(
   userId: string,
   slug: string
 ): Promise<void> {
-  const store = getStore(STATS_STORE);
-  const existing =
-    ((await store.get(userId, { type: "json" })) as UserGameStats | null) ??
-    { playCounts: {} };
-  const playCounts = { ...existing.playCounts };
-  playCounts[slug] = (playCounts[slug] ?? 0) + 1;
-  await store.setJSON(userId, { playCounts });
+  await db
+    .insert(userGamePlayCounts)
+    .values({ userId, gameSlug: slug, entryEnv: getEntryEnv(), playCount: 1 })
+    .onConflictDoUpdate({
+      target: [
+        userGamePlayCounts.userId,
+        userGamePlayCounts.gameSlug,
+        userGamePlayCounts.entryEnv,
+      ],
+      set: { playCount: sql`${userGamePlayCounts.playCount} + 1` },
+    });
 }

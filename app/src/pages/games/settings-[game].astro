@@ -36,25 +36,25 @@ const SettingsForm = getSettingsFormComponent(slug)!;
 let hasActiveSession = false;
 
 if (slug === "ten-up-one-down") {
-  const auth = await getSession(Astro.cookies);
-  if (auth.isLoggedIn && auth.username) {
-    const activeSession = await getTenUpOneDownSession(auth.username);
+  const auth = await getSession(Astro.request);
+  if (auth.isLoggedIn && auth.userId) {
+    const activeSession = await getTenUpOneDownSession(auth.userId);
     hasActiveSession = isTenUpOneDownSession(activeSession);
   }
 }
 
 if (slug === "score-training") {
-  const auth = await getSession(Astro.cookies);
-  if (auth.isLoggedIn && auth.username) {
-    const activeSession = await getScoreTrainingSession(auth.username);
+  const auth = await getSession(Astro.request);
+  if (auth.isLoggedIn && auth.userId) {
+    const activeSession = await getScoreTrainingSession(auth.userId);
     hasActiveSession = isScoreTrainingSession(activeSession);
   }
 }
 
 if (slug === "singles-training") {
-  const auth = await getSession(Astro.cookies);
-  if (auth.isLoggedIn && auth.username) {
-    const activeSession = await getSinglesTrainingSession(auth.username);
+  const auth = await getSession(Astro.request);
+  if (auth.isLoggedIn && auth.userId) {
+    const activeSession = await getSinglesTrainingSession(auth.userId);
     hasActiveSession = isSinglesTrainingSession(activeSession);
   }
 }

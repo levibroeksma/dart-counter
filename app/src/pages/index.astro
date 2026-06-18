@@ -9,14 +9,15 @@ import { getQuickStartGames } from "@lib/server/data/games";
 import { getSession } from "@lib/server/auth/session";
 import type { GameType } from "@lib/shared/games/types";
 
-const session = await getSession(Astro.cookies);
-const userId = session.username ?? "default";
+const session = await getSession(Astro.request);
 let quickStartGames: GameType[] = [];
 
-try {
-  quickStartGames = await getQuickStartGames(userId, 2);
-} catch {
-  quickStartGames = [];
+if (session.userId) {
+  try {
+    quickStartGames = await getQuickStartGames(session.userId, 2);
+  } catch {
+    quickStartGames = [];
+  }
 }
 ---
 

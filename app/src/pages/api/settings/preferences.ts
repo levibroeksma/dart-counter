@@ -16,14 +16,14 @@ function jsonResponse(body: ApiResponse, status: number): Response {
   });
 }
 
-export const GET: APIRoute = async ({ cookies }) => {
-  const session = await getSession(cookies);
+export const GET: APIRoute = async ({ request }) => {
+  const session = await getSession(request);
   if (!session.isLoggedIn) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
   try {
-    const prefs = await getPreferences();
+    const prefs = await getPreferences(session.userId!);
     const body: PreferencesSuccess = { ok: true };
     if (prefs.displayName) {
       body.displayName = prefs.displayName;
@@ -34,8 +34,8 @@ export const GET: APIRoute = async ({ cookies }) => {
   }
 };
 
-export const PUT: APIRoute = async ({ request, cookies }) => {
-  const session = await getSession(cookies);
+export const PUT: APIRoute = async ({ request }) => {
+  const session = await getSession(request);
   if (!session.isLoggedIn) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
@@ -58,7 +58,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    await setPreferences(prefs);
+    await setPreferences(session.userId!, prefs);
     const response: PreferencesSuccess = { ok: true };
     if (validated.value) {
       response.displayName = validated.value;

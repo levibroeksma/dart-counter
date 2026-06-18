@@ -1,28 +1,41 @@
-import { getStore } from "@netlify/blobs";
+import { eq } from "drizzle-orm";
+import { db, userPreferences } from "@db/index";
+import { getEntryEnv } from "@lib/shared/constants/entry-env";
+import { withEntryEnv } from "@lib/server/data/entry-env";
 
 export type UserPreferences = {
   displayName?: string;
 };
 
-const STORE_NAME = "user-preferences";
-const KEY = "default";
+export async function getPreferences(userId: string): Promise<UserPreferences> {
+  const rows = await db
+    .select()
+    .from(userPreferences)
+    .where(withEntryEnv(userPreferences.entryEnv, eq(userPreferences.userId, userId)))
+    .limit(1);
 
-/**
- * Read user preferences from Netlify Blobs.
- */
-export async function getPreferences(): Promise<UserPreferences> {
-  const store = getStore(STORE_NAME);
-  const data = await store.get(KEY, { type: "json" });
-  if (!data) {
-    return {};
-  }
-  return data as UserPreferences;
+  const row = rows[0];
+  if (!row?.displayName) return {};
+  return { displayName: row.displayName };
 }
 
-/**
- * Persist user preferences to Netlify Blobs.
- */
-export async function setPreferences(prefs: UserPreferences): Promise<void> {
-  const store = getStore(STORE_NAME);
-  await store.setJSON(KEY, prefs);
+export async function setPreferences(
+  userId: string,
+  prefs: UserPreferences,
+): Promise<void> {
+  await db
+    .insert(userPreferences)
+    .values({
+      userId,
+      entryEnv: getEntryEnv(),
+      displayName: prefs.displayName ?? null,
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [userPreferences.userId, userPreferences.entryEnv],
+      set: {
+        displayName: prefs.displayName ?? null,
+        updatedAt: new Date(),
+      },
+    });
 }

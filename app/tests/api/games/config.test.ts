@@ -13,7 +13,7 @@ vi.mock("@lib/server/data/games", () => ({
   saveGameConfig: (...args: unknown[]) => mockSaveGameConfig(...args),
 }));
 
-const mockSession: { isLoggedIn: boolean; username?: string } = {
+const mockSession: { isLoggedIn: boolean; userId?: string } = {
   isLoggedIn: false,
 };
 
@@ -54,7 +54,7 @@ function createPutContext(
 describe("GET /api/games/[slug]/config", () => {
   beforeEach(() => {
     mockSession.isLoggedIn = false;
-    mockSession.username = undefined;
+    mockSession.userId = undefined;
     mockGetGameBySlug.mockReset();
     mockGetGameConfig.mockReset();
   });
@@ -69,7 +69,7 @@ describe("GET /api/games/[slug]/config", () => {
 
   it("returns 404 for unknown game", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(null);
 
     const response = await GET(createGetContext("unknown"));
@@ -81,7 +81,7 @@ describe("GET /api/games/[slug]/config", () => {
 
   it("returns saved config when logged in", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
     const config = {
       slug: "501",
@@ -95,12 +95,12 @@ describe("GET /api/games/[slug]/config", () => {
 
     expect(response.status).toBe(200);
     expect(data).toEqual({ ok: true, config });
-    expect(mockGetGameConfig).toHaveBeenCalledWith("alex", "501");
+    expect(mockGetGameConfig).toHaveBeenCalledWith("00000000-0000-4000-8000-000000000001", "501");
   });
 
   it("returns empty config when none saved", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
     mockGetGameConfig.mockResolvedValue(null);
 
@@ -116,7 +116,7 @@ describe("GET /api/games/[slug]/config", () => {
 
   it("returns 500 when config read fails", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
     mockGetGameConfig.mockRejectedValue(new Error("blob down"));
 
@@ -131,7 +131,7 @@ describe("GET /api/games/[slug]/config", () => {
 describe("PUT /api/games/[slug]/config", () => {
   beforeEach(() => {
     mockSession.isLoggedIn = false;
-    mockSession.username = undefined;
+    mockSession.userId = undefined;
     mockGetGameBySlug.mockReset();
     mockSaveGameConfig.mockReset();
   });
@@ -146,7 +146,7 @@ describe("PUT /api/games/[slug]/config", () => {
 
   it("returns 404 for unknown game", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(null);
 
     const response = await PUT(createPutContext("unknown", { settings: {} }));
@@ -158,7 +158,7 @@ describe("PUT /api/games/[slug]/config", () => {
 
   it("returns 400 for invalid JSON", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
 
     const response = await PUT(createPutContext("501", {}, "not-json"));
@@ -171,7 +171,7 @@ describe("PUT /api/games/[slug]/config", () => {
 
   it("returns 400 when settings missing", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
 
     const response = await PUT(createPutContext("501", {}));
@@ -184,7 +184,7 @@ describe("PUT /api/games/[slug]/config", () => {
 
   it("saves config when valid", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
     const saved = {
       slug: "501",
@@ -200,14 +200,14 @@ describe("PUT /api/games/[slug]/config", () => {
 
     expect(response.status).toBe(200);
     expect(data).toEqual({ ok: true, config: saved });
-    expect(mockSaveGameConfig).toHaveBeenCalledWith("alex", "501", {
+    expect(mockSaveGameConfig).toHaveBeenCalledWith("00000000-0000-4000-8000-000000000001", "501", {
       doubleOut: true,
     });
   });
 
   it("returns 500 when save fails", async () => {
     mockSession.isLoggedIn = true;
-    mockSession.username = "alex";
+    mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
     mockSaveGameConfig.mockRejectedValue(new Error("blob down"));
 

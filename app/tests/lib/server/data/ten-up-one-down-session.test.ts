@@ -1,16 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const mockGet = vi.fn();
-const mockSetJSON = vi.fn();
-const mockDelete = vi.fn();
-
-vi.mock("@netlify/blobs", () => ({
-  getStore: vi.fn(() => ({
-    get: (...args: unknown[]) => mockGet(...args),
-    setJSON: (...args: unknown[]) => mockSetJSON(...args),
-    delete: (...args: unknown[]) => mockDelete(...args),
-  })),
-}));
+import { describe, it, expect, beforeEach } from "vitest";
+import "@tests/helpers/mock-db";
+import { mockDb, sessionScopedKey, TEST_ENTRY_ENV } from "@tests/helpers/mock-db";
 
 import {
   createTenUpOneDownSession,
@@ -21,14 +11,10 @@ import {
 
 describe("ten-up-one-down session data layer", () => {
   beforeEach(() => {
-    mockGet.mockReset();
-    mockSetJSON.mockReset();
-    mockDelete.mockReset();
+    mockDb.reset();
   });
 
   it("creates session with initial state", async () => {
-    mockSetJSON.mockResolvedValue(undefined);
-
     const session = await createTenUpOneDownSession("alex", {
       endMode: "rounds",
       roundCount: 10,
@@ -37,15 +23,16 @@ describe("ten-up-one-down session data layer", () => {
     expect(session.slug).toBe("ten-up-one-down");
     expect(session.state.currentTarget).toBe(41);
     expect(session.timeRemainingSeconds).toBeNull();
-    expect(mockSetJSON).toHaveBeenCalledWith(
-      "alex:ten-up-one-down",
-      expect.any(Object)
+    expect(mockDb.tables.gameSessions.get(sessionScopedKey("alex", "ten-up-one-down"))).toEqual(
+      expect.objectContaining({
+        userId: "alex",
+        gameSlug: "ten-up-one-down",
+        sessionData: expect.objectContaining({ slug: "ten-up-one-down" }),
+      }),
     );
   });
 
   it("creates timed session with countdown", async () => {
-    mockSetJSON.mockResolvedValue(undefined);
-
     const session = await createTenUpOneDownSession("alex", {
       endMode: "timed",
       playtimeSeconds: 600,
@@ -55,19 +42,26 @@ describe("ten-up-one-down session data layer", () => {
   });
 
   it("gets existing session", async () => {
-    mockGet.mockResolvedValue({
-      slug: "ten-up-one-down",
-      settings: { endMode: "rounds", roundCount: 10 },
-      state: {
-        currentRound: 2,
-        currentTarget: 50,
-        status: "active",
-        lastAdjustment: null,
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "ten-up-one-down"), {
+      userId: "alex",
+      gameSlug: "ten-up-one-down",
+      entryEnv: TEST_ENTRY_ENV,
+      sessionData: {
+        slug: "ten-up-one-down",
+        settings: { endMode: "rounds", roundCount: 10 },
+        state: {
+          currentRound: 2,
+          currentTarget: 50,
+          status: "active",
+          lastAdjustment: null,
+        },
+        roundHistory: [],
+        timeRemainingSeconds: null,
+        createdAt: "",
+        updatedAt: "",
       },
-      roundHistory: [],
-      timeRemainingSeconds: null,
-      createdAt: "",
-      updatedAt: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     const session = await getTenUpOneDownSession("alex");
@@ -76,18 +70,23 @@ describe("ten-up-one-down session data layer", () => {
   });
 
   it("returns null for legacy config blobs", async () => {
-    mockGet.mockResolvedValue({
-      slug: "ten-up-one-down",
-      settings: { targetScore: 10 },
-      updatedAt: "2026-01-01T00:00:00.000Z",
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "ten-up-one-down"), {
+      userId: "alex",
+      gameSlug: "ten-up-one-down",
+      entryEnv: TEST_ENTRY_ENV,
+      sessionData: {
+        slug: "ten-up-one-down",
+        settings: { targetScore: 10 },
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     await expect(getTenUpOneDownSession("alex")).resolves.toBeNull();
   });
 
   it("saves session", async () => {
-    mockSetJSON.mockResolvedValue(undefined);
-
     await saveTenUpOneDownSession("alex", {
       slug: "ten-up-one-down",
       settings: { endMode: "rounds", roundCount: 10 },
@@ -103,17 +102,28 @@ describe("ten-up-one-down session data layer", () => {
       updatedAt: "2026-06-14T00:00:00.000Z",
     });
 
-    expect(mockSetJSON).toHaveBeenCalledWith(
-      "alex:ten-up-one-down",
-      expect.objectContaining({ slug: "ten-up-one-down" })
+    expect(
+      mockDb.tables.gameSessions.get(sessionScopedKey("alex", "ten-up-one-down"))?.sessionData,
+    ).toEqual(
+      expect.objectContaining({ slug: "ten-up-one-down" }),
     );
   });
 
   it("deletes session", async () => {
-    mockDelete.mockResolvedValue(undefined);
+    mockDb.tables.gameSessions.set(sessionScopedKey("alex", "ten-up-one-down"), {
+      userId: "alex",
+      gameSlug: "ten-up-one-down",
+      entryEnv: TEST_ENTRY_ENV,
+      sessionData: {
+        slug: "ten-up-one-down",
+        settings: { endMode: "rounds", roundCount: 10 },
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     await deleteTenUpOneDownSession("alex");
 
-    expect(mockDelete).toHaveBeenCalledWith("alex:ten-up-one-down");
+    expect(mockDb.tables.gameSessions.get(sessionScopedKey("alex", "ten-up-one-down"))).toBeUndefined();
   });
 });

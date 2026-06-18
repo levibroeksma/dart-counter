@@ -66,7 +66,7 @@ describe("POST /api/games/singles-training/session/play-again", () => {
     mockDeleteSinglesTrainingSession.mockReset();
     mockCreateSinglesTrainingSession.mockReset();
 
-    mockGetSession.mockResolvedValue({ isLoggedIn: true, username: "alex" });
+    mockGetSession.mockResolvedValue({ isLoggedIn: true, userId: "00000000-0000-4000-8000-000000000001" });
     mockDeleteSinglesTrainingSession.mockResolvedValue(undefined);
     mockCreateSinglesTrainingSession.mockResolvedValue(structuredClone(newSession));
   });
@@ -90,7 +90,7 @@ describe("POST /api/games/singles-training/session/play-again", () => {
     expect(response.status).toBe(200);
     expect(data.ok).toBe(true);
     expect(data.session.slug).toBe("singles-training");
-    expect(mockCreateSinglesTrainingSession).toHaveBeenCalledWith("alex", settings);
+    expect(mockCreateSinglesTrainingSession).toHaveBeenCalledWith("00000000-0000-4000-8000-000000000001", settings);
   });
 
   it("uses settings from terminal session when body is missing", async () => {
@@ -104,8 +104,8 @@ describe("POST /api/games/singles-training/session/play-again", () => {
 
     expect(response.status).toBe(200);
     expect(data.ok).toBe(true);
-    expect(mockGetSinglesTrainingSession).toHaveBeenCalledWith("alex");
-    expect(mockCreateSinglesTrainingSession).toHaveBeenCalledWith("alex", settings);
+    expect(mockGetSinglesTrainingSession).toHaveBeenCalledWith("00000000-0000-4000-8000-000000000001");
+    expect(mockCreateSinglesTrainingSession).toHaveBeenCalledWith("00000000-0000-4000-8000-000000000001", settings);
   });
 
   it("returns 404 when no body settings and no existing session", async () => {

@@ -1,27 +1,36 @@
-import type { AstroCookies } from "astro";
-import { getIronSession, type SessionOptions } from "iron-session";
+import { proxyAuthRequest, type AppSession } from "@lib/server/auth/neon";
 import { bootstrapEnv } from "@lib/server/bootstrap-env";
 
 bootstrapEnv();
 
-export interface SessionData {
-  isLoggedIn: boolean;
-  username?: string;
-}
+export type { AppSession } from "@lib/server/auth/neon";
 
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+export async function getSession(request: Request): Promise<AppSession> {
+  try {
+    const response = await proxyAuthRequest(request, ["get-session"], {
+      method: "GET",
+      body: null,
+    });
 
-export const sessionOptions: SessionOptions = {
-  password: process.env.SESSION_SECRET ?? "",
-  cookieName: "dart-counter-session",
-  cookieOptions: {
-    secure: process.env.NODE_ENV === "production",
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: SESSION_MAX_AGE_SECONDS,
-  },
-};
+    if (!response.ok) {
+      return { isLoggedIn: false };
+    }
 
-export async function getSession(cookies: AstroCookies) {
-  return getIronSession<SessionData>(cookies as never, sessionOptions);
+    const data = (await response.json()) as {
+      user?: { id?: string; email?: string; name?: string };
+    };
+
+    if (!data.user?.id) {
+      return { isLoggedIn: false };
+    }
+
+    return {
+      isLoggedIn: true,
+      userId: data.user.id,
+      email: data.user.email,
+      name: data.user.name,
+    };
+  } catch {
+    return { isLoggedIn: false };
+  }
 }

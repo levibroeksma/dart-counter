@@ -15,13 +15,13 @@ function jsonResponse(body: ApiResponse, status: number): Response {
   });
 }
 
-export const DELETE: APIRoute = async ({ cookies }) => {
-  const auth = await getSession(cookies);
-  if (!auth.isLoggedIn || !auth.username) {
+export const DELETE: APIRoute = async ({ request }) => {
+  const auth = await getSession(request);
+  if (!auth.isLoggedIn || !auth.userId) {
     return jsonResponse({ ok: false, code: MessageCode.UNAUTHORIZED }, 401);
   }
 
-  const session = await getScoreTrainingSession(auth.username);
+  const session = await getScoreTrainingSession(auth.userId);
   if (!session) {
     return jsonResponse({ ok: false, code: MessageCode.NO_ACTIVE_SESSION }, 404);
   }
@@ -42,7 +42,7 @@ export const DELETE: APIRoute = async ({ cookies }) => {
       removedRound,
       previousLastScore
     );
-    await saveScoreTrainingSession(auth.username, session);
+    await saveScoreTrainingSession(auth.userId, session);
     return jsonResponse({ ok: true, session }, 200);
   } catch {
     return jsonResponse({ ok: false, code: MessageCode.SERVER_ERROR }, 500);

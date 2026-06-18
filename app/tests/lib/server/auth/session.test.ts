@@ -1,36 +1,60 @@
-import { describe, it, expect } from "vitest";
-import {
-  sessionOptions,
-  SESSION_MAX_AGE_SECONDS,
-  type SessionData,
-} from "@lib/server/auth/session";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getSession } from "@lib/server/auth/session";
+import { TEST_USER_ID } from "@lib/server/auth/neon";
 
-describe("session", () => {
-  it("defines SessionData with isLoggedIn boolean", () => {
-    const data: SessionData = { isLoggedIn: false };
-    expect(data.isLoggedIn).toBe(false);
+const mockProxy = vi.fn();
+
+vi.mock("@lib/server/auth/neon", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@lib/server/auth/neon")>();
+  return {
+    ...actual,
+    proxyAuthRequest: (...args: unknown[]) => mockProxy(...args),
+  };
+});
+
+describe("getSession", () => {
+  beforeEach(() => {
+    mockProxy.mockReset();
   });
 
-  it("uses SESSION_SECRET from process.env", () => {
-    expect(sessionOptions.password).toBe(
-      "test-secret-that-is-at-least-32-chars-long"
+  it("returns logged-out session when get-session has no user", async () => {
+    mockProxy.mockResolvedValue(
+      new Response(JSON.stringify({ session: null, user: null }), {
+        status: 200,
+      })
     );
+
+    const session = await getSession(new Request("http://localhost/"));
+
+    expect(session).toEqual({ isLoggedIn: false });
   });
 
-  it("sets 30-day maxAge", () => {
-    expect(SESSION_MAX_AGE_SECONDS).toBe(60 * 60 * 24 * 30);
-    const cookieOptions = sessionOptions.cookieOptions!;
-    expect(cookieOptions.maxAge).toBe(SESSION_MAX_AGE_SECONDS);
+  it("maps Neon user to AppSession", async () => {
+    mockProxy.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          session: { id: "sess-1" },
+          user: { id: TEST_USER_ID, email: "test@example.com", name: "Test" },
+        }),
+        { status: 200 }
+      )
+    );
+
+    const session = await getSession(new Request("http://localhost/"));
+
+    expect(session).toEqual({
+      isLoggedIn: true,
+      userId: TEST_USER_ID,
+      email: "test@example.com",
+      name: "Test",
+    });
   });
 
-  it("configures secure httpOnly sameSite=lax cookie", () => {
-    const cookieOptions = sessionOptions.cookieOptions!;
-    expect(cookieOptions.httpOnly).toBe(true);
-    expect(cookieOptions.sameSite).toBe("lax");
-    expect(cookieOptions.secure).toBe(false);
-  });
+  it("returns logged-out session on proxy failure", async () => {
+    mockProxy.mockResolvedValue(new Response("error", { status: 500 }));
 
-  it("uses dart-counter-session cookie name", () => {
-    expect(sessionOptions.cookieName).toBe("dart-counter-session");
+    const session = await getSession(new Request("http://localhost/"));
+
+    expect(session).toEqual({ isLoggedIn: false });
   });
 });
