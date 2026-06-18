@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
 import "@tests/helpers/mock-db";
-import { mockDb } from "@tests/helpers/mock-db";
+import { mockDb, playCountScopedKey, sessionScopedKey, TEST_ENTRY_ENV } from "@tests/helpers/mock-db";
 import {
   getGameTypes,
   getGameBySlug,
@@ -10,6 +10,7 @@ import {
   getGameConfig,
   incrementPlayCount,
 } from "@lib/server/data/games";
+import { CATALOG_ENTRY_ENV } from "@lib/shared/constants/entry-env";
 import { SEED_GAMES, type GameType } from "@lib/shared/games/types";
 
 const RELEASED_GAMES = SEED_GAMES.filter((g) => g.released);
@@ -19,9 +20,10 @@ function seedPlayCounts(
   counts: Record<string, number>,
 ): void {
   for (const [gameSlug, playCount] of Object.entries(counts)) {
-    mockDb.tables.userGamePlayCounts.set(`${userId}:${gameSlug}`, {
+    mockDb.tables.userGamePlayCounts.set(playCountScopedKey(userId, gameSlug), {
       userId,
       gameSlug,
+      entryEnv: TEST_ENTRY_ENV,
       playCount,
     });
   }
@@ -30,6 +32,7 @@ function seedCatalog(games: GameType[] = SEED_GAMES): void {
   for (const game of games) {
     mockDb.tables.gameCatalog.set(game.slug, {
       slug: game.slug,
+      entryEnv: CATALOG_ENTRY_ENV,
       displayName: game.displayName,
       sortOrder: game.sortOrder,
       enabled: game.enabled,
@@ -105,17 +108,18 @@ describe("games data layer", () => {
     const config = await getGameConfig("alex", "501");
     expect(config?.settings).toEqual({ startingScore: 501 });
     expect(config?.slug).toBe("501");
-    expect(mockDb.tables.gameSessions.get("alex:501")?.gameSlug).toBe("501");
+    expect(mockDb.tables.gameSessions.get(sessionScopedKey("alex", "501"))?.gameSlug).toBe("501");
   });
 
   it("incrementPlayCount updates user stats", async () => {
-    mockDb.tables.userGamePlayCounts.set("alex:501", {
+    mockDb.tables.userGamePlayCounts.set(playCountScopedKey("alex", "501"), {
       userId: "alex",
       gameSlug: "501",
+      entryEnv: TEST_ENTRY_ENV,
       playCount: 1,
     });
     await incrementPlayCount("alex", "501");
-    expect(mockDb.tables.userGamePlayCounts.get("alex:501")?.playCount).toBe(2);
+    expect(mockDb.tables.userGamePlayCounts.get(playCountScopedKey("alex", "501"))?.playCount).toBe(2);
   });
 
   it("reconciles stale catalog missing score-training", async () => {
