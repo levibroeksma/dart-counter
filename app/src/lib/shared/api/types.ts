@@ -20,6 +20,10 @@ export type ScoreTrainingSessionSuccess = {
   completed?: boolean;
   summary?: ScoreTrainingSummary;
 };
+export type ScoreTrainingCompleteSuccess = {
+  ok: true;
+  summary: ScoreTrainingSummary;
+};
 export type SinglesTrainingSessionSuccess = {
   ok: true;
   session: SinglesTrainingSession;
@@ -33,6 +37,7 @@ export type ApiSuccess =
   | GameConfigSuccess
   | TenUpOneDownSessionSuccess
   | ScoreTrainingSessionSuccess
+  | ScoreTrainingCompleteSuccess
   | SinglesTrainingSessionSuccess;
 export type ApiError = { ok: false; code: MessageCode };
 export type ApiResponse = ApiSuccess | ApiError;
