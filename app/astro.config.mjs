@@ -14,6 +14,10 @@ export default defineConfig({
   integrations: [
     alpinejs({ entrypoint: "/src/lib/client/alpine/app.factory" }),
   ],
+  server: {
+    port: 4321,
+    host: true,
+  },
   devToolbar: {
     enabled: false,
   },
