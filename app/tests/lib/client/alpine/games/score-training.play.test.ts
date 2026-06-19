@@ -1,7 +1,22 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { scoreTrainingPlay } from "@lib/client/alpine/games/score-training.play";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import Alpine from "alpinejs";
+import {
+  scoreTrainingPlay,
+  SCORE_TRAINING_SESSION_KEY,
+  clearPersistedScoreTrainingSession,
+} from "@lib/client/alpine/games/score-training.play";
+
+/**
+ * Mock Alpine.$persist to return the initial value directly so unit tests
+ * can exercise the controller logic without Alpine's full reactive lifecycle.
+ */
+beforeAll(() => {
+  (Alpine as unknown as Record<string, unknown>).$persist = (value: unknown) => ({
+    as: (_key: string) => ({ using: (_storage: Storage) => value }),
+  });
+});
 
 const roundsSession = {
   slug: "score-training" as const,
@@ -32,11 +47,108 @@ describe("scoreTrainingPlay", () => {
       writable: true,
       configurable: true,
     });
+    sessionStorage.clear();
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    sessionStorage.clear();
+  });
+
+  it("starts with ready false, sets ready true after init", () => {
+    const play = scoreTrainingPlay(structuredClone(roundsSession));
+    expect(play.ready).toBe(false);
+    play.init();
+    expect(play.ready).toBe(true);
+  });
+
+  it("redirects to settings when no server session and no persisted session", () => {
+    const play = scoreTrainingPlay(null);
+    play.init();
+    expect(window.location.href).toBe("/games/settings-score-training");
+    expect(play.ready).toBe(false);
+  });
+
+  it("redirects to settings when session is already completed", () => {
+    const completedSession = {
+      ...structuredClone(roundsSession),
+      state: { ...roundsSession.state, status: "completed" as const },
+    };
+    const play = scoreTrainingPlay(completedSession);
+    play.init();
+    expect(window.location.href).toBe("/games/settings-score-training");
+    expect(play.ready).toBe(false);
+  });
+
+  it("applies round locally without fetch", () => {
+    const play = scoreTrainingPlay(structuredClone(roundsSession));
+    play.init();
+    play.score = "60";
+    play.submitScore();
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(play.session?.state.currentRound).toBe(2);
+    expect(play.session?.state.currentScore).toBe(60);
+    expect(play.score).toBeNull();
+  });
+
+  it("shows showSummary=true with summary=null during completion fetch (skeleton gap)", async () => {
+    let resolveFetch!: (value: Response) => void;
+    const fetchPromise = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+    vi.mocked(fetch).mockReturnValue(fetchPromise);
+
+    const singleRoundSession = {
+      ...structuredClone(roundsSession),
+      settings: { endMode: "rounds" as const, roundCount: 1 },
+    };
+    const play = scoreTrainingPlay(singleRoundSession);
+    play.init();
+    play.score = "60";
+    play.submitScore();
+
+    // Synchronously after submit: game is complete, summary API pending
+    expect(play.showSummary).toBe(true);
+    expect(play.summary).toBeNull();
+
+    resolveFetch({
+      json: async () => ({
+        ok: true,
+        summary: { totalScore: 60, threeDartAverage: 60, roundsPlayed: 1, dartsThrown: 3 },
+      }),
+    } as Response);
+
+    await vi.waitFor(() => expect(play.summary).not.toBeNull());
+    expect(play.summary?.threeDartAverage).toBe(60);
+  });
+
+  it("clears persist storage and redirects on confirmLeave", () => {
+    sessionStorage.setItem(
+      Alpine.prefixed(SCORE_TRAINING_SESSION_KEY),
+      JSON.stringify(roundsSession),
+    );
+    const play = scoreTrainingPlay(structuredClone(roundsSession));
+    play.init();
+    play.confirmLeave();
+
+    expect(sessionStorage.getItem(Alpine.prefixed(SCORE_TRAINING_SESSION_KEY))).toBeNull();
+    expect(window.location.href).toBe("/games");
+  });
+
+  it("clearPersistedScoreTrainingSession removes session from sessionStorage", () => {
+    sessionStorage.setItem(Alpine.prefixed(SCORE_TRAINING_SESSION_KEY), "{}");
+    clearPersistedScoreTrainingSession();
+    expect(sessionStorage.getItem(Alpine.prefixed(SCORE_TRAINING_SESSION_KEY))).toBeNull();
+  });
+
+  it("controlsDisabled is true when ready=false", () => {
+    const play = scoreTrainingPlay(structuredClone(roundsSession));
+    // Before init, ready=false
+    expect(play.controlsDisabled).toBe(true);
+    play.init();
+    expect(play.controlsDisabled).toBe(false);
   });
 
   it("computes display getters for score stats", () => {
@@ -45,12 +157,12 @@ describe("scoreTrainingPlay", () => {
     expect(play.dartsThrownDisplay).toBe("0");
     expect(play.lastScoreDisplay).toBe("—");
 
-    play.session.roundHistory = [
+    play.session!.roundHistory = [
       { roundNumber: 1, visitScore: 60, runningTotal: 60 },
       { roundNumber: 2, visitScore: 45, runningTotal: 105 },
     ];
-    play.session.state.currentScore = 105;
-    play.session.state.lastScore = 45;
+    play.session!.state.currentScore = 105;
+    play.session!.state.lastScore = 45;
 
     expect(play.threeDartAverageDisplay).toBe("52.5");
     expect(play.dartsThrownDisplay).toBe("6");
@@ -67,79 +179,7 @@ describe("scoreTrainingPlay", () => {
 
   it("formats timer display as MM:SS", () => {
     const play = scoreTrainingPlay(structuredClone(timedSession));
-    play.session.timeRemainingSeconds = 65;
+    play.session!.timeRemainingSeconds = 65;
     expect(play.timerDisplay).toBe("01:05");
-  });
-
-  it("posts round, updates session, and clears score", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      json: async () => ({
-        ok: true,
-        session: {
-          ...roundsSession,
-          state: { ...roundsSession.state, currentRound: 2, currentScore: 60, lastScore: 60 },
-          roundHistory: [{ roundNumber: 1, visitScore: 60, runningTotal: 60 }],
-        },
-      }),
-    } as Response);
-
-    const play = scoreTrainingPlay(structuredClone(roundsSession));
-    play.score = "60";
-    await play.submitScore();
-
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/games/score-training/session/round",
-      expect.objectContaining({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-
-    const body = JSON.parse(
-      (vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit).body as string,
-    );
-    expect(body.round).toEqual({
-      roundNumber: 1,
-      visitScore: 60,
-      runningTotal: 60,
-    });
-    expect(body.timeRemainingSeconds).toBeUndefined();
-    expect(body.timerExpired).toBe(false);
-    expect(play.session.state.currentRound).toBe(2);
-    expect(play.score).toBeNull();
-    expect(play.showSummary).toBe(false);
-  });
-
-  it("stores summary and shows it when round response is completed", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      json: async () => ({
-        ok: true,
-        completed: true,
-        summary: { totalScore: 240, threeDartAverage: 60, roundsPlayed: 4, dartsThrown: 12 },
-        session: {
-          ...roundsSession,
-          state: {
-            ...roundsSession.state,
-            currentRound: 5,
-            currentScore: 240,
-            status: "completed",
-            lastScore: 60,
-          },
-          roundHistory: [
-            { roundNumber: 1, visitScore: 60, runningTotal: 60 },
-            { roundNumber: 2, visitScore: 60, runningTotal: 120 },
-            { roundNumber: 3, visitScore: 60, runningTotal: 180 },
-            { roundNumber: 4, visitScore: 60, runningTotal: 240 },
-          ],
-        },
-      }),
-    } as Response);
-
-    const play = scoreTrainingPlay(structuredClone(roundsSession));
-    play.score = "60";
-    await play.submitScore();
-
-    expect(play.showSummary).toBe(true);
-    expect(play.summaryAverageDisplay).toBe("60.0");
   });
 });

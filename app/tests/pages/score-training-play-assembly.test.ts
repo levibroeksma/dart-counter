@@ -11,7 +11,7 @@ describe("score-training play page assembly", () => {
     const source = readSource("src/components/games/score-training/Play.astro");
 
     expect(source).toContain(
-      'import NumberInputPad from "@components/ui/NumberInputPad.astro";'
+      'import NumberInputPad from "@components/ui/NumberInputPad.astro";',
     );
     expect(source).toContain('import ScoreCard from "./ScoreCard.astro";');
     expect(source).toContain('import ProgressBar from "./ProgressBar.astro";');
@@ -20,38 +20,66 @@ describe("score-training play page assembly", () => {
     expect(source).toContain("x-data={`scoreTrainingPlay(");
     expect(source).toContain('x-init="init()"');
     expect(source).toContain('@click="leave()"');
-    expect(source).toContain('x-show="!showSummary"');
+    expect(source).toContain('x-show="ready && !showSummary"');
     expect(source).toContain("<ProgressBar />");
     expect(source).toContain("<ScoreCard />");
     expect(source).toContain("<NumberInputPad");
-    expect(source).toContain("<Summary />");
+    expect(source).toContain("<Summary");
     expect(source).toContain('<p x-show="error" x-cloak x-text="error"');
   });
 
-  it("routes score-training play through persisted session", () => {
+  it("starts score-training via POST form validation", () => {
     const source = readSource("src/pages/games/[game].astro");
-
-    expect(source).toContain(
-      'import { getScoreTrainingSession } from "@lib/server/data/score-training-session";'
-    );
+    expect(source).toContain("parseScoreTrainingSettingsFormData");
+    expect(source).toContain("buildScoreTrainingSession");
+    expect(source).toContain('Astro.request.method === "POST"');
     expect(source).toContain('slug === "score-training"');
-    expect(source).toContain("await getScoreTrainingSession(session.userId)");
-    expect(source).toContain(
-      'if (slug === "score-training" && !scoreTrainingSession)'
+    expect(source).not.toContain("getScoreTrainingSession");
+  });
+
+  it("does not server-redirect score-training GET ($persist restores client-side)", () => {
+    const source = readSource("src/pages/games/[game].astro");
+    expect(source).not.toMatch(
+      /slug === "score-training"[\s\S]*return Astro\.redirect\(`\/games\/settings-\$\{slug\}`\)/,
     );
-    expect(source).toContain("return Astro.redirect(`/games/settings-${slug}`)");
-    expect(source).toContain(
-      '<Play displayName={game.displayName} gameSession={scoreTrainingSession!} />'
-    );
+  });
+
+  it("Play.astro accepts optional gameSession, skeleton shells, and $persist in play factory", () => {
+    const playSource = readSource("src/components/games/score-training/Play.astro");
+    const factorySource = readSource("src/lib/client/alpine/games/score-training.play.ts");
+    expect(playSource).toContain("gameSession?:");
+    expect(playSource).toContain("PlayShellSkeleton");
+    expect(playSource).toContain("SummarySkeleton");
+    expect(playSource).toContain('x-show="!ready"');
+    expect(factorySource).toContain("$persist");
+    expect(factorySource).toContain("ready: false");
+    expect(factorySource).toContain(".using(sessionStorage)");
   });
 
   it("registers scoreTrainingPlay in alpine app factory", () => {
     const source = readSource("src/lib/client/alpine/app.factory.ts");
-    expect(source).toContain('Alpine.data("scoreTrainingPlay", scoreTrainingPlay);');
+    expect(source).toContain(
+      'Alpine.data("scoreTrainingPlay", scoreTrainingPlay);',
+    );
+  });
+
+  it("renders skeleton shells and swaps on ready / summary", () => {
+    const source = readSource("src/components/games/score-training/Play.astro");
+    expect(source).toContain('import PlayShellSkeleton from "./PlayShellSkeleton.astro"');
+    expect(source).toContain('import SummarySkeleton from "./SummarySkeleton.astro"');
+    expect(source).toContain('x-show="!ready"');
+    expect(source).toContain('x-show="ready && !showSummary"');
+    expect(source).toContain('x-show="showSummary && !summary"');
+    expect(source).toContain('showSummaryModel="showSummary && summary"');
+    expect(source).toContain(":aria-busy");
+    expect(source).toContain("<PlayShellSkeleton />");
+    expect(source).toContain("<SummarySkeleton />");
   });
 
   it("guards summary bindings when summary is null before game completes", () => {
-    const source = readSource("src/components/games/score-training/Summary.astro");
+    const source = readSource(
+      "src/components/games/score-training/Summary.astro",
+    );
 
     expect(source).toContain("?.totalScore ?? 0");
     expect(source).toContain("?.roundsPlayed ?? 0");

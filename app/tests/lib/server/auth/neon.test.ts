@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+vi.mock("@lib/server/bootstrap-env", () => ({ bootstrapEnv: vi.fn() }));
+
 import { forwardSetCookieHeaders, proxyAuthRequest } from "@lib/server/auth/neon";
 
 describe("forwardSetCookieHeaders", () => {
