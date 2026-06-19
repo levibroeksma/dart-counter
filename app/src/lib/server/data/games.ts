@@ -37,6 +37,7 @@ async function readCatalog(): Promise<GameType[]> {
     .select()
     .from(gameCatalog)
     .where(eq(gameCatalog.entryEnv, CATALOG_ENTRY_ENV));
+
   const stored: GameType[] = rows.map((row) => ({
     slug: row.slug,
     displayName: row.displayName,
@@ -45,43 +46,7 @@ async function readCatalog(): Promise<GameType[]> {
     released: row.released,
   }));
 
-  if (stored.length === 0) {
-    await db.insert(gameCatalog).values(
-      SEED_GAMES.map((g) => ({
-        slug: g.slug,
-        entryEnv: CATALOG_ENTRY_ENV,
-        displayName: g.displayName,
-        sortOrder: g.sortOrder,
-        enabled: g.enabled,
-        released: g.released,
-      })),
-    );
-    return SEED_GAMES;
-  }
-
-  const merged = reconcileCatalog(stored);
-  for (const game of merged) {
-    await db
-      .insert(gameCatalog)
-      .values({
-        slug: game.slug,
-        entryEnv: CATALOG_ENTRY_ENV,
-        displayName: game.displayName,
-        sortOrder: game.sortOrder,
-        enabled: game.enabled,
-        released: game.released,
-      })
-      .onConflictDoUpdate({
-        target: gameCatalog.slug,
-        set: {
-          displayName: game.displayName,
-          sortOrder: game.sortOrder,
-          enabled: game.enabled,
-          released: game.released,
-        },
-      });
-  }
-  return merged;
+  return reconcileCatalog(stored);
 }
 
 /**
