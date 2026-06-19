@@ -6,7 +6,8 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "npx tsx scripts/dev.ts",
+    "dev:astro": "astro dev",
     "build": "astro build",
     "check": "astro check",
     "preview": "astro preview",
@@ -19,6 +20,7 @@
     "db:migrate": "npx tsx scripts/db-migrate.ts"
   },
   "dependencies": {
+    "@alpinejs/persist": "^3.15.12",
     "@astrojs/alpinejs": "^0.5.0",
     "@astrojs/check": "^0.9.9",
     "@astrojs/netlify": "^7.0.13",
@@ -32,6 +34,7 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
+    "@types/alpinejs__persist": "^3.13.4",
     "drizzle-kit": "^0.31.10",
     "jsdom": "^29.1.1",
     "prettier": "^3.8.4",
