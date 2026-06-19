@@ -1,6 +1,9 @@
 /** Prefix for all Neon Auth cookies (matches @neondatabase/auth SDK). */
 const NEON_AUTH_COOKIE_PREFIX = "__Secure-neon-auth";
 
+/** Dev-only prefix when relaxing Secure cookies for LAN HTTP (e.g. Astro --host). */
+const DEV_HTTP_COOKIE_PREFIX = "neon-auth.dev";
+
 const PROXY_REQUEST_HEADERS = [
   "user-agent",
   "authorization",
@@ -31,23 +34,54 @@ function extractNeonAuthCookies(cookieHeader: string | null): string {
     const eq = trimmed.indexOf("=");
     if (eq === -1) continue;
     const name = trimmed.slice(0, eq);
-    if (name.startsWith(NEON_AUTH_COOKIE_PREFIX)) {
+    const value = trimmed.slice(eq + 1);
+    if (name.startsWith(DEV_HTTP_COOKIE_PREFIX)) {
+      pairs.push(
+        `${NEON_AUTH_COOKIE_PREFIX}${name.slice(DEV_HTTP_COOKIE_PREFIX.length)}=${value}`,
+      );
+    } else if (name.startsWith(NEON_AUTH_COOKIE_PREFIX)) {
       pairs.push(trimmed);
     }
   }
   return pairs.join("; ");
 }
 
+function needsDevHttpCookieRelaxation(request: Request): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  const url = new URL(request.url);
+  if (url.protocol !== "http:") return false;
+  const host = url.hostname;
+  return host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]";
+}
+
+/** Strip Secure flags and rename prefix so browsers accept cookies on LAN HTTP dev. */
+function relaxSetCookieForDevHttp(cookie: string): string {
+  if (!cookie.startsWith(NEON_AUTH_COOKIE_PREFIX)) return cookie;
+  let result =
+    DEV_HTTP_COOKIE_PREFIX + cookie.slice(NEON_AUTH_COOKIE_PREFIX.length);
+  result = result
+    .replace(/;\s*Secure(?=;|$)/gi, "")
+    .replace(/;\s*Partitioned(?=;|$)/gi, "")
+    .replace(/;\s*SameSite=None/gi, "; SameSite=Lax");
+  return result;
+}
+
 /**
  * Public site origin for Neon Auth sign-in/sign-up (must match trusted domains).
  * Netlify SSR may expose an internal `request.url` origin; prefer configured URL.
+ * In local dev, ignore Netlify deploy URLs so browser origin is used instead.
  */
 function resolvePublicOrigin(request: Request): string | undefined {
-  for (const value of [
-    process.env.APP_ORIGIN,
-    process.env.URL,
-    process.env.DEPLOY_PRIME_URL,
-  ]) {
+  const isProduction = process.env.NODE_ENV === "production";
+  const configuredOrigins = isProduction
+    ? [process.env.APP_ORIGIN, process.env.URL, process.env.DEPLOY_PRIME_URL]
+    : [
+        process.env.SEED_AUTH_ORIGIN,
+        process.env.APP_ORIGIN,
+        "http://localhost:4321",
+      ];
+
+  for (const value of configuredOrigins) {
     if (value) return value.replace(/\/$/, "");
   }
 
@@ -86,12 +120,19 @@ function buildUpstreamHeaders(request: Request): Headers {
   return headers;
 }
 
-function buildClientResponse(upstream: Response): Response {
+function buildClientResponse(
+  upstream: Response,
+  request: Request,
+): Response {
   const headers = new Headers();
+  const relaxCookies = needsDevHttpCookieRelaxation(request);
   for (const name of PROXY_RESPONSE_HEADERS) {
     if (name === "set-cookie") {
       for (const cookie of upstream.headers.getSetCookie()) {
-        headers.append("Set-Cookie", cookie);
+        headers.append(
+          "Set-Cookie",
+          relaxCookies ? relaxSetCookieForDevHttp(cookie) : cookie,
+        );
       }
     } else {
       const value = upstream.headers.get(name);
@@ -117,7 +158,7 @@ export async function proxyNeonAuthUpstream(
     method?: string;
     body?: BodyInit | null;
     headers?: HeadersInit;
-  }
+  },
 ): Promise<Response> {
   const method = (overrides?.method ?? request.method).toUpperCase();
   const upstreamUrl = new URL(`${config.baseUrl.replace(/\/$/, "")}/${path}`);
@@ -141,11 +182,14 @@ export async function proxyNeonAuthUpstream(
       headers,
       body,
     });
-    return buildClientResponse(upstream);
+    return buildClientResponse(upstream, request);
   } catch {
     return Response.json(
-      { error: "Unable to reach authentication service", code: "NETWORK_ERROR" },
-      { status: 502, headers: { "Content-Type": "application/json" } }
+      {
+        error: "Unable to reach authentication service",
+        code: "NETWORK_ERROR",
+      },
+      { status: 502, headers: { "Content-Type": "application/json" } },
     );
   }
 }
