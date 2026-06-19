@@ -1,4 +1,5 @@
 import type { Alpine } from "alpinejs";
+import persist from "@alpinejs/persist";
 import { loginForm } from "@lib/client/alpine/forms/login.form";
 import { logoutBtn } from "@lib/client/alpine/auth/logout.btn";
 import { userMenu } from "@lib/client/alpine/layout/user.menu";
@@ -15,6 +16,7 @@ import { singlesTrainingPlay } from "@lib/client/alpine/games/singles-training.p
 import { confirmationModalState } from "@lib/client/alpine/stores/confirmationModal.store";
 
 export default (Alpine: Alpine) => {
+  Alpine.plugin(persist);
   Alpine.data("loginForm", loginForm);
   Alpine.data("logoutBtn", logoutBtn);
   Alpine.data("userMenu", userMenu);
