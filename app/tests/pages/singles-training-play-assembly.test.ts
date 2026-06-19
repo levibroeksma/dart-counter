@@ -55,7 +55,8 @@ describe("singles-training play page assembly", () => {
       'import { isSinglesTrainingSession } from "@lib/shared/games/singles-training/session";'
     );
     expect(source).toContain('slug === "singles-training"');
-    expect(source).toContain("await getSinglesTrainingSession(auth.userId)");
+    expect(source).toContain("Astro.locals.session!");
+    expect(source).toContain("await getSinglesTrainingSession(session.userId)");
     expect(source).toContain("hasActiveSession = isSinglesTrainingSession(activeSession)");
     expect(source).toContain("<SinglesTrainingSettingsShell game={game} hasActiveSession={hasActiveSession}>");
   });

@@ -9,7 +9,6 @@ import {
   getSettingsFormComponent,
   hasGameComponents,
 } from "@lib/shared/games/components";
-import { getSession } from "@lib/server/auth/session";
 import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
 import { isTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
 import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
@@ -32,31 +31,19 @@ if (!hasGameComponents(slug)) {
   return Astro.redirect("/games?error=unavailable-game");
 }
 
+const session = Astro.locals.session!;
 const SettingsForm = getSettingsFormComponent(slug)!;
 let hasActiveSession = false;
 
-if (slug === "ten-up-one-down") {
-  const auth = await getSession(Astro.request);
-  if (auth.isLoggedIn && auth.userId) {
-    const activeSession = await getTenUpOneDownSession(auth.userId);
-    hasActiveSession = isTenUpOneDownSession(activeSession);
-  }
-}
-
-if (slug === "score-training") {
-  const auth = await getSession(Astro.request);
-  if (auth.isLoggedIn && auth.userId) {
-    const activeSession = await getScoreTrainingSession(auth.userId);
-    hasActiveSession = isScoreTrainingSession(activeSession);
-  }
-}
-
-if (slug === "singles-training") {
-  const auth = await getSession(Astro.request);
-  if (auth.isLoggedIn && auth.userId) {
-    const activeSession = await getSinglesTrainingSession(auth.userId);
-    hasActiveSession = isSinglesTrainingSession(activeSession);
-  }
+if (slug === "ten-up-one-down" && session.userId) {
+  const activeSession = await getTenUpOneDownSession(session.userId);
+  hasActiveSession = isTenUpOneDownSession(activeSession);
+} else if (slug === "score-training" && session.userId) {
+  const activeSession = await getScoreTrainingSession(session.userId);
+  hasActiveSession = isScoreTrainingSession(activeSession);
+} else if (slug === "singles-training" && session.userId) {
+  const activeSession = await getSinglesTrainingSession(session.userId);
+  hasActiveSession = isSinglesTrainingSession(activeSession);
 }
 ---
 

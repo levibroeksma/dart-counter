@@ -1,12 +1,11 @@
 ---
 import AppLayout from "@layouts/AppLayout.astro";
 import DisplayNameSetting from "@components/settings/DisplayNameSetting.astro";
-import { getSession } from "@lib/server/auth/session";
 import { getPreferences } from "@lib/server/data/preferences";
 
-const session = await getSession(Astro.request);
+const session = Astro.locals.session!;
 let initialDisplayName = "";
-if (session.isLoggedIn && session.userId) {
+if (session.userId) {
   const prefs = await getPreferences(session.userId);
   initialDisplayName = prefs.displayName ?? "";
 }

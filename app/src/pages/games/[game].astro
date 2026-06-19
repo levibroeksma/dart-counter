@@ -9,7 +9,6 @@ import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session
 import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
 import { getSinglesTrainingSession } from "@lib/server/data/singles-training-session";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
-import { getSession } from "@lib/server/auth/session";
 
 const { game: slug } = Astro.params;
 
@@ -26,8 +25,9 @@ if (!hasGameComponents(slug)) {
   return Astro.redirect("/games?error=unavailable-game");
 }
 
-const session = await getSession(Astro.request);
-if (session.isLoggedIn && session.userId) {
+const session = Astro.locals.session!;
+
+if (session.userId) {
   try {
     await incrementPlayCount(session.userId, slug);
   } catch {
@@ -36,17 +36,17 @@ if (session.isLoggedIn && session.userId) {
 }
 
 const tenUpOneDownSession =
-  slug === "ten-up-one-down" && session.isLoggedIn && session.userId
+  slug === "ten-up-one-down" && session.userId
     ? await getTenUpOneDownSession(session.userId)
     : null;
 
 const scoreTrainingSession =
-  slug === "score-training" && session.isLoggedIn && session.userId
+  slug === "score-training" && session.userId
     ? await getScoreTrainingSession(session.userId)
     : null;
 
 const singlesTrainingSession =
-  slug === "singles-training" && session.isLoggedIn && session.userId
+  slug === "singles-training" && session.userId
     ? await getSinglesTrainingSession(session.userId)
     : null;
 
