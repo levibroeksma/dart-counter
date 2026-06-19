@@ -6,9 +6,12 @@ import {
   incrementPlayCount,
 } from "@lib/server/data/games";
 import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
-import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
 import { getSinglesTrainingSession } from "@lib/server/data/singles-training-session";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
+import { parseScoreTrainingSettingsFormData } from "@lib/shared/games/score-training/form-data";
+import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
+import { validateScoreTrainingSettings } from "@lib/shared/games/score-training/validation";
+import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
 
 const { game: slug } = Astro.params;
 
@@ -27,22 +30,17 @@ if (!hasGameComponents(slug)) {
 
 const session = Astro.locals.session!;
 
-if (session.userId) {
+if (session.userId && slug !== "score-training") {
   try {
     await incrementPlayCount(session.userId, slug);
   } catch {
-    // Non-fatal for prototype
+    // Non-fatal
   }
 }
 
 const tenUpOneDownSession =
   slug === "ten-up-one-down" && session.userId
     ? await getTenUpOneDownSession(session.userId)
-    : null;
-
-const scoreTrainingSession =
-  slug === "score-training" && session.userId
-    ? await getScoreTrainingSession(session.userId)
     : null;
 
 const singlesTrainingSession =
@@ -54,12 +52,23 @@ if (slug === "ten-up-one-down" && !tenUpOneDownSession) {
   return Astro.redirect(`/games/settings-${slug}`);
 }
 
-if (slug === "score-training" && !scoreTrainingSession) {
+if (slug === "singles-training" && !singlesTrainingSession) {
   return Astro.redirect(`/games/settings-${slug}`);
 }
 
-if (slug === "singles-training" && !singlesTrainingSession) {
-  return Astro.redirect(`/games/settings-${slug}`);
+let scoreTrainingSession: ScoreTrainingSession | null = null;
+
+if (slug === "score-training") {
+  if (Astro.request.method === "POST") {
+    const formData = await Astro.request.formData();
+    const parsed = parseScoreTrainingSettingsFormData(formData);
+    const validated = validateScoreTrainingSettings(parsed);
+    if (!validated.valid) {
+      return Astro.redirect(`/games/settings-${slug}?error=invalid-settings`);
+    }
+    scoreTrainingSession = buildScoreTrainingSession(validated.value);
+  }
+  // GET: render play shell with gameSession=null; $persist hydrates from sessionStorage
 }
 
 const Play = getPlayComponent(slug)!;
@@ -70,7 +79,7 @@ const Play = getPlayComponent(slug)!;
     {slug === "ten-up-one-down" ? (
       <Play displayName={game.displayName} gameSession={tenUpOneDownSession!} />
     ) : slug === "score-training" ? (
-      <Play displayName={game.displayName} gameSession={scoreTrainingSession!} />
+      <Play displayName={game.displayName} gameSession={scoreTrainingSession} />
     ) : slug === "singles-training" ? (
       <Play displayName={game.displayName} gameSession={singlesTrainingSession!} />
     ) : (
