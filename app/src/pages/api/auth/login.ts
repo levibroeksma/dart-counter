@@ -1,7 +1,11 @@
 import type { APIRoute } from "astro";
 import type { ApiResponse } from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { assertNeonAuthConfig, forwardSetCookieHeaders, proxyAuthRequest } from "@lib/server/auth/neon";
+import {
+  assertNeonAuthConfig,
+  forwardSetCookieHeaders,
+  proxyAuthRequest,
+} from "@lib/server/auth/neon";
 
 function jsonResponse(body: ApiResponse, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -46,8 +50,10 @@ export const POST: APIRoute = async ({ request }) => {
           : MessageCode.SERVER_ERROR;
       return jsonResponse({ ok: false, code }, status);
     }
-
-    return forwardSetCookieHeaders(neonResponse, jsonResponse({ ok: true }, 200));
+    return forwardSetCookieHeaders(
+      neonResponse,
+      jsonResponse({ ok: true }, 200),
+    );
   } catch (error) {
     if (error instanceof Error && error.message === MessageCode.SERVER_CONFIG) {
       return jsonResponse({ ok: false, code: MessageCode.SERVER_CONFIG }, 500);
