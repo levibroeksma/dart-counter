@@ -5,7 +5,7 @@ import { getEntryEnv } from "@lib/shared/constants/entry-env";
 /**
  * Drizzle filter matching the current runtime entry_env.
  */
-export function entryEnvEq(column: AnyPgColumn): SQL {
+function entryEnvEq(column: AnyPgColumn): SQL {
   return eq(column, getEntryEnv());
 }
 
