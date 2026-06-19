@@ -1,0 +1,18 @@
+---
+import Skeleton from "@components/ui/Skeleton.astro";
+---
+
+<article class="game-panel p-6 flex flex-col gap-4" data-testid="st-summary-skeleton">
+  <Skeleton variant="bar" class="h-6 w-40" />
+  <dl class="grid grid-cols-2 gap-3">
+    <Skeleton variant="text" class="h-4 w-24" />
+    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
+    <Skeleton variant="text" class="h-4 w-24" />
+    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
+    <Skeleton variant="text" class="h-4 w-24" />
+    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
+    <Skeleton variant="text" class="h-4 w-24" />
+    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
+  </dl>
+  <Skeleton variant="block" class="h-10 w-full rounded-full" />
+</article>
