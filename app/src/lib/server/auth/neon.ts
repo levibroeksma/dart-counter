@@ -14,6 +14,7 @@ export type AppSession = {
 };
 
 function resolveNeonAuthConfig() {
+  bootstrapEnv();
   const baseUrl = process.env.NEON_AUTH_BASE_URL;
   const secret = process.env.NEON_AUTH_COOKIE_SECRET;
   if (!baseUrl || !secret) {
@@ -31,7 +32,7 @@ export function assertNeonAuthConfig(): void {
 
 export function forwardSetCookieHeaders(
   source: Response,
-  target: Response
+  target: Response,
 ): Response {
   const headers = new Headers(target.headers);
   for (const cookie of source.headers.getSetCookie()) {
@@ -51,7 +52,7 @@ export async function proxyAuthRequest(
     method?: string;
     body?: BodyInit | null;
     headers?: HeadersInit;
-  }
+  },
 ): Promise<Response> {
   const config = resolveNeonAuthConfig();
   const path = pathSegments.join("/");
