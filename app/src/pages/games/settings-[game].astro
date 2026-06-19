@@ -11,8 +11,6 @@ import {
 } from "@lib/shared/games/components";
 import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
 import { isTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
-import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
-import { isScoreTrainingSession } from "@lib/shared/games/score-training/session";
 import { getSinglesTrainingSession } from "@lib/server/data/singles-training-session";
 import { isSinglesTrainingSession } from "@lib/shared/games/singles-training/session";
 
@@ -38,9 +36,6 @@ let hasActiveSession = false;
 if (slug === "ten-up-one-down" && session.userId) {
   const activeSession = await getTenUpOneDownSession(session.userId);
   hasActiveSession = isTenUpOneDownSession(activeSession);
-} else if (slug === "score-training" && session.userId) {
-  const activeSession = await getScoreTrainingSession(session.userId);
-  hasActiveSession = isScoreTrainingSession(activeSession);
 } else if (slug === "singles-training" && session.userId) {
   const activeSession = await getSinglesTrainingSession(session.userId);
   hasActiveSession = isSinglesTrainingSession(activeSession);
@@ -58,7 +53,7 @@ if (slug === "ten-up-one-down" && session.userId) {
         <SettingsForm />
       </TenUpOneDownSettingsShell>
     ) : slug === "score-training" ? (
-      <ScoreTrainingSettingsShell game={game} hasActiveSession={hasActiveSession}>
+      <ScoreTrainingSettingsShell game={game}>
         <SettingsForm />
       </ScoreTrainingSettingsShell>
     ) : slug === "singles-training" ? (
