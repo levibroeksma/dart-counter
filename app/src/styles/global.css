@@ -283,6 +283,16 @@
       transform 150ms var(--ease-out),
       opacity 150ms var(--ease-out);
   }
+
+  .skeleton {
+    @apply bg-white/10 animate-pulse;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
