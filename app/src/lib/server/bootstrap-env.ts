@@ -4,9 +4,10 @@ import { resolve } from "node:path";
 let loaded = false;
 
 /**
- * Parse a single .env file into process.env for keys not already set.
+ * Parse a single .env file into process.env.
+ * @param override When true, later files replace existing keys (e.g. .env.local).
  */
-function loadEnvFile(filePath: string): void {
+function loadEnvFile(filePath: string, override = false): void {
   if (!existsSync(filePath)) return;
 
   for (const line of readFileSync(filePath, "utf8").split("\n")) {
@@ -25,24 +26,28 @@ function loadEnvFile(filePath: string): void {
       value = value.slice(1, -1);
     }
 
-    if (!process.env[key]) process.env[key] = value;
+    if (override || !process.env[key]) {
+      process.env[key] = value;
+    }
   }
 }
 
 /**
  * Load .env into process.env for local dev when secrets are not already set.
  * Production (Netlify) provides env vars at runtime; tests set them via vitest.config.
+ * Local override files are re-applied on every call so dev-branch credentials win
+ * over values injected later (e.g. Vite env loading or a switched Neon branch).
  */
 export function bootstrapEnv(): void {
-  if (loaded) return;
-
   const cwd = process.cwd();
   const mode = process.env.NODE_ENV === "production" ? "production" : "development";
 
-  loadEnvFile(resolve(cwd, ".env"));
-  loadEnvFile(resolve(cwd, ".env.local"));
-  loadEnvFile(resolve(cwd, `.env.${mode}`));
-  loadEnvFile(resolve(cwd, `.env.${mode}.local`));
+  if (!loaded) {
+    loadEnvFile(resolve(cwd, ".env"));
+    loadEnvFile(resolve(cwd, `.env.${mode}`));
+    loaded = true;
+  }
 
-  loaded = true;
+  loadEnvFile(resolve(cwd, ".env.local"), true);
+  loadEnvFile(resolve(cwd, `.env.${mode}.local`), true);
 }
