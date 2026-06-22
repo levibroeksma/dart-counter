@@ -14,16 +14,16 @@ const {
 } = Astro.props;
 ---
 
-<article class="game-panel p-3 h-40" data-testid="st-score-card">
+<article class="game-panel p-3 h-40">
   <div class="flex items-center justify-center flex-col gap-4">
     <div class="flex items-center justify-center flex-col gap-2">
       <span class="text-sm text-text-muted font-mono uppercase tracking-wider">Current Score</span>
       <span class="text-4xl font-bold" x-text={currentScoreModel}></span>
     </div>
-    <div class="flex items-center justify-center gap-4 text-xs text-text-muted font-mono">
-      <span>Avg: <span x-text={threeDartAverageDisplayModel}></span></span>
-      <span>Darts: <span x-text={dartsThrownDisplayModel}></span></span>
-      <span>Last: <span x-text={lastScoreDisplayModel}></span></span>
-    </div>
+    <dl class="flex flex-col items-center justify-between w-full max-w-32 text-xs text-text-muted font-mono">
+      <div class="inline-flex w-full justify-between"><dt>Avg: </dt> <dd x-text={threeDartAverageDisplayModel}></dd></div>
+      <div class="inline-flex w-full justify-between"><dt>Darts: </dt> <dd x-text={dartsThrownDisplayModel}></dd></div>
+      <div class="inline-flex w-full justify-between"><dt>Last: </dt> <dd x-text={lastScoreDisplayModel}></dd></div>
+    </dl>
   </div>
 </article>
