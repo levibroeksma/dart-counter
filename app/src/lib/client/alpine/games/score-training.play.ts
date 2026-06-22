@@ -11,6 +11,7 @@ import {
   isScoreTrainingSession,
   type ScoreTrainingSession,
 } from "@lib/shared/games/score-training/session";
+import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
 import {
   applyRoundToState,
   revertRoundFromState,
@@ -35,7 +36,10 @@ export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
 
   return {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    session: (Alpine as any).$persist(serverSession).as(SCORE_TRAINING_SESSION_KEY).using(sessionStorage) as ScoreTrainingSession | null,
+    session: (Alpine as any)
+      .$persist(serverSession)
+      .as(SCORE_TRAINING_SESSION_KEY)
+      .using(sessionStorage) as ScoreTrainingSession | null,
     score: null as string | null,
     loading: false,
     ready: false,
@@ -65,7 +69,9 @@ export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
     get threeDartAverageDisplay() {
       const roundsPlayed = this.session?.roundHistory.length ?? 0;
       if (roundsPlayed === 0) return "0.0";
-      return ((this.session?.state.currentScore ?? 0) / roundsPlayed).toFixed(1);
+      return ((this.session?.state.currentScore ?? 0) / roundsPlayed).toFixed(
+        1,
+      );
     },
 
     get dartsThrownDisplay() {
@@ -74,7 +80,9 @@ export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
 
     get lastScoreDisplay() {
       const lastScore = this.session?.state.lastScore;
-      return lastScore === null || lastScore === undefined ? "—" : String(lastScore);
+      return lastScore === null || lastScore === undefined
+        ? "—"
+        : String(lastScore);
     },
 
     get timerDisplay() {
@@ -93,7 +101,10 @@ export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
       if (serverSession) {
         this.session = serverSession;
       }
-      if (!isScoreTrainingSession(this.session) || this.session.state.status === "completed") {
+      if (
+        !isScoreTrainingSession(this.session) ||
+        this.session.state.status === "completed"
+      ) {
         window.location.href = "/games/settings-score-training";
         return;
       }
@@ -147,7 +158,8 @@ export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
 
     undo() {
       if (!this.session || this.session.roundHistory.length === 0) return;
-      const removedRound = this.session.roundHistory[this.session.roundHistory.length - 1];
+      const removedRound =
+        this.session.roundHistory[this.session.roundHistory.length - 1];
       const previousHistory = this.session.roundHistory.slice(0, -1);
       const previousLastScore =
         previousHistory.length > 0
@@ -183,6 +195,24 @@ export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
         this.error = t(MessageCode.NETWORK_ERROR);
       } finally {
         this.loading = false;
+      }
+    },
+
+    playAgain() {
+      if (!this.session || !this.summary) return;
+
+      const settings = this.session.settings;
+      this.session = buildScoreTrainingSession(settings);
+      this.showSummary = false;
+      this.summary = null;
+      this.score = null;
+      this.timerExpired = false;
+      this.error = "";
+
+      if (this.session.settings.endMode === "timed") {
+        this.startTimer();
+      } else {
+        this.stopTimer();
       }
     },
 
