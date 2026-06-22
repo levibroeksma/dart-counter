@@ -9,10 +9,6 @@ import {
   getSettingsFormComponent,
   hasGameComponents,
 } from "@lib/shared/games/components";
-import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
-import { isTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
-import { getSinglesTrainingSession } from "@lib/server/data/singles-training-session";
-import { isSinglesTrainingSession } from "@lib/shared/games/singles-training/session";
 
 const { game: slug } = Astro.params;
 
@@ -29,17 +25,7 @@ if (!hasGameComponents(slug)) {
   return Astro.redirect("/games?error=unavailable-game");
 }
 
-const session = Astro.locals.session!;
 const SettingsForm = getSettingsFormComponent(slug)!;
-let hasActiveSession = false;
-
-if (slug === "ten-up-one-down" && session.userId) {
-  const activeSession = await getTenUpOneDownSession(session.userId);
-  hasActiveSession = isTenUpOneDownSession(activeSession);
-} else if (slug === "singles-training" && session.userId) {
-  const activeSession = await getSinglesTrainingSession(session.userId);
-  hasActiveSession = isSinglesTrainingSession(activeSession);
-}
 ---
 
 <AppLayout
@@ -49,7 +35,7 @@ if (slug === "ten-up-one-down" && session.userId) {
 >
   {
     slug === "ten-up-one-down" ? (
-      <TenUpOneDownSettingsShell game={game} hasActiveSession={hasActiveSession}>
+      <TenUpOneDownSettingsShell game={game}>
         <SettingsForm />
       </TenUpOneDownSettingsShell>
     ) : slug === "score-training" ? (
@@ -57,7 +43,7 @@ if (slug === "ten-up-one-down" && session.userId) {
         <SettingsForm />
       </ScoreTrainingSettingsShell>
     ) : slug === "singles-training" ? (
-      <SinglesTrainingSettingsShell game={game} hasActiveSession={hasActiveSession}>
+      <SinglesTrainingSettingsShell game={game}>
         <SettingsForm />
       </SinglesTrainingSettingsShell>
     ) : (
