@@ -26,38 +26,19 @@ assert_contains() {
 login
 echo "Logged in"
 
-GAMES_HTML=$(curl -sf -b "$JAR" "$BASE_URL/games")
-assert_contains "$GAMES_HTML" 'data-testid="confirmation-modal"' "games list includes global ConfirmationModal"
+HTML=$(curl -sf -b "$JAR" -X POST "$BASE_URL/games/ten-up-one-down" \
+  -d "endMode=rounds&roundCount=2")
+assert_contains "$HTML" 'tenUpOneDownPlay' "play page renders Alpine factory"
+assert_contains "$HTML" 'data-testid="tuod-play-shell-skeleton"' "play shell skeleton present"
+assert_contains "$HTML" 'data-testid="tuod-summary-skeleton"' "summary skeleton present"
+assert_contains "$HTML" 'currentTarget&quot;:41' "session JSON embedded from POST"
 
-curl -sf -b "$JAR" -X DELETE "$BASE_URL/api/games/ten-up-one-down/session" "${ORIGIN_HEADER[@]}" > /dev/null
-
-SESSION_RESP=$(curl -sf -b "$JAR" -X POST "$BASE_URL/api/games/ten-up-one-down/session" \
+COMPLETE_BODY='{"session":{"slug":"ten-up-one-down","settings":{"endMode":"rounds","roundCount":2},"state":{"currentRound":3,"currentTarget":39,"status":"completed","lastAdjustment":"failure"},"roundHistory":[{"roundNumber":1,"targetAtStart":41,"targetAfter":40,"finished":false,"dartsUsed":3,"dartsOnDouble":0},{"roundNumber":2,"targetAtStart":40,"targetAfter":39,"finished":false,"dartsUsed":3,"dartsOnDouble":0}],"timeRemainingSeconds":null,"createdAt":"2026-01-01T00:00:00.000Z","updatedAt":"2026-01-01T00:00:00.000Z"}}'
+COMPLETE_RESP=$(curl -sf -b "$JAR" -X POST "$BASE_URL/api/games/ten-up-one-down/complete" \
   "${ORIGIN_HEADER[@]}" \
   -H "Content-Type: application/json" \
-  -d '{"endMode":"rounds","roundCount":10}')
-assert_contains "$SESSION_RESP" '"ok":true' "session created"
-
-HTML=$(curl -sf -b "$JAR" "$BASE_URL/games/ten-up-one-down")
-assert_contains "$HTML" 'data-testid="confirmation-modal"' "play page includes global ConfirmationModal"
-assert_contains "$HTML" '$store.confirmationModal.showModal' "ConfirmationModal binds to store"
-assert_contains "$HTML" 'data-testid="tuod-number-pad"' "play page renders NumberInputPad"
-assert_contains "$HTML" 'data-testid="tuod-score-display"' "play page renders score display"
-assert_contains "$HTML" 'data-testid="tuod-option-modal"' "play page renders OptionModal"
-assert_contains "$HTML" 'tenUpOneDownPlay' "Alpine factory wired"
-assert_contains "$HTML" '@click="leave()"' "play page wires leave button to Alpine"
-assert_contains "$HTML" 'currentTarget&quot;:41' "session JSON embedded"
-assert_contains "$HTML" 'data-testid="tuod-target-card"' "TargetCard rendered"
-
-ROUND='{"round":{"roundNumber":1,"targetAtStart":41,"targetAfter":41,"finished":true,"dartsUsed":2,"dartsOnDouble":1}}'
-ROUND_RESP=$(curl -sf -b "$JAR" -X POST "$BASE_URL/api/games/ten-up-one-down/session/round" \
-  "${ORIGIN_HEADER[@]}" \
-  -H "Content-Type: application/json" \
-  -d "$ROUND")
-assert_contains "$ROUND_RESP" '"currentTarget":51' "round POST advances target"
-assert_contains "$ROUND_RESP" '"currentRound":2' "round POST increments round"
-
-UNDO_RESP=$(curl -sf -b "$JAR" -X DELETE "$BASE_URL/api/games/ten-up-one-down/session/round/last" \
-  "${ORIGIN_HEADER[@]}")
-assert_contains "$UNDO_RESP" '"currentTarget":41' "undo restores target"
+  -d "$COMPLETE_BODY")
+assert_contains "$COMPLETE_RESP" '"ok":true' "complete endpoint accepts terminal session"
+assert_contains "$COMPLETE_RESP" '"completionReason":"rounds"' "complete returns summary"
 
 echo "All curl checks passed"
