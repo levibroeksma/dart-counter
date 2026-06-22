@@ -52,6 +52,11 @@
 
   --duration-fast: 160ms;
   --duration-ui: 200ms;
+
+  button,
+  [role="button"] {
+    touch-action: manipulation;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
