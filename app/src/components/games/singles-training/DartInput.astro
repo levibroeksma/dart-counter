@@ -75,7 +75,7 @@ import UndoIcon from "@icons/undo.svg";
   <div class="grid grid-cols-2 divide-x divide-y divide-slate-500/20 rounded-md flex-1" x-cloak x-show={isBullTargetModel}>
     <button
       type="button"
-      class="text-center py-6 btn-press"
+      class="text-center py-6 btn-press font-medium"
       :disabled={disabledExpr}
       @click="submitDart({ type: 'single' })"
     >
@@ -83,7 +83,7 @@ import UndoIcon from "@icons/undo.svg";
     </button>
     <button
       type="button"
-      class="text-center py-6 btn-press"
+      class="text-center py-6 btn-press font-medium"
       :disabled={disabledExpr}
       @click="submitDart({ type: 'double' })"
     >
@@ -91,16 +91,16 @@ import UndoIcon from "@icons/undo.svg";
     </button>
     <button
       type="button"
-      class="text-center py-6 btn-press"
+      class="text-center py-6 btn-press font-medium flex items-center justify-center"
       :class={`(!(${canUndoExpr}) || ${disabledExpr}) ? 'opacity-50 cursor-not-allowed' : ''`}
       :disabled={`!(${canUndoExpr}) || ${disabledExpr}`}
       @click="undoDart()"
     >
-      Back
+      <UndoIcon class="size-10 text-text-muted" />
     </button>
     <button
       type="button"
-      class="text-center py-6 btn-press"
+      class="text-center py-6 btn-press font-medium uppercase"
       :disabled={disabledExpr}
       @click="submitDart({ type: 'miss' })"
     >
