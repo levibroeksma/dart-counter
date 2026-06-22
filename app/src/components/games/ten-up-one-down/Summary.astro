@@ -1,0 +1,59 @@
+---
+import SummaryStatRow from "../SummaryStatRow.astro";
+
+interface Props {
+  showSummaryModel?: string;
+  summaryModel?: string;
+  loadingModel?: string;
+}
+
+const {
+  showSummaryModel = "showSummary",
+  summaryModel = "summary",
+  loadingModel = "loading",
+} = Astro.props;
+
+const summary = {
+  "Rounds played": `${summaryModel}?.roundsPlayed ?? 0`,
+  Checkouts: `${summaryModel}?.checkouts ?? 0`,
+  "Double-hit %": `((${summaryModel}?.doubleHitPercentage ?? 0).toFixed(1) + '%')`,
+  "Final target": `${summaryModel}?.finalTarget ?? 0`,
+  "Peak target": `${summaryModel}?.peakTarget ?? 0`,
+};
+---
+
+<article class="game-panel p-6 flex flex-col gap-4" x-show={showSummaryModel} x-cloak>
+  <h2
+    class="text-xl font-semibold"
+    x-text={`${summaryModel}?.completionReason === 'checkout170' ? '170 Checkout!' : 'Game Complete'`}
+  >
+    Game Complete
+  </h2>
+  <dl class="flex flex-col gap-1 text-sm">
+    {
+      Object.entries(summary).map(([label, value]) => (
+        <SummaryStatRow label={label} value={value} />
+      ))
+    }
+  </dl>
+
+  <h3 class="t font-semibold">Do you want to play again?</h3>
+  <div class="grid grid-cols-2 gap-2">
+    <button
+      type="button"
+      class="btn-secondary btn-press"
+      :disabled={loadingModel}
+      @click="window.location.href='/games'"
+    >
+      No
+    </button>
+    <button
+      type="button"
+      class="btn-primary btn-press"
+      :disabled={loadingModel}
+      @click="playAgain()"
+    >
+      Yes
+    </button>
+  </div>
+</article>
