@@ -2,7 +2,7 @@ import Alpine from "alpinejs";
 import type { ConfirmationModalStore } from "@lib/client/alpine/stores/confirmationModal.store";
 import type {
   ApiResponse,
-  TenUpOneDownSessionSuccess,
+  TenUpOneDownCompleteSuccess,
 } from "@lib/shared/api/types";
 import {
   buildFailureModalQuestions,
@@ -13,17 +13,40 @@ import { getCheckoutHint } from "@lib/shared/darts/checkouts";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import { resolveRoundOutcome } from "@lib/shared/games/ten-up-one-down/outcome";
 import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
-import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
+import {
+  isTenUpOneDownSession,
+  type TenUpOneDownSession,
+} from "@lib/shared/games/ten-up-one-down/session";
+import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
+import type { TenUpOneDownSummary } from "@lib/shared/games/ten-up-one-down/summary";
+import {
+  applyRoundToState,
+  revertRoundFromState,
+} from "@lib/shared/games/ten-up-one-down/state";
 import { t } from "@lib/shared/i18n";
+
+export const TEN_UP_ONE_DOWN_SESSION_KEY = "ten-up-one-down-session";
+
+/** Removes the persisted in-progress session from sessionStorage. */
+export function clearPersistedTenUpOneDownSession(): void {
+  sessionStorage.removeItem(Alpine.prefixed(TEN_UP_ONE_DOWN_SESSION_KEY));
+}
 
 /**
  * Alpine state factory for Ten Up One Down play flow.
+ *
+ * Holds session state client-side via Alpine $persist (sessionStorage).
+ * Applies rounds locally; POSTs only on completion.
  */
-export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
+export function tenUpOneDownPlay(serverSession: TenUpOneDownSession | null) {
   let timerId: ReturnType<typeof setInterval> | null = null;
 
   return {
-    session: initialSession,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    session: (Alpine as any)
+      .$persist(serverSession)
+      .as(TEN_UP_ONE_DOWN_SESSION_KEY)
+      .using(sessionStorage) as TenUpOneDownSession | null,
     score: null as string | null,
     showModal: false,
     outcome: null as "success" | "failure" | null,
@@ -32,15 +55,33 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     dartsUsed: null as number | null,
     modalQuestions: [] as ModalQuestion[],
     loading: false,
+    ready: false,
     error: "",
+    showSummary: false,
+    summary: null as TenUpOneDownSummary | null,
     timerExpired: false,
 
     get controlsDisabled() {
-      return this.loading || this.session.state.status === "paused";
+      return (
+        !this.ready ||
+        this.loading ||
+        this.session?.state.status === "paused" ||
+        this.showSummary
+      );
+    },
+
+    get timerShouldTick() {
+      return (
+        this.session?.settings.endMode === "timed" &&
+        this.session?.state.status === "active" &&
+        this.score === null &&
+        !this.showModal &&
+        !this.showSummary
+      );
     },
 
     get checkoutHintSegments() {
-      return getCheckoutHint(this.session.state.currentTarget)?.segments ?? [];
+      return getCheckoutHint(this.session?.state.currentTarget ?? 0)?.segments ?? [];
     },
 
     get checkoutHintDisplay() {
@@ -62,6 +103,17 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     },
 
     init() {
+      if (serverSession) {
+        this.session = serverSession;
+      }
+      if (
+        !isTenUpOneDownSession(this.session) ||
+        this.session.state.status === "completed"
+      ) {
+        window.location.href = "/games/settings-ten-up-one-down";
+        return;
+      }
+      this.ready = true;
       if (this.session.settings.endMode === "timed") {
         this.startTimer();
       }
@@ -76,10 +128,12 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     },
 
     confirmLeave() {
+      clearPersistedTenUpOneDownSession();
       window.location.href = "/games";
     },
 
     submitScore() {
+      if (!this.session) return;
       const resolved = resolveRoundOutcome(
         this.score,
         this.session.state.currentTarget,
@@ -116,7 +170,7 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     },
 
     async modalSubmit() {
-      if (!this.modalCanSubmit || this.outcome === null) return;
+      if (!this.session || !this.modalCanSubmit || this.outcome === null) return;
 
       const input =
         this.outcome === "success"
@@ -136,39 +190,64 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
         this.session.state.currentTarget,
         input,
       );
-      const timerExpired =
+
+      const timedModeExpired =
         this.timerExpired ||
         (this.session.settings.endMode === "timed" &&
           this.session.timeRemainingSeconds !== null &&
           this.session.timeRemainingSeconds <= 0);
 
+      this.session.roundHistory = [...this.session.roundHistory, round];
+      this.session.state = applyRoundToState(
+        this.session.state,
+        round,
+        this.session.settings,
+      );
+
+      if (timedModeExpired) {
+        this.session.state = { ...this.session.state, status: "completed" };
+      }
+
+      this.score = null;
+      this.closeModal();
+
+      if (this.session.state.status === "completed") {
+        this.showSummary = true;
+        this.stopTimer();
+        await this.persistCompletion();
+      } else {
+        this.timerExpired = false;
+      }
+    },
+
+    undo() {
+      if (!this.session || this.session.roundHistory.length === 0) return;
+      const removedRound =
+        this.session.roundHistory[this.session.roundHistory.length - 1]!;
+      this.session.roundHistory = this.session.roundHistory.slice(0, -1);
+      this.session.state = revertRoundFromState(
+        this.session.state,
+        removedRound,
+      );
+    },
+
+    async persistCompletion() {
       this.loading = true;
       this.error = "";
       try {
-        const response = await fetch(
-          "/api/games/ten-up-one-down/session/round",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ round, timerExpired }),
-          },
-        );
+        const response = await fetch("/api/games/ten-up-one-down/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session: this.session }),
+        });
         const data = (await response.json()) as ApiResponse;
-
         if (!data.ok) {
           this.error = t(data.code ?? MessageCode.SERVER_ERROR);
           return;
         }
-
-        const success = data as TenUpOneDownSessionSuccess;
-        if (success.completed) {
-          window.location.href = "/games";
-          return;
-        }
-
-        this.session = success.session;
-        this.score = null;
-        this.closeModal();
+        const success = data as TenUpOneDownCompleteSuccess;
+        this.summary = success.summary;
+        clearPersistedTenUpOneDownSession();
       } catch {
         this.error = t(MessageCode.NETWORK_ERROR);
       } finally {
@@ -176,31 +255,36 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
       }
     },
 
-    async undo() {
-      this.loading = true;
+    playAgain() {
+      if (!this.session || !this.summary) return;
+
+      const settings = this.session.settings;
+      this.session = buildTenUpOneDownSession(settings);
+      this.showSummary = false;
+      this.summary = null;
+      this.score = null;
+      this.timerExpired = false;
       this.error = "";
-      try {
-        const response = await fetch(
-          "/api/games/ten-up-one-down/session/round/last",
-          {
-            method: "DELETE",
-          },
-        );
-        const data = (await response.json()) as ApiResponse;
-        if (!data.ok) {
-          this.error = t(data.code ?? MessageCode.SERVER_ERROR);
-          return;
-        }
-        this.session = (data as TenUpOneDownSessionSuccess).session;
-      } catch {
-        this.error = t(MessageCode.NETWORK_ERROR);
-      } finally {
-        this.loading = false;
+      this.closeModal();
+
+      if (this.session.settings.endMode === "timed") {
+        this.startTimer();
+      } else {
+        this.stopTimer();
       }
+    },
+
+    completeOnTimerExpiry() {
+      if (!this.session || this.session.settings.endMode !== "timed") return;
+      this.timerExpired = true;
+      this.session.state = { ...this.session.state, status: "completed" };
+      this.showSummary = true;
+      this.stopTimer();
+      void this.persistCompletion();
     },
 
     togglePause() {
-      if (this.session.settings.endMode !== "timed") return;
+      if (!this.session || this.session.settings.endMode !== "timed") return;
       this.session.state.status =
         this.session.state.status === "paused" ? "active" : "paused";
 
@@ -212,17 +296,24 @@ export function tenUpOneDownPlay(initialSession: TenUpOneDownSession) {
     },
 
     startTimer() {
-      if (this.session.settings.endMode !== "timed") return;
+      if (!this.session || this.session.settings.endMode !== "timed") return;
       this.stopTimer();
       timerId = setInterval(() => {
-        if (this.session.state.status !== "active") return;
-        if (this.session.timeRemainingSeconds === null) return;
-        if (this.session.timeRemainingSeconds <= 0) {
-          this.timerExpired = true;
-          this.stopTimer();
+        if (!this.timerShouldTick) return;
+        if (!this.session || this.session.timeRemainingSeconds === null) return;
+        if (this.session.timeRemainingSeconds <= 0) return;
+
+        this.session.timeRemainingSeconds -= 1;
+        if (this.session.timeRemainingSeconds > 0) return;
+
+        this.session.timeRemainingSeconds = 0;
+        if (this.score === null) {
+          this.completeOnTimerExpiry();
           return;
         }
-        this.session.timeRemainingSeconds -= 1;
+
+        this.timerExpired = true;
+        this.stopTimer();
       }, 1000);
     },
 
