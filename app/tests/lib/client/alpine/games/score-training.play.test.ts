@@ -7,6 +7,7 @@ import {
   SCORE_TRAINING_SESSION_KEY,
   clearPersistedScoreTrainingSession,
 } from "@lib/client/alpine/games/score-training.play";
+import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
 
 /**
  * Mock Alpine.$persist to return the initial value directly so unit tests
@@ -181,5 +182,84 @@ describe("scoreTrainingPlay", () => {
     const play = scoreTrainingPlay(structuredClone(timedSession));
     play.session!.timeRemainingSeconds = 65;
     expect(play.timerDisplay).toBe("01:05");
+  });
+
+  it("restarts with same settings via playAgain without fetch", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      json: async () => ({
+        ok: true,
+        summary: {
+          totalScore: 60,
+          threeDartAverage: 60,
+          roundsPlayed: 1,
+          dartsThrown: 3,
+        },
+      }),
+    } as Response);
+
+    const play = scoreTrainingPlay(
+      buildScoreTrainingSession({ endMode: "rounds", roundCount: 1 }),
+    );
+    play.init();
+    play.score = "60";
+    play.submitScore();
+    await vi.waitFor(() => expect(play.summary).not.toBeNull());
+
+    const fetchCallsBeforePlayAgain = vi.mocked(fetch).mock.calls.length;
+    play.playAgain();
+
+    expect(vi.mocked(fetch).mock.calls.length).toBe(fetchCallsBeforePlayAgain);
+    expect(play.showSummary).toBe(false);
+    expect(play.summary).toBeNull();
+    expect(play.score).toBeNull();
+    expect(play.timerExpired).toBe(false);
+    expect(play.error).toBe("");
+    expect(play.session?.settings).toEqual({ endMode: "rounds", roundCount: 1 });
+    expect(play.session?.state.status).toBe("active");
+    expect(play.session?.roundHistory).toEqual([]);
+    expect(play.session?.state.currentRound).toBe(1);
+    expect(play.session?.state.currentScore).toBe(0);
+  });
+
+  it("playAgain no-ops when summary is missing", () => {
+    const play = scoreTrainingPlay(structuredClone(roundsSession));
+    play.init();
+    play.showSummary = true;
+    play.summary = null;
+
+    play.playAgain();
+
+    expect(play.showSummary).toBe(true);
+    expect(play.session?.state.status).toBe("active");
+  });
+
+  it("playAgain resets timed session timer and restarts interval", async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockResolvedValue({
+      json: async () => ({
+        ok: true,
+        summary: {
+          totalScore: 0,
+          threeDartAverage: 0,
+          roundsPlayed: 0,
+          dartsThrown: 0,
+        },
+      }),
+    } as Response);
+
+    const play = scoreTrainingPlay(
+      buildScoreTrainingSession({ endMode: "timed", playtimeSeconds: 90 }),
+    );
+    play.init();
+    play.completeOnTimerExpiry();
+    await vi.waitFor(() => expect(play.summary).not.toBeNull());
+
+    play.playAgain();
+
+    expect(play.session?.timeRemainingSeconds).toBe(90);
+    expect(play.session?.state.status).toBe("active");
+
+    vi.advanceTimersByTime(1000);
+    expect(play.session?.timeRemainingSeconds).toBe(89);
   });
 });
