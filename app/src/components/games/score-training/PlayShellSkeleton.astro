@@ -1,0 +1,13 @@
+---
+import ProgressBarSkeleton from "./ProgressBarSkeleton.astro";
+import ScoreCardSkeleton from "./ScoreCardSkeleton.astro";
+import NumberInputPadSkeleton from "./NumberInputPadSkeleton.astro";
+---
+
+<div class="flex flex-col gap-4 flex-1">
+  <ProgressBarSkeleton />
+  <ScoreCardSkeleton />
+  <article class="game-panel flex-1 p-4 flex flex-col">
+    <NumberInputPadSkeleton />
+  </article>
+</div>

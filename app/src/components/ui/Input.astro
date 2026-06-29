@@ -1,4 +1,7 @@
 ---
+import ShowIcon from "@icons/show.svg";
+import HideIcon from "@icons/hide.svg";
+
 interface Props {
   id: string;
   name: string;
@@ -26,11 +29,11 @@ const {
   max,
   "x-model": xModel,
   class: className = "",
-  ...rest
+  ...props
 } = Astro.props;
 ---
 
-<div class:list={["space-y-1.5", className]} {...rest}>
+<div class:list={["space-y-1.5 relative", className]} {...props} x-data="{showPassword: false}">
   {
     label ? (
       <label for={id} class="text-text-muted @sm:text-sm block font-medium">
@@ -38,16 +41,42 @@ const {
       </label>
     ) : null
   }
-  <input
-    {id}
-    {name}
-    {type}
-    {value}
-    {min}
-    {max}
-    autocomplete={autocomplete}
-    required={required}
-    x-model={xModel}
-    class="input-field"
-  />
+
+  {
+    type === "password" ? (
+      <input
+      {id}
+      {name}
+      :type="showPassword ? 'text' : 'password'"
+      {value}
+      {min}
+      {max}
+      autocomplete={autocomplete}
+      required={required}
+      x-model={xModel}
+      class="input-field"
+    />
+  ) : (
+      <input
+        {id}
+        {name}
+        {type}
+        {value}
+        {min}
+        {max}
+        autocomplete={autocomplete}
+        required={required}
+        x-model={xModel}
+        class="input-field"
+      />
+    )
+  }
+  {
+    type === "password" ? (
+      <button type="button" class="absolute right-2 top-1/2" x-on:click="showPassword = !showPassword">
+        <ShowIcon x-show="!showPassword" x-cloak class="size-6 text-text-muted" />
+        <HideIcon x-show="showPassword" x-cloak class="size-6 text-text-muted" />
+      </button>
+    ) : null
+  }
 </div>

@@ -6,7 +6,7 @@
 **Branch:** TBD  
 **Scope:** Replace all Netlify Blobs usage in `app/src/lib/server/data/` with Neon Postgres via Drizzle ORM. Neon Auth is already live. Clean start — no blob → DB data migration.
 
-**Supersedes:** `docs/superpowers/specs/2026-06-17-blobs-to-database-design.md` (Netlify Database target)
+**Supersedes:** prior Netlify Database migration spec (removed after Neon migration)
 
 ---
 

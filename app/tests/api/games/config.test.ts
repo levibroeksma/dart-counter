@@ -118,7 +118,7 @@ describe("GET /api/games/[slug]/config", () => {
     mockSession.isLoggedIn = true;
     mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
-    mockGetGameConfig.mockRejectedValue(new Error("blob down"));
+    mockGetGameConfig.mockRejectedValue(new Error("database down"));
 
     const response = await GET(createGetContext());
     const data = await response.json();
@@ -209,7 +209,7 @@ describe("PUT /api/games/[slug]/config", () => {
     mockSession.isLoggedIn = true;
     mockSession.userId = "00000000-0000-4000-8000-000000000001";
     mockGetGameBySlug.mockResolvedValue(game501);
-    mockSaveGameConfig.mockRejectedValue(new Error("blob down"));
+    mockSaveGameConfig.mockRejectedValue(new Error("database down"));
 
     const response = await PUT(
       createPutContext("501", { settings: { doubleOut: true } })

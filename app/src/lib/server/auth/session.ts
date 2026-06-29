@@ -23,7 +23,6 @@ export async function getSession(request: Request): Promise<AppSession> {
     if (!data.user?.id) {
       return { isLoggedIn: false };
     }
-
     return {
       isLoggedIn: true,
       userId: data.user.id,

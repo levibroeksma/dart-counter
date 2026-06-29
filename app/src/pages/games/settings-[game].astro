@@ -9,13 +9,6 @@ import {
   getSettingsFormComponent,
   hasGameComponents,
 } from "@lib/shared/games/components";
-import { getSession } from "@lib/server/auth/session";
-import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
-import { isTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
-import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
-import { isScoreTrainingSession } from "@lib/shared/games/score-training/session";
-import { getSinglesTrainingSession } from "@lib/server/data/singles-training-session";
-import { isSinglesTrainingSession } from "@lib/shared/games/singles-training/session";
 
 const { game: slug } = Astro.params;
 
@@ -33,31 +26,6 @@ if (!hasGameComponents(slug)) {
 }
 
 const SettingsForm = getSettingsFormComponent(slug)!;
-let hasActiveSession = false;
-
-if (slug === "ten-up-one-down") {
-  const auth = await getSession(Astro.request);
-  if (auth.isLoggedIn && auth.userId) {
-    const activeSession = await getTenUpOneDownSession(auth.userId);
-    hasActiveSession = isTenUpOneDownSession(activeSession);
-  }
-}
-
-if (slug === "score-training") {
-  const auth = await getSession(Astro.request);
-  if (auth.isLoggedIn && auth.userId) {
-    const activeSession = await getScoreTrainingSession(auth.userId);
-    hasActiveSession = isScoreTrainingSession(activeSession);
-  }
-}
-
-if (slug === "singles-training") {
-  const auth = await getSession(Astro.request);
-  if (auth.isLoggedIn && auth.userId) {
-    const activeSession = await getSinglesTrainingSession(auth.userId);
-    hasActiveSession = isSinglesTrainingSession(activeSession);
-  }
-}
 ---
 
 <AppLayout
@@ -67,15 +35,15 @@ if (slug === "singles-training") {
 >
   {
     slug === "ten-up-one-down" ? (
-      <TenUpOneDownSettingsShell game={game} hasActiveSession={hasActiveSession}>
+      <TenUpOneDownSettingsShell game={game}>
         <SettingsForm />
       </TenUpOneDownSettingsShell>
     ) : slug === "score-training" ? (
-      <ScoreTrainingSettingsShell game={game} hasActiveSession={hasActiveSession}>
+      <ScoreTrainingSettingsShell game={game}>
         <SettingsForm />
       </ScoreTrainingSettingsShell>
     ) : slug === "singles-training" ? (
-      <SinglesTrainingSettingsShell game={game} hasActiveSession={hasActiveSession}>
+      <SinglesTrainingSettingsShell game={game}>
         <SettingsForm />
       </SinglesTrainingSettingsShell>
     ) : (

@@ -2,37 +2,57 @@ import Alpine from "alpinejs";
 import type { ConfirmationModalStore } from "@lib/client/alpine/stores/confirmationModal.store";
 import type {
   ApiResponse,
-  SinglesTrainingSessionSuccess,
+  SinglesTrainingCompleteSuccess,
 } from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
   formatDartOutcomeLabel,
+  isValidOutcomeForTarget,
   type DartOutcome,
 } from "@lib/shared/games/singles-training/dart";
-import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
 import {
-  buildSummary,
+  isSinglesTrainingSession,
+  type SinglesTrainingSession,
+} from "@lib/shared/games/singles-training/session";
+import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
+import {
   type SinglesTrainingSummary,
 } from "@lib/shared/games/singles-training/summary";
+import {
+  applyDartToSession,
+  revertLastDart,
+} from "@lib/shared/games/singles-training/state";
 import { t } from "@lib/shared/i18n";
+
+export const SINGLES_TRAINING_SESSION_KEY = "singles-training-session";
+
+/** Removes the persisted in-progress session from sessionStorage. */
+export function clearPersistedSinglesTrainingSession(): void {
+  sessionStorage.removeItem(Alpine.prefixed(SINGLES_TRAINING_SESSION_KEY));
+}
 
 /**
  * Alpine data factory for Singles Training play flow.
  */
-export function singlesTrainingPlay(initialSession: SinglesTrainingSession) {
+export function singlesTrainingPlay(serverSession: SinglesTrainingSession | null) {
   return {
-    session: initialSession,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    session: (Alpine as any)
+      .$persist(serverSession)
+      .as(SINGLES_TRAINING_SESSION_KEY)
+      .using(sessionStorage) as SinglesTrainingSession | null,
     loading: false,
+    ready: false,
     error: "",
     showSummary: false,
     summary: null as SinglesTrainingSummary | null,
 
     get controlsDisabled() {
-      return this.loading || this.showSummary;
+      return !this.ready || this.loading || this.showSummary;
     },
 
     get currentTarget() {
-      return this.session.targetSequence[this.session.state.currentTargetIndex];
+      return this.session?.targetSequence[this.session.state.currentTargetIndex];
     },
 
     get isBullTarget() {
@@ -45,11 +65,23 @@ export function singlesTrainingPlay(initialSession: SinglesTrainingSession) {
 
     get visitDartLabels() {
       const labels: [string, string, string] = ["-", "-", "-"];
+      if (!this.session) return labels;
       for (const dart of this.session.dartHistory) {
         if (dart.targetIndex !== this.session.state.currentTargetIndex) continue;
-        labels[dart.dartInVisit] = formatDartOutcomeLabel(this.currentTarget, dart.outcome);
+        labels[dart.dartInVisit] = formatDartOutcomeLabel(this.currentTarget!, dart.outcome);
       }
       return labels;
+    },
+
+    init() {
+      if (serverSession) {
+        this.session = serverSession;
+      }
+      if (!isSinglesTrainingSession(this.session) || this.session.state.status !== "active") {
+        window.location.href = "/games/settings-singles-training";
+        return;
+      }
+      this.ready = true;
     },
 
     leave() {
@@ -61,34 +93,47 @@ export function singlesTrainingPlay(initialSession: SinglesTrainingSession) {
     },
 
     confirmLeave() {
+      clearPersistedSinglesTrainingSession();
       window.location.href = "/games";
     },
 
-    async submitDart(outcome: DartOutcome) {
+    submitDart(outcome: DartOutcome) {
+      if (!this.session || this.showSummary) return;
+      const target = this.session.targetSequence[this.session.state.currentTargetIndex];
+      if (!isValidOutcomeForTarget(target, outcome)) return;
+
+      this.session = applyDartToSession(this.session, outcome);
+
+      if (this.session.state.status === "completed" || this.session.state.status === "dead") {
+        this.showSummary = true;
+        void this.persistCompletion();
+      }
+    },
+
+    undoDart() {
+      if (!this.session || this.session.dartHistory.length === 0 || this.showSummary) {
+        return;
+      }
+      this.session = revertLastDart(this.session);
+    },
+
+    async persistCompletion() {
       this.loading = true;
       this.error = "";
       try {
-        const response = await fetch("/api/games/singles-training/session/dart", {
+        const response = await fetch("/api/games/singles-training/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ outcome }),
+          body: JSON.stringify({ session: this.session }),
         });
         const data = (await response.json()) as ApiResponse;
         if (!data.ok) {
           this.error = t(data.code ?? MessageCode.SERVER_ERROR);
           return;
         }
-
-        const success = data as SinglesTrainingSessionSuccess;
-        this.session = success.session;
-        if (success.terminal) {
-          this.showSummary = true;
-          this.summary = success.summary ?? buildSummary(success.session);
-          return;
-        }
-
-        this.showSummary = false;
-        this.summary = null;
+        const success = data as SinglesTrainingCompleteSuccess;
+        this.summary = success.summary;
+        clearPersistedSinglesTrainingSession();
       } catch {
         this.error = t(MessageCode.NETWORK_ERROR);
       } finally {
@@ -96,49 +141,14 @@ export function singlesTrainingPlay(initialSession: SinglesTrainingSession) {
       }
     },
 
-    async undoDart() {
-      this.loading = true;
-      this.error = "";
-      try {
-        const response = await fetch("/api/games/singles-training/session/dart/last", {
-          method: "DELETE",
-        });
-        const data = (await response.json()) as ApiResponse;
-        if (!data.ok) {
-          this.error = t(data.code ?? MessageCode.SERVER_ERROR);
-          return;
-        }
-        this.session = (data as SinglesTrainingSessionSuccess).session;
-      } catch {
-        this.error = t(MessageCode.NETWORK_ERROR);
-      } finally {
-        this.loading = false;
-      }
-    },
+    playAgain() {
+      if (!this.session || !this.summary) return;
 
-    async playAgain() {
-      this.loading = true;
+      const settings = this.session.settings;
+      this.session = buildSinglesTrainingSession(settings);
+      this.showSummary = false;
+      this.summary = null;
       this.error = "";
-      try {
-        const response = await fetch("/api/games/singles-training/session/play-again", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(this.session.settings),
-        });
-        const data = (await response.json()) as ApiResponse;
-        if (!data.ok) {
-          this.error = t(data.code ?? MessageCode.SERVER_ERROR);
-          return;
-        }
-
-        this.session = (data as SinglesTrainingSessionSuccess).session;
-        this.showSummary = false;
-        this.summary = null;
-      } catch {
-        this.error = t(MessageCode.NETWORK_ERROR);
-      } finally {
-        this.loading = false;
-      }
     },
   };
 }

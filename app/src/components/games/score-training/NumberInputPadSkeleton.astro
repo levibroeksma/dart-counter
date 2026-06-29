@@ -1,0 +1,12 @@
+---
+import Skeleton from "@components/ui/Skeleton.astro";
+---
+
+<div data-testid="st-number-pad-skeleton" class="flex flex-col flex-1 gap-3">
+  <Skeleton variant="block" class="h-10 w-full rounded-md" />
+  <div class="grid grid-cols-4 gap-2 flex-1">
+    {Array.from({ length: 12 }).map(() => (
+      <Skeleton variant="block" class="aspect-square w-full" />
+    ))}
+  </div>
+</div>

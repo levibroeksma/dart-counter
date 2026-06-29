@@ -1,9 +1,15 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import Alpine from "alpinejs";
 import { confirmationModalState } from "@lib/client/alpine/stores/confirmationModal.store";
 import { tenUpOneDownPlay } from "@lib/client/alpine/games/ten-up-one-down.play";
+
+beforeAll(() => {
+  (Alpine as unknown as Record<string, unknown>).$persist = (value: unknown) => ({
+    as: (_key: string) => ({ using: (_storage: Storage) => value }),
+  });
+});
 
 const roundsSession = {
   slug: "ten-up-one-down" as const,

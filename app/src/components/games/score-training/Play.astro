@@ -3,22 +3,25 @@ import NumberInputPad from "@components/ui/NumberInputPad.astro";
 import ScoreCard from "./ScoreCard.astro";
 import ProgressBar from "./ProgressBar.astro";
 import Summary from "./Summary.astro";
+import PlayShellSkeleton from "./PlayShellSkeleton.astro";
+import SummarySkeleton from "./SummarySkeleton.astro";
 import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
 import LeaveIcon from "@icons/leave.svg";
 
 interface Props {
   displayName: string;
-  gameSession: ScoreTrainingSession;
+  gameSession?: ScoreTrainingSession | null;
 }
 
-const { displayName, gameSession } = Astro.props;
-const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
+const { displayName, gameSession = null } = Astro.props;
+const sessionJson = JSON.stringify(gameSession ?? null).replace(/</g, "\\u003c");
 ---
 
 <section
   class="relative flex-1 h-full flex flex-col gap-4"
   x-data={`scoreTrainingPlay(${sessionJson})`}
   x-init="init()"
+  :aria-busy="!ready || (showSummary && !summary)"
 >
   <div class="flex justify-between py-2">
     <button type="button" class="btn-press" @click="leave()">
@@ -28,7 +31,11 @@ const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
     <div class="size-6 transparent"></div>
   </div>
 
-  <div x-show="!showSummary" class="flex flex-col gap-4 flex-1">
+  <div x-show="!ready">
+    <PlayShellSkeleton />
+  </div>
+
+  <div x-show="ready && !showSummary" x-cloak class="flex flex-col gap-4 flex-1">
     <ProgressBar />
     <ScoreCard />
 
@@ -43,6 +50,9 @@ const sessionJson = JSON.stringify(gameSession).replace(/</g, "\\u003c");
     </article>
   </div>
 
-  <Summary />
+  <div x-show="showSummary && !summary" x-cloak>
+    <SummarySkeleton />
+  </div>
+  <Summary showSummaryModel="showSummary && summary" loadingModel="loading" />
   <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
 </section>

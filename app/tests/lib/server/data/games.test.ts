@@ -46,10 +46,10 @@ describe("games data layer", () => {
     mockDb.reset();
   });
 
-  it("seeds catalog when store is empty", async () => {
+  it("returns seed games when store is empty without writing catalog", async () => {
     const games = await getGameTypes();
     expect(games).toEqual(RELEASED_GAMES);
-    expect(mockDb.tables.gameCatalog.size).toBe(SEED_GAMES.length);
+    expect(mockDb.tables.gameCatalog.size).toBe(0);
   });
 
   it("getGameBySlug returns released game", async () => {
@@ -122,29 +122,29 @@ describe("games data layer", () => {
     expect(mockDb.tables.userGamePlayCounts.get(playCountScopedKey("alex", "501"))?.playCount).toBe(2);
   });
 
-  it("reconciles stale catalog missing score-training", async () => {
+  it("merges missing seed games in memory when catalog is stale", async () => {
     const staleCatalog = SEED_GAMES.filter((g) => g.slug !== "score-training");
     seedCatalog(staleCatalog);
 
     const games = await getGameTypes();
 
     expect(games.map((g) => g.slug)).toContain("score-training");
-    expect(mockDb.tables.gameCatalog.has("score-training")).toBe(true);
     expect(games).toEqual(RELEASED_GAMES);
+    expect(mockDb.tables.gameCatalog.has("score-training")).toBe(false);
   });
 
-  it("reconciles stale catalog missing singles-training", async () => {
+  it("merges missing singles-training in memory when catalog is stale", async () => {
     const staleCatalog = SEED_GAMES.filter((g) => g.slug !== "singles-training");
     seedCatalog(staleCatalog);
 
     const games = await getGameTypes();
 
     expect(games.map((g) => g.slug)).toContain("singles-training");
-    expect(mockDb.tables.gameCatalog.has("singles-training")).toBe(true);
     expect(games).toEqual(RELEASED_GAMES);
+    expect(mockDb.tables.gameCatalog.has("singles-training")).toBe(false);
   });
 
-  it("reconciliation is idempotent when catalog already matches seed", async () => {
+  it("does not mutate catalog table on read when already seeded", async () => {
     seedCatalog();
     const before = [...mockDb.tables.gameCatalog.values()];
 

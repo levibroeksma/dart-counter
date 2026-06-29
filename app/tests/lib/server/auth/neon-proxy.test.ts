@@ -12,6 +12,53 @@ describe("proxyNeonAuthUpstream", () => {
     vi.unstubAllGlobals();
   });
 
+  it("uses URL env as Origin on Netlify instead of internal request.url", async () => {
+    process.env.NODE_ENV = "production";
+    process.env.URL = "https://my-dart-counter.netlify.app";
+    const mockFetch = vi.mocked(fetch);
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    const request = new Request("http://127.0.0.1:9999/.netlify/functions/ssr", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "a@b.com", password: "secret" }),
+    });
+
+    await proxyNeonAuthUpstream(request, "sign-in/email", { baseUrl: BASE_URL });
+
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const upstreamHeaders = new Headers(init.headers);
+    expect(upstreamHeaders.get("origin")).toBe("https://my-dart-counter.netlify.app");
+    expect(upstreamHeaders.get("referer")).toBe("https://my-dart-counter.netlify.app/");
+
+    delete process.env.NODE_ENV;
+    delete process.env.URL;
+  });
+
+  it("ignores URL env in local dev and uses localhost default", async () => {
+    process.env.URL = "https://my-dart-counter.netlify.app";
+    const mockFetch = vi.mocked(fetch);
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    const request = new Request("http://127.0.0.1:9999/.netlify/functions/ssr", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "a@b.com", password: "secret" }),
+    });
+
+    await proxyNeonAuthUpstream(request, "sign-in/email", { baseUrl: BASE_URL });
+
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const upstreamHeaders = new Headers(init.headers);
+    expect(upstreamHeaders.get("origin")).toBe("http://localhost:4321");
+
+    delete process.env.URL;
+  });
+
   it("forwards Neon Auth cookies and POST body to upstream URL", async () => {
     const mockFetch = vi.mocked(fetch);
     mockFetch.mockResolvedValue(
@@ -66,6 +113,56 @@ describe("proxyNeonAuthUpstream", () => {
     expect(response.headers.getSetCookie()).toEqual([
       "__Secure-neon-auth.session_token=tok; Path=/; HttpOnly; Secure",
     ]);
+  });
+
+  it("relaxes Secure Set-Cookie for LAN HTTP dev", async () => {
+    const mockFetch = vi.mocked(fetch);
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ session: {}, user: {} }), {
+        status: 200,
+        headers: {
+          "Set-Cookie":
+            "__Secure-neon-auth.session_token=tok; Path=/; HttpOnly; Secure; SameSite=None; Partitioned",
+        },
+      }),
+    );
+
+    const request = new Request("http://192.168.1.102:4321/api/auth/get-session", {
+      method: "GET",
+    });
+
+    const response = await proxyNeonAuthUpstream(request, "get-session", {
+      baseUrl: BASE_URL,
+    });
+
+    expect(response.headers.getSetCookie()).toEqual([
+      "neon-auth.dev.session_token=tok; Path=/; HttpOnly; SameSite=Lax",
+    ]);
+  });
+
+  it("maps dev HTTP cookies back to Neon upstream prefix", async () => {
+    const mockFetch = vi.mocked(fetch);
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 }),
+    );
+
+    const request = new Request("http://192.168.1.102:4321/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie:
+          "neon-auth.dev.session_token=abc; other=value; neon-auth.dev.local.session_data=xyz",
+      },
+      body: JSON.stringify({ email: "a@b.com", password: "secret" }),
+    });
+
+    await proxyNeonAuthUpstream(request, "sign-in/email", { baseUrl: BASE_URL });
+
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const upstreamHeaders = new Headers(init.headers);
+    expect(upstreamHeaders.get("cookie")).toBe(
+      "__Secure-neon-auth.session_token=abc; __Secure-neon-auth.local.session_data=xyz",
+    );
   });
 
   it("returns 502 JSON on upstream network failure", async () => {

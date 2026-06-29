@@ -987,7 +987,7 @@ git commit -m "feat(db): migrate game sessions to Neon Postgres"
 **Files:**
 - Modify: `app/package.json`
 - Delete: blob mocks from all test files (already replaced)
-- Modify: `docs/superpowers/specs/2026-06-17-blobs-to-database-design.md` (add superseded note)
+- Prior Netlify Database spec removed (superseded by this plan)
 - Modify: any active context docs referencing blobs
 - Triage/delete: fallow-reported stale files, exports, types (see § Fallow Dead-Code Gate)
 

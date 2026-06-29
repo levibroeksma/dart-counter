@@ -1,32 +1,58 @@
 ---
+
+import SummaryStatRow from "../SummaryStatRow.astro";
 interface Props {
   showSummaryModel?: string;
   summaryModel?: string;
   summaryAverageDisplayModel?: string;
+  loadingModel?: string;
 }
 
 const {
   showSummaryModel = "showSummary",
   summaryModel = "summary",
   summaryAverageDisplayModel = "summaryAverageDisplay",
+  loadingModel = "loading",
 } = Astro.props;
+
+const summary = {
+  "Total score": `${summaryModel}?.totalScore ?? 0`,
+  "3-dart average": summaryAverageDisplayModel,
+  "Rounds played": `${summaryModel}?.roundsPlayed ?? 0`,
+  "Darts thrown": `${summaryModel}?.dartsThrown ?? 0`,
+};
 ---
 
 <article
-  class="game-panel p-6 flex flex-col gap-4"
+  class="game-panel p-6 flex flex-col gap-6"
   x-show={showSummaryModel}
   x-cloak
 >
-  <h2 class="text-xl font-semibold">Game Complete</h2>
-  <dl class="grid grid-cols-2 gap-3 text-sm">
-    <dt class="text-text-muted">Total score</dt>
-    <dd x-text={`${summaryModel}?.totalScore ?? 0`}>0</dd>
-    <dt class="text-text-muted">3-dart average</dt>
-    <dd x-text={summaryAverageDisplayModel}></dd>
-    <dt class="text-text-muted">Rounds played</dt>
-    <dd x-text={`${summaryModel}?.roundsPlayed ?? 0`}>0</dd>
-    <dt class="text-text-muted">Darts thrown</dt>
-    <dd x-text={`${summaryModel}?.dartsThrown ?? 0`}>0</dd>
+  <h2 class="text-2xl font-semibold">Game Complete</h2>
+  <dl class="flex flex-col gap-1 ">
+    {
+      Object.entries(summary).map(([label, value]) => (
+        <SummaryStatRow label={label} value={value} />
+      ))
+    }
   </dl>
-  <a href="/games" class="btn-primary text-center">Back to games</a>
+
+  <div class="grid grid-cols-2 gap-3">
+    <h3 class="font-semibold text-lg col-span-2">Do you want to play again?</h3>
+    <a
+      href="/games"
+      class="btn-secondary btn-press font-medium flex items-center justify-center"
+      :class={loadingModel + " && 'pointer-events-none opacity-50'"}
+    >
+      <span>No</span>
+    </a>
+    <button
+      type="button"
+      class="btn-primary btn-press"
+      :disabled={loadingModel}
+      @click="playAgain()"
+    >
+      Yes
+    </button>
+  </div>
 </article>

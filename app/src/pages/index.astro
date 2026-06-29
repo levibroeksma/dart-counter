@@ -6,10 +6,9 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Card from "@components/ui/Card.astro";
 import GameCard from "@components/games/GameCard.astro";
 import { getQuickStartGames } from "@lib/server/data/games";
-import { getSession } from "@lib/server/auth/session";
 import type { GameType } from "@lib/shared/games/types";
 
-const session = await getSession(Astro.request);
+const session = Astro.locals.session!;
 let quickStartGames: GameType[] = [];
 
 if (session.userId) {

@@ -2,58 +2,91 @@ import Alpine from "alpinejs";
 import type { ConfirmationModalStore } from "@lib/client/alpine/stores/confirmationModal.store";
 import type {
   ApiResponse,
-  ScoreTrainingSessionSuccess,
+  ScoreTrainingCompleteSuccess,
 } from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import { buildRoundRecord } from "@lib/shared/games/score-training/round";
-import { buildSummary, type ScoreTrainingSummary } from "@lib/shared/games/score-training/summary";
-import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
+import type { ScoreTrainingSummary } from "@lib/shared/games/score-training/summary";
+import {
+  isScoreTrainingSession,
+  type ScoreTrainingSession,
+} from "@lib/shared/games/score-training/session";
+import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
+import {
+  applyRoundToState,
+  revertRoundFromState,
+} from "@lib/shared/games/score-training/state";
 import { t } from "@lib/shared/i18n";
+
+export const SCORE_TRAINING_SESSION_KEY = "score-training-session";
+
+/** Removes the persisted in-progress session from sessionStorage. */
+export function clearPersistedScoreTrainingSession(): void {
+  sessionStorage.removeItem(Alpine.prefixed(SCORE_TRAINING_SESSION_KEY));
+}
 
 /**
  * Alpine state factory for Score Training play flow.
+ *
+ * Holds session state client-side via Alpine $persist (sessionStorage).
+ * Applies rounds locally; POSTs only on completion.
  */
-export function scoreTrainingPlay(initialSession: ScoreTrainingSession) {
+export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
   let timerId: ReturnType<typeof setInterval> | null = null;
 
   return {
-    session: initialSession,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    session: (Alpine as any)
+      .$persist(serverSession)
+      .as(SCORE_TRAINING_SESSION_KEY)
+      .using(sessionStorage) as ScoreTrainingSession | null,
     score: null as string | null,
     loading: false,
+    ready: false,
     error: "",
     showSummary: false,
     summary: null as ScoreTrainingSummary | null,
     timerExpired: false,
 
     get controlsDisabled() {
-      return this.loading || this.session.state.status === "paused" || this.showSummary;
+      return (
+        !this.ready ||
+        this.loading ||
+        this.session?.state.status === "paused" ||
+        this.showSummary
+      );
     },
 
     get timerShouldTick() {
       return (
-        this.session.settings.endMode === "timed" &&
-        this.session.state.status === "active" &&
+        this.session?.settings.endMode === "timed" &&
+        this.session?.state.status === "active" &&
         this.score === null &&
         !this.showSummary
       );
     },
 
     get threeDartAverageDisplay() {
-      const roundsPlayed = this.session.roundHistory.length;
+      const roundsPlayed = this.session?.roundHistory.length ?? 0;
       if (roundsPlayed === 0) return "0.0";
-      return (this.session.state.currentScore / roundsPlayed).toFixed(1);
+      return ((this.session?.state.currentScore ?? 0) / roundsPlayed).toFixed(
+        1,
+      );
     },
 
     get dartsThrownDisplay() {
-      return String(this.session.roundHistory.length * 3);
+      return String((this.session?.roundHistory.length ?? 0) * 3);
     },
 
     get lastScoreDisplay() {
-      return this.session.state.lastScore === null ? "—" : String(this.session.state.lastScore);
+      const lastScore = this.session?.state.lastScore;
+      return lastScore === null || lastScore === undefined
+        ? "—"
+        : String(lastScore);
     },
 
     get timerDisplay() {
-      const total = Math.max(0, this.session.timeRemainingSeconds ?? 0);
+      const total = Math.max(0, this.session?.timeRemainingSeconds ?? 0);
       const minutes = Math.floor(total / 60);
       const seconds = total % 60;
       return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
@@ -65,6 +98,17 @@ export function scoreTrainingPlay(initialSession: ScoreTrainingSession) {
     },
 
     init() {
+      if (serverSession) {
+        this.session = serverSession;
+      }
+      if (
+        !isScoreTrainingSession(this.session) ||
+        this.session.state.status === "completed"
+      ) {
+        window.location.href = "/games/settings-score-training";
+        return;
+      }
+      this.ready = true;
       if (this.session.settings.endMode === "timed") {
         this.startTimer();
       }
@@ -79,11 +123,12 @@ export function scoreTrainingPlay(initialSession: ScoreTrainingSession) {
     },
 
     confirmLeave() {
+      clearPersistedScoreTrainingSession();
       window.location.href = "/games";
     },
 
-    async submitScore() {
-      if (this.score === null) return;
+    submitScore() {
+      if (!this.session || this.score === null) return;
       const parsed = Number(this.score);
       if (!Number.isInteger(parsed) || parsed < 0 || parsed > 180) return;
 
@@ -93,37 +138,59 @@ export function scoreTrainingPlay(initialSession: ScoreTrainingSession) {
         this.session.state.currentScore,
       );
 
+      this.session.roundHistory = [...this.session.roundHistory, round];
+      this.session.state = applyRoundToState(
+        this.session.state,
+        round,
+        this.session.settings,
+        this.timerExpired,
+      );
+      this.score = null;
+
+      if (this.session.state.status === "completed") {
+        this.showSummary = true;
+        this.stopTimer();
+        void this.persistCompletion();
+      } else {
+        this.timerExpired = false;
+      }
+    },
+
+    undo() {
+      if (!this.session || this.session.roundHistory.length === 0) return;
+      const removedRound =
+        this.session.roundHistory[this.session.roundHistory.length - 1];
+      const previousHistory = this.session.roundHistory.slice(0, -1);
+      const previousLastScore =
+        previousHistory.length > 0
+          ? (previousHistory[previousHistory.length - 1]?.visitScore ?? null)
+          : null;
+
+      this.session.roundHistory = previousHistory;
+      this.session.state = revertRoundFromState(
+        this.session.state,
+        removedRound,
+        previousLastScore,
+      );
+    },
+
+    async persistCompletion() {
       this.loading = true;
       this.error = "";
       try {
-        const response = await fetch("/api/games/score-training/session/round", {
+        const response = await fetch("/api/games/score-training/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            round,
-            timeRemainingSeconds: this.session.timeRemainingSeconds ?? undefined,
-            timerExpired: this.timerExpired,
-          }),
+          body: JSON.stringify({ session: this.session }),
         });
         const data = (await response.json()) as ApiResponse;
         if (!data.ok) {
           this.error = t(data.code ?? MessageCode.SERVER_ERROR);
           return;
         }
-
-        const success = data as ScoreTrainingSessionSuccess;
-        this.session = success.session;
-        this.score = null;
-
-        if (success.completed) {
-          this.showSummary = true;
-          this.summary = success.summary ?? buildSummary(success.session);
-          this.stopTimer();
-        } else {
-          this.showSummary = false;
-          this.summary = null;
-          this.timerExpired = false;
-        }
+        const success = data as ScoreTrainingCompleteSuccess;
+        this.summary = success.summary;
+        clearPersistedScoreTrainingSession();
       } catch {
         this.error = t(MessageCode.NETWORK_ERROR);
       } finally {
@@ -131,59 +198,35 @@ export function scoreTrainingPlay(initialSession: ScoreTrainingSession) {
       }
     },
 
-    async completeOnTimerExpiry() {
-      if (this.session.settings.endMode !== "timed") return;
-      this.loading = true;
-      this.error = "";
-      try {
-        const response = await fetch("/api/games/score-training/session/complete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            timeRemainingSeconds: this.session.timeRemainingSeconds ?? undefined,
-          }),
-        });
-        const data = (await response.json()) as ApiResponse;
-        if (!data.ok) {
-          this.error = t(data.code ?? MessageCode.SERVER_ERROR);
-          return;
-        }
+    playAgain() {
+      if (!this.session || !this.summary) return;
 
-        const success = data as ScoreTrainingSessionSuccess;
-        this.session = success.session;
-        this.showSummary = true;
-        this.summary = success.summary ?? buildSummary(success.session);
-        this.timerExpired = true;
-      } catch {
-        this.error = t(MessageCode.NETWORK_ERROR);
-      } finally {
-        this.loading = false;
+      const settings = this.session.settings;
+      this.session = buildScoreTrainingSession(settings);
+      this.showSummary = false;
+      this.summary = null;
+      this.score = null;
+      this.timerExpired = false;
+      this.error = "";
+
+      if (this.session.settings.endMode === "timed") {
+        this.startTimer();
+      } else {
         this.stopTimer();
       }
     },
 
-    async undo() {
-      this.loading = true;
-      this.error = "";
-      try {
-        const response = await fetch("/api/games/score-training/session/round/last", {
-          method: "DELETE",
-        });
-        const data = (await response.json()) as ApiResponse;
-        if (!data.ok) {
-          this.error = t(data.code ?? MessageCode.SERVER_ERROR);
-          return;
-        }
-        this.session = (data as ScoreTrainingSessionSuccess).session;
-      } catch {
-        this.error = t(MessageCode.NETWORK_ERROR);
-      } finally {
-        this.loading = false;
-      }
+    completeOnTimerExpiry() {
+      if (!this.session || this.session.settings.endMode !== "timed") return;
+      this.timerExpired = true;
+      this.session.state = { ...this.session.state, status: "completed" };
+      this.showSummary = true;
+      this.stopTimer();
+      void this.persistCompletion();
     },
 
     togglePause() {
-      if (this.session.settings.endMode !== "timed") return;
+      if (!this.session || this.session.settings.endMode !== "timed") return;
       this.session.state.status =
         this.session.state.status === "paused" ? "active" : "paused";
       if (this.session.state.status === "active") {
@@ -194,11 +237,11 @@ export function scoreTrainingPlay(initialSession: ScoreTrainingSession) {
     },
 
     startTimer() {
-      if (this.session.settings.endMode !== "timed") return;
+      if (!this.session || this.session.settings.endMode !== "timed") return;
       this.stopTimer();
       timerId = setInterval(() => {
         if (!this.timerShouldTick) return;
-        if (this.session.timeRemainingSeconds === null) return;
+        if (!this.session || this.session.timeRemainingSeconds === null) return;
         if (this.session.timeRemainingSeconds <= 0) return;
 
         this.session.timeRemainingSeconds -= 1;
@@ -206,7 +249,7 @@ export function scoreTrainingPlay(initialSession: ScoreTrainingSession) {
 
         this.session.timeRemainingSeconds = 0;
         if (this.score === null) {
-          void this.completeOnTimerExpiry();
+          this.completeOnTimerExpiry();
           return;
         }
 

@@ -1,8 +1,21 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { singlesTrainingPlay } from "@lib/client/alpine/games/singles-training.play";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import Alpine from "alpinejs";
+import {
+  clearPersistedSinglesTrainingSession,
+  singlesTrainingPlay,
+  SINGLES_TRAINING_SESSION_KEY,
+} from "@lib/client/alpine/games/singles-training.play";
+import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
 import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
+import { applyDartToSession } from "@lib/shared/games/singles-training/state";
+
+beforeAll(() => {
+  (Alpine as unknown as Record<string, unknown>).$persist = (value: unknown) => ({
+    as: (_key: string) => ({ using: (_storage: Storage) => value }),
+  });
+});
 
 const baseSession: SinglesTrainingSession = {
   slug: "singles-training" as const,
@@ -32,14 +45,44 @@ describe("singlesTrainingPlay", () => {
       writable: true,
       configurable: true,
     });
+    sessionStorage.clear();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    sessionStorage.clear();
   });
 
-  it("disables controls while loading or on summary", () => {
+  it("starts with ready=false and sets ready=true after init", () => {
     const play = singlesTrainingPlay(structuredClone(baseSession));
+    expect(play.ready).toBe(false);
+    play.init();
+    expect(play.ready).toBe(true);
+  });
+
+  it("redirects to settings when session is invalid", () => {
+    const play = singlesTrainingPlay(null);
+    play.init();
+    expect(window.location.href).toBe("/games/settings-singles-training");
+    expect(play.ready).toBe(false);
+  });
+
+  it("redirects to settings when session is not active", () => {
+    const deadSession = {
+      ...structuredClone(baseSession),
+      state: { ...baseSession.state, status: "dead" as const },
+    };
+    const play = singlesTrainingPlay(deadSession);
+    play.init();
+    expect(window.location.href).toBe("/games/settings-singles-training");
+    expect(play.ready).toBe(false);
+  });
+
+  it("disables controls while ready=false, loading, or on summary", () => {
+    const play = singlesTrainingPlay(structuredClone(baseSession));
+    expect(play.controlsDisabled).toBe(true);
+
+    play.init();
     expect(play.controlsDisabled).toBe(false);
 
     play.loading = true;
@@ -52,12 +95,13 @@ describe("singlesTrainingPlay", () => {
 
   it("derives target getters and visit labels", () => {
     const play = singlesTrainingPlay(structuredClone(baseSession));
+    play.init();
     expect(play.currentTarget).toBe(1);
     expect(play.isBullTarget).toBe(false);
     expect(play.targetDisplay).toBe("1");
     expect(play.visitDartLabels).toEqual(["-", "-", "-"]);
 
-    play.session.dartHistory = [
+    play.session!.dartHistory = [
       {
         targetIndex: 0,
         dartInVisit: 0 as const,
@@ -73,8 +117,8 @@ describe("singlesTrainingPlay", () => {
     ];
     expect(play.visitDartLabels).toEqual(["S1", "D1", "-"]);
 
-    play.session.state.currentTargetIndex = 3;
-    play.session.dartHistory = [
+    play.session!.state.currentTargetIndex = 3;
+    play.session!.dartHistory = [
       {
         targetIndex: 3,
         dartInVisit: 0 as const,
@@ -93,89 +137,67 @@ describe("singlesTrainingPlay", () => {
     expect(play.visitDartLabels).toEqual(["25", "Bull", "-"]);
   });
 
-  it("submits dart and updates session", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      json: async () => ({
-        ok: true,
-        session: {
-          ...baseSession,
-          state: {
-            ...baseSession.state,
-            currentDartInVisit: 1,
-            score: 1,
-            segmentCounts: { miss: 0, single: 1, double: 0, triple: 0 },
-          },
-          dartHistory: [
-            {
-              targetIndex: 0,
-              dartInVisit: 0,
-              outcome: { type: "single" },
-              points: 1,
-            },
-          ],
-        },
-      }),
-    } as Response);
-
+  it("applies dart locally without fetch", () => {
     const play = singlesTrainingPlay(structuredClone(baseSession));
-    await play.submitDart({ type: "single" });
+    play.init();
+    play.submitDart({ type: "single" });
 
+    expect(fetch).not.toHaveBeenCalled();
+    expect(play.session?.state.score).toBe(1);
+    expect(play.session?.state.currentDartInVisit).toBe(1);
+    expect(play.showSummary).toBe(false);
+    expect(play.summary).toBeNull();
+  });
+
+  it("shows summary skeleton gap on terminal dart", async () => {
+    let resolveFetch!: (value: Response) => void;
+    const fetchPromise = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+    vi.mocked(fetch).mockReturnValue(fetchPromise);
+
+    let session = buildSinglesTrainingSession({
+      direction: "low-to-high",
+      mode: "hard",
+      scoring: "traditional",
+    });
+    session = applyDartToSession(session, { type: "miss" });
+    session = applyDartToSession(session, { type: "miss" });
+
+    const play = singlesTrainingPlay(session);
+    play.init();
+    play.submitDart({ type: "miss" });
+
+    expect(play.showSummary).toBe(true);
+    expect(play.summary).toBeNull();
     expect(fetch).toHaveBeenCalledWith(
-      "/api/games/singles-training/session/dart",
+      "/api/games/singles-training/complete",
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
       }),
     );
-    expect(play.session.state.score).toBe(1);
-    expect(play.showSummary).toBe(false);
-    expect(play.summary).toBeNull();
-  });
 
-  it("shows summary on terminal dart response", async () => {
-    vi.mocked(fetch).mockResolvedValue({
+    resolveFetch({
       json: async () => ({
         ok: true,
-        terminal: true,
         summary: {
-          status: "completed",
-          score: 63,
-          segmentCounts: { miss: 1, single: 2, double: 3, triple: 4 },
-          hitRatio: 0.75,
-          dartPositionSuccessRates: [0.8, 0.7, 0.6],
-          targetsCompleted: 21,
-          dartsThrown: 84,
-        },
-        session: {
-          ...baseSession,
-          state: {
-            ...baseSession.state,
-            status: "completed",
-            score: 63,
-          },
+          status: "dead",
+          score: 0,
+          segmentCounts: { miss: 3, single: 0, double: 0, triple: 0 },
+          hitRatio: 0,
+          dartPositionSuccessRates: [0, 0, 0],
+          targetsCompleted: 0,
+          dartsThrown: 3,
         },
       }),
     } as Response);
 
-    const play = singlesTrainingPlay(structuredClone(baseSession));
-    await play.submitDart({ type: "double" });
-
-    expect(play.showSummary).toBe(true);
-    expect(play.summary?.score).toBe(63);
+    await vi.waitFor(() => expect(play.summary).not.toBeNull());
+    expect(play.summary?.status).toBe("dead");
   });
 
-  it("undos the last dart", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      json: async () => ({
-        ok: true,
-        session: {
-          ...baseSession,
-          state: { ...baseSession.state, currentDartInVisit: 0, score: 0 },
-          dartHistory: [],
-        },
-      }),
-    } as Response);
-
+  it("undos dart locally without fetch", () => {
     const play = singlesTrainingPlay({
       ...structuredClone(baseSession),
       state: { ...baseSession.state, currentDartInVisit: 1, score: 1 },
@@ -188,47 +210,52 @@ describe("singlesTrainingPlay", () => {
         },
       ],
     });
+    play.init();
+    play.undoDart();
 
-    await play.undoDart();
-
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/games/singles-training/session/dart/last",
-      expect.objectContaining({ method: "DELETE" }),
-    );
-    expect(play.session.dartHistory).toEqual([]);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(play.session?.dartHistory).toEqual([]);
+    expect(play.session?.state.currentDartInVisit).toBe(0);
+    expect(play.session?.state.score).toBe(0);
   });
 
-  it("restarts session with play again", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      json: async () => ({ ok: true, session: structuredClone(baseSession) }),
-    } as Response);
-
+  it("playAgain rebuilds session without fetch", () => {
     const play = singlesTrainingPlay(structuredClone(baseSession));
+    play.init();
     play.showSummary = true;
     play.summary = {
       status: "dead",
-      score: 2,
-      segmentCounts: { miss: 1, single: 1, double: 0, triple: 0 },
-      hitRatio: 0.5,
-      dartPositionSuccessRates: [1, 0, 0],
+      score: 0,
+      segmentCounts: { miss: 3, single: 0, double: 0, triple: 0 },
+      hitRatio: 0,
+      dartPositionSuccessRates: [0, 0, 0],
       targetsCompleted: 0,
-      dartsThrown: 2,
+      dartsThrown: 3,
     };
 
-    await play.playAgain();
+    play.playAgain();
 
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/games/singles-training/session/play-again",
-      expect.objectContaining({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-    const body = JSON.parse(
-      (vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit).body as string,
-    );
-    expect(body).toEqual(baseSession.settings);
+    expect(fetch).not.toHaveBeenCalled();
     expect(play.showSummary).toBe(false);
     expect(play.summary).toBeNull();
+    expect(play.error).toBe("");
+    expect(play.session?.state.status).toBe("active");
+    expect(play.session?.dartHistory).toEqual([]);
+  });
+
+  it("confirmLeave clears persisted session and redirects", () => {
+    sessionStorage.setItem(Alpine.prefixed(SINGLES_TRAINING_SESSION_KEY), "{}");
+    const play = singlesTrainingPlay(structuredClone(baseSession));
+    play.init();
+    play.confirmLeave();
+
+    expect(sessionStorage.getItem(Alpine.prefixed(SINGLES_TRAINING_SESSION_KEY))).toBeNull();
+    expect(window.location.href).toBe("/games");
+  });
+
+  it("clearPersistedSinglesTrainingSession removes persisted session", () => {
+    sessionStorage.setItem(Alpine.prefixed(SINGLES_TRAINING_SESSION_KEY), "{}");
+    clearPersistedSinglesTrainingSession();
+    expect(sessionStorage.getItem(Alpine.prefixed(SINGLES_TRAINING_SESSION_KEY))).toBeNull();
   });
 });

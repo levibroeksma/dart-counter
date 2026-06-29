@@ -2,6 +2,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { migrate } from "drizzle-orm/neon-http/migrator";
 import { bootstrapEnv } from "../src/lib/server/bootstrap-env";
+import { seedGameCatalog } from "../src/lib/server/data/seed-game-catalog";
 
 bootstrapEnv();
 
@@ -15,13 +16,12 @@ if (!connectionString) {
   process.exit(1);
 }
 
-const host = connectionString.match(/@([^/]+)/)?.[1] ?? "unknown";
-console.log(`Migrating database at ${host} via Neon HTTP...`);
-
 const sql = neon(connectionString);
 const db = drizzle({ client: sql });
 
 await migrate(db, { migrationsFolder: "./drizzle/migrations" });
+
+await seedGameCatalog();
 
 const columns = await sql`
   SELECT column_name
@@ -38,6 +38,3 @@ if (!columnNames.includes("entry_env")) {
   );
   process.exit(1);
 }
-
-console.log("Migrations applied successfully.");
-console.log(`game_catalog columns: ${columnNames.join(", ")}`);

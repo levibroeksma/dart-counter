@@ -1,24 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
-import { POST } from "../../../../src/pages/api/games/score-training/session/complete";
+import { POST } from "@api/games/score-training/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import { createEmptyScoreTrainingStats } from "@lib/shared/games/score-training/stats";
+import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
+import { applyRoundToState } from "@lib/shared/games/score-training/state";
+import { buildRoundRecord } from "@lib/shared/games/score-training/round";
 
 const mockGetSession = vi.fn();
-const mockGetScoreTrainingSession = vi.fn();
-const mockDeleteScoreTrainingSession = vi.fn();
 const mockGetPlayerScoreTrainingStats = vi.fn();
 const mockSavePlayerScoreTrainingStats = vi.fn();
+const mockIncrementPlayCount = vi.fn();
 
 vi.mock("@lib/server/auth/session", () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
-}));
-
-vi.mock("@lib/server/data/score-training-session", () => ({
-  getScoreTrainingSession: (...args: unknown[]) =>
-    mockGetScoreTrainingSession(...args),
-  deleteScoreTrainingSession: (...args: unknown[]) =>
-    mockDeleteScoreTrainingSession(...args),
 }));
 
 vi.mock("@lib/server/data/player-score-training-stats", () => ({
@@ -28,62 +23,52 @@ vi.mock("@lib/server/data/player-score-training-stats", () => ({
     mockSavePlayerScoreTrainingStats(...args),
 }));
 
-const timedSession = {
-  slug: "score-training" as const,
-  settings: { endMode: "timed" as const, playtimeSeconds: 60 },
-  state: {
-    currentRound: 3,
-    currentScore: 100,
-    status: "active" as const,
-    lastScore: 40,
-  },
-  roundHistory: [
-    { roundNumber: 1, visitScore: 60, runningTotal: 60 },
-    { roundNumber: 2, visitScore: 40, runningTotal: 100 },
-  ],
-  timeRemainingSeconds: 0,
-  createdAt: "",
-  updatedAt: "",
-};
+vi.mock("@lib/server/data/games", () => ({
+  incrementPlayCount: (...args: unknown[]) => mockIncrementPlayCount(...args),
+}));
 
-function createContext(body?: unknown): APIContext {
+function buildCompletedRoundsSession() {
+  let session = buildScoreTrainingSession({ endMode: "rounds", roundCount: 2 });
+  for (let i = 0; i < 2; i++) {
+    const round = buildRoundRecord(
+      session.state.currentRound,
+      60,
+      session.state.currentScore,
+    );
+    session.state = applyRoundToState(session.state, round, session.settings);
+    session.roundHistory.push(round);
+  }
+  return session;
+}
+
+function createContext(body: unknown): APIContext {
   return {
-    request:
-      body === undefined
-        ? new Request("http://localhost/api/games/score-training/session/complete", {
-            method: "POST",
-          })
-        : new Request("http://localhost/api/games/score-training/session/complete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          }),
+    request: new Request("http://localhost/api/games/score-training/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
     cookies: {} as APIContext["cookies"],
   } as unknown as APIContext;
 }
 
-describe("POST /api/games/score-training/session/complete", () => {
+describe("POST /api/games/score-training/complete", () => {
   beforeEach(() => {
-    mockGetSession.mockReset();
-    mockGetScoreTrainingSession.mockReset();
-    mockDeleteScoreTrainingSession.mockReset();
-    mockGetPlayerScoreTrainingStats.mockReset();
-    mockSavePlayerScoreTrainingStats.mockReset();
-
-    mockGetSession.mockResolvedValue({ isLoggedIn: true, userId: "00000000-0000-4000-8000-000000000001" });
-    mockGetScoreTrainingSession.mockResolvedValue(structuredClone(timedSession));
-    mockDeleteScoreTrainingSession.mockResolvedValue(undefined);
+    vi.clearAllMocks();
+    mockGetSession.mockResolvedValue({
+      isLoggedIn: true,
+      userId: "00000000-0000-4000-8000-000000000001",
+    });
     mockGetPlayerScoreTrainingStats.mockResolvedValue(
-      createEmptyScoreTrainingStats()
+      createEmptyScoreTrainingStats(),
     );
     mockSavePlayerScoreTrainingStats.mockResolvedValue(undefined);
+    mockIncrementPlayCount.mockResolvedValue(undefined);
   });
 
   it("returns 401 when unauthenticated", async () => {
     mockGetSession.mockResolvedValue({ isLoggedIn: false });
-
-    const response = await POST(createContext());
-
+    const response = await POST(createContext(buildCompletedRoundsSession()));
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({
       ok: false,
@@ -91,51 +76,36 @@ describe("POST /api/games/score-training/session/complete", () => {
     });
   });
 
-  it("returns 400 when session uses rounds mode", async () => {
-    mockGetScoreTrainingSession.mockResolvedValue({
-      ...structuredClone(timedSession),
-      settings: { endMode: "rounds", roundCount: 10 },
-      timeRemainingSeconds: null,
-    });
-
-    const response = await POST(createContext());
-
+  it("returns 400 for incomplete session", async () => {
+    const response = await POST(
+      createContext(
+        buildScoreTrainingSession({ endMode: "rounds", roundCount: 10 }),
+      ),
+    );
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({
       ok: false,
-      code: MessageCode.INVALID_GAME_SETTINGS,
+      code: MessageCode.GAME_NOT_COMPLETE,
     });
   });
 
-  it("returns 400 when game already completed", async () => {
-    mockGetScoreTrainingSession.mockResolvedValue({
-      ...structuredClone(timedSession),
-      state: { ...structuredClone(timedSession.state), status: "completed" },
-    });
-
-    const response = await POST(createContext());
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      ok: false,
-      code: MessageCode.GAME_COMPLETED,
-    });
-  });
-
-  it("completes timed session and returns summary", async () => {
-    const response = await POST(createContext({ timeRemainingSeconds: 0 }));
+  it("saves stats, increments play count, and returns summary", async () => {
+    const session = buildCompletedRoundsSession();
+    const response = await POST(createContext(session));
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.ok).toBe(true);
-    expect(data.completed).toBe(true);
     expect(data.summary).toEqual({
-      totalScore: 100,
-      threeDartAverage: 50,
+      totalScore: 120,
+      threeDartAverage: 60,
       roundsPlayed: 2,
       dartsThrown: 6,
     });
     expect(mockSavePlayerScoreTrainingStats).toHaveBeenCalledTimes(1);
-    expect(mockDeleteScoreTrainingSession).toHaveBeenCalledTimes(1);
+    expect(mockIncrementPlayCount).toHaveBeenCalledWith(
+      "00000000-0000-4000-8000-000000000001",
+      "score-training",
+    );
   });
 });

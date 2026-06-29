@@ -15,6 +15,7 @@ pnpm-debug.log*
 
 # environment variables
 .env
+.env.local
 .env.production
 
 # macOS-specific files
@@ -25,6 +26,9 @@ pnpm-debug.log*
 
 # Local Netlify folder
 .netlify
+
+# Legacy Netlify Database migrations (project uses Neon/Drizzle)
+netlify/database/
 .agents/*
 .neon
 .fallow

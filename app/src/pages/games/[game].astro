@@ -5,11 +5,19 @@ import {
   getGameBySlug,
   incrementPlayCount,
 } from "@lib/server/data/games";
-import { getTenUpOneDownSession } from "@lib/server/data/ten-up-one-down-session";
-import { getScoreTrainingSession } from "@lib/server/data/score-training-session";
-import { getSinglesTrainingSession } from "@lib/server/data/singles-training-session";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
-import { getSession } from "@lib/server/auth/session";
+import { parseScoreTrainingSettingsFormData } from "@lib/shared/games/score-training/form-data";
+import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
+import { validateScoreTrainingSettings } from "@lib/shared/games/score-training/validation";
+import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
+import { parseSinglesTrainingSettingsFormData } from "@lib/shared/games/singles-training/form-data";
+import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
+import { validateSinglesTrainingSettings } from "@lib/shared/games/singles-training/validation";
+import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
+import { parseTenUpOneDownSettingsFormData } from "@lib/shared/games/ten-up-one-down/form-data";
+import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
+import { validateTenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/validation";
+import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
 
 const { game: slug } = Astro.params;
 
@@ -26,40 +34,62 @@ if (!hasGameComponents(slug)) {
   return Astro.redirect("/games?error=unavailable-game");
 }
 
-const session = await getSession(Astro.request);
-if (session.isLoggedIn && session.userId) {
+const session = Astro.locals.session!;
+
+if (
+  session.userId &&
+  slug !== "score-training" &&
+  slug !== "singles-training" &&
+  slug !== "ten-up-one-down"
+) {
   try {
     await incrementPlayCount(session.userId, slug);
   } catch {
-    // Non-fatal for prototype
+    // Non-fatal
   }
 }
 
-const tenUpOneDownSession =
-  slug === "ten-up-one-down" && session.isLoggedIn && session.userId
-    ? await getTenUpOneDownSession(session.userId)
-    : null;
+let tenUpOneDownSession: TenUpOneDownSession | null = null;
 
-const scoreTrainingSession =
-  slug === "score-training" && session.isLoggedIn && session.userId
-    ? await getScoreTrainingSession(session.userId)
-    : null;
-
-const singlesTrainingSession =
-  slug === "singles-training" && session.isLoggedIn && session.userId
-    ? await getSinglesTrainingSession(session.userId)
-    : null;
-
-if (slug === "ten-up-one-down" && !tenUpOneDownSession) {
-  return Astro.redirect(`/games/settings-${slug}`);
+if (slug === "ten-up-one-down") {
+  if (Astro.request.method === "POST") {
+    const formData = await Astro.request.formData();
+    const parsed = parseTenUpOneDownSettingsFormData(formData);
+    const validated = validateTenUpOneDownSettings(parsed);
+    if (!validated.valid) {
+      return Astro.redirect(`/games/settings-${slug}?error=invalid-settings`);
+    }
+    tenUpOneDownSession = buildTenUpOneDownSession(validated.value);
+  }
 }
 
-if (slug === "score-training" && !scoreTrainingSession) {
-  return Astro.redirect(`/games/settings-${slug}`);
+let scoreTrainingSession: ScoreTrainingSession | null = null;
+
+if (slug === "score-training") {
+  if (Astro.request.method === "POST") {
+    const formData = await Astro.request.formData();
+    const parsed = parseScoreTrainingSettingsFormData(formData);
+    const validated = validateScoreTrainingSettings(parsed);
+    if (!validated.valid) {
+      return Astro.redirect(`/games/settings-${slug}?error=invalid-settings`);
+    }
+    scoreTrainingSession = buildScoreTrainingSession(validated.value);
+  }
+  // GET: render play shell with gameSession=null; $persist hydrates from sessionStorage
 }
 
-if (slug === "singles-training" && !singlesTrainingSession) {
-  return Astro.redirect(`/games/settings-${slug}`);
+let singlesTrainingSession: SinglesTrainingSession | null = null;
+
+if (slug === "singles-training") {
+  if (Astro.request.method === "POST") {
+    const formData = await Astro.request.formData();
+    const parsed = parseSinglesTrainingSettingsFormData(formData);
+    const validated = validateSinglesTrainingSettings(parsed);
+    if (!validated.valid) {
+      return Astro.redirect(`/games/settings-${slug}?error=invalid-settings`);
+    }
+    singlesTrainingSession = buildSinglesTrainingSession(validated.value);
+  }
 }
 
 const Play = getPlayComponent(slug)!;
@@ -68,11 +98,11 @@ const Play = getPlayComponent(slug)!;
 <GameLayout>
   <GamePlayShell game={game}>
     {slug === "ten-up-one-down" ? (
-      <Play displayName={game.displayName} gameSession={tenUpOneDownSession!} />
+      <Play displayName={game.displayName} gameSession={tenUpOneDownSession} />
     ) : slug === "score-training" ? (
-      <Play displayName={game.displayName} gameSession={scoreTrainingSession!} />
+      <Play displayName={game.displayName} gameSession={scoreTrainingSession} />
     ) : slug === "singles-training" ? (
-      <Play displayName={game.displayName} gameSession={singlesTrainingSession!} />
+      <Play displayName={game.displayName} gameSession={singlesTrainingSession} />
     ) : (
       <Play displayName={game.displayName} slug={game.slug} />
     )}

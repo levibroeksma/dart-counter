@@ -1205,7 +1205,7 @@ git commit -m "chore: curl verify script uses email login"
 - Rewrite: `docs/superpowers/context/login-feature-context.md`
 - Modify: `docs/superpowers/context/logout-button-context.md`
 - Modify: `docs/superpowers/specs/2026-06-13-login-design.md` (superseded banner)
-- Modify: `docs/superpowers/specs/2026-06-17-blobs-to-database-design.md` (one line: `session.username` → `session.userId`)
+- Prior blobs-to-database spec removed (superseded by Neon database migration)
 
 - [ ] **Step 1: Rewrite login context** — document Neon Auth, email login, `userId`, proxy architecture; remove iron-session / env credentials.
 

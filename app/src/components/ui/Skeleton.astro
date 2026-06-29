@@ -1,0 +1,17 @@
+---
+interface Props {
+  variant?: "text" | "bar" | "block";
+  class?: string;
+}
+
+const { variant = "block", class: className = "" } = Astro.props;
+const Tag = variant === "text" ? "span" : "div";
+const sizeClass =
+  variant === "text"
+    ? "inline-block h-3 rounded"
+    : variant === "bar"
+      ? "h-4 rounded"
+      : "rounded";
+---
+
+<Tag class:list={["skeleton", sizeClass, className]} aria-hidden="true" />
