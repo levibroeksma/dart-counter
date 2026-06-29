@@ -1,5 +1,5 @@
-import { DARTS_PER_VISIT, LEGS_PER_SET, STARTING_SCORE } from "@lib/shared/games/501/constants";
-import { hasPlayerWonMatch } from "@lib/shared/games/501/match";
+import { DARTS_PER_VISIT, STARTING_SCORE } from "@lib/shared/games/501/constants";
+import { hasPlayerWonMatch, hasPlayerWonSet } from "@lib/shared/games/501/match";
 import type {
   FiveOhOneGameState,
   FiveOhOnePlayerState,
@@ -79,7 +79,7 @@ export function applyVisit(
     currentPlayer.legsWonInSet += 1;
     currentPlayer.totalLegsWon += 1;
 
-    const completedSet = currentPlayer.legsWonInSet >= LEGS_PER_SET;
+    const completedSet = hasPlayerWonSet(currentPlayer);
     if (completedSet) {
       currentPlayer.setsWon += 1;
       for (const player of nextState.players) {
