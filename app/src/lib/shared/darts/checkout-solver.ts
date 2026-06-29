@@ -50,3 +50,8 @@ export function solveCheckoutConstraints(target: number): CheckoutConstraint | n
   return { minFinish, maxFinish };
 }
 
+/** Returns true when `score` can be finished in up to 3 darts double-out. */
+export function isFinishableCheckout(score: number): boolean {
+  return solveCheckoutConstraints(score) !== null;
+}
+

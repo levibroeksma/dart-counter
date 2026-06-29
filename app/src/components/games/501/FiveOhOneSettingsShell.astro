@@ -1,0 +1,47 @@
+---
+import PrimaryBtn from "@components/ui/PrimaryBtn.astro";
+import GuestNameModal from "@components/games/501/GuestNameModal.astro";
+import { playPath } from "@lib/shared/games/paths";
+import type { GameType } from "@lib/shared/games/types";
+
+interface Props {
+  game: GameType;
+  displayName: string;
+  userId: string;
+}
+
+const { game, displayName, userId } = Astro.props;
+const playUrl = playPath(game.slug);
+const alpineDisplayName = JSON.stringify(displayName);
+const alpineUserId = JSON.stringify(userId);
+---
+
+<main
+  class="mx-auto w-full max-w-2xl p-4 @sm:p-6"
+  x-data={`fiveOhOneSettings(${alpineDisplayName}, ${alpineUserId})`}
+  x-init="checkInProgressSession()"
+>
+  <div
+    class="card-interactive mb-4 space-y-3 rounded-md p-4"
+    x-show="inProgressSession"
+    x-cloak
+  >
+    <p class="text-sm font-semibold text-text-primary">Game in progress</p>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="btn-secondary btn-press" @click="resumeGame()">
+        Resume
+      </button>
+      <button type="button" class="btn-secondary btn-press" @click="abandonSession()">
+        Abandon & start new
+      </button>
+    </div>
+  </div>
+
+  <form id="game-settings-form" method="POST" action={playUrl} class="space-y-4">
+    <input type="hidden" name="players" :value="serializePlayers()" />
+    <slot />
+    <PrimaryBtn type="submit" label="Play" />
+  </form>
+
+  <GuestNameModal />
+</main>

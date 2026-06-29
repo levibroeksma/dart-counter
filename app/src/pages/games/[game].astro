@@ -6,6 +6,10 @@ import {
   incrementPlayCount,
 } from "@lib/server/data/games";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
+import { parseFiveOhOneSettingsFormData } from "@lib/shared/games/501/form-data";
+import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
+import type { FiveOhOneSession } from "@lib/shared/games/501/session";
+import { validateFiveOhOneSettings } from "@lib/shared/games/501/validation";
 import { parseScoreTrainingSettingsFormData } from "@lib/shared/games/score-training/form-data";
 import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
 import { validateScoreTrainingSettings } from "@lib/shared/games/score-training/validation";
@@ -38,6 +42,7 @@ const session = Astro.locals.session!;
 
 if (
   session.userId &&
+  slug !== "501" &&
   slug !== "score-training" &&
   slug !== "singles-training" &&
   slug !== "ten-up-one-down"
@@ -60,6 +65,20 @@ if (slug === "ten-up-one-down") {
       return Astro.redirect(`/games/settings-${slug}?error=invalid-settings`);
     }
     tenUpOneDownSession = buildTenUpOneDownSession(validated.value);
+  }
+}
+
+let fiveOhOneSession: FiveOhOneSession | null = null;
+
+if (slug === "501") {
+  if (Astro.request.method === "POST") {
+    const formData = await Astro.request.formData();
+    const parsed = parseFiveOhOneSettingsFormData(formData);
+    const validated = validateFiveOhOneSettings(parsed);
+    if (!validated.valid) {
+      return Astro.redirect(`/games/settings-${slug}?error=invalid-settings`);
+    }
+    fiveOhOneSession = buildFiveOhOneSession(validated.value);
   }
 }
 
@@ -99,6 +118,12 @@ const Play = getPlayComponent(slug)!;
   <GamePlayShell game={game}>
     {slug === "ten-up-one-down" ? (
       <Play displayName={game.displayName} gameSession={tenUpOneDownSession} />
+    ) : slug === "501" ? (
+      <Play
+        displayName={game.displayName}
+        gameSession={fiveOhOneSession}
+        userId={session.userId}
+      />
     ) : slug === "score-training" ? (
       <Play displayName={game.displayName} gameSession={scoreTrainingSession} />
     ) : slug === "singles-training" ? (

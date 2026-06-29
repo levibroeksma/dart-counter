@@ -1,11 +1,54 @@
 ---
 import Input from "@components/ui/Input.astro";
+import RadioCard from "@components/ui/RadioCard.astro";
+import PlayerPicker from "@components/games/501/PlayerPicker.astro";
+import CustomNumSelect from "@components/games/501/CustomNumSelect.astro";
 ---
 
-<Input
-  id="starting-score"
-  name="startingScore"
-  label="Starting score"
-  type="number"
-  value={501}
-/>
+<fieldset class="space-y-3">
+  <legend class="section-label">Players</legend>
+  <p class="text-xs text-text-muted">Play solo or add one guest player.</p>
+  <PlayerPicker />
+</fieldset>
+
+<fieldset class="space-y-3">
+  <legend class="section-label">Match format</legend>
+  <div class="flex  gap-3 @sm:flex-row @sm:items-end">
+    <fieldset class="flex justify-between flex-1 flex-col">
+      <RadioCard
+        name="matchMode"
+        value="best-of"
+        title="Best of"
+        checked
+        x-model="matchMode"
+      />
+      <RadioCard
+        name="matchMode"
+        value="first-to"
+        title="First to"
+        x-model="matchMode"
+      />
+    </fieldset>
+
+    <CustomNumSelect
+      id="target-count"
+      name="targetCount"
+      value={3}
+    />
+    <fieldset class="flex justify-between flex-1 flex-col">
+      <RadioCard
+        name="unit"
+        value="legs"
+        title="Legs"
+        checked
+        x-model="unit"
+      />
+      <RadioCard
+        name="unit"
+        value="sets"
+        title="Sets"
+        x-model="unit"
+      />
+    </fieldset>
+  </div>
+</fieldset>

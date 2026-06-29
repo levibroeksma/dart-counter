@@ -17,6 +17,9 @@ const {
   canUndoExpr = "false",
   undoAction = "",
 } = Astro.props;
+
+const append = (digit: string) =>
+  `appendScoreDigit('${digit}', $event)`;
 ---
 
 <div data-testid="tuod-number-pad" class="flex flex-col flex-1">
@@ -43,19 +46,22 @@ const {
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '1' : ${scoreModel} += '1'`}
+        @click={append("1")}
+        @touchend.prevent={append("1")}
         x-text="1"
       ></button>
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '4' : ${scoreModel} += '4'`}
+        @click={append("4")}
+        @touchend.prevent={append("4")}
         x-text="4"
       ></button>
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '7' : ${scoreModel} += '7'`}
+        @click={append("7")}
+        @touchend.prevent={append("7")}
         x-text="7"
       ></button>
       <button
@@ -73,25 +79,29 @@ const {
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '2' : ${scoreModel} += '2'`}
+        @click={append("2")}
+        @touchend.prevent={append("2")}
         x-text="2"
       ></button>
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '5' : ${scoreModel} += '5'`}
+        @click={append("5")}
+        @touchend.prevent={append("5")}
         x-text="5"
       ></button>
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '8' : ${scoreModel} += '8'`}
+        @click={append("8")}
+        @touchend.prevent={append("8")}
         x-text="8"
       ></button>
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '0' : ${scoreModel} += '0'`}
+        @click={append("0")}
+        @touchend.prevent={append("0")}
         x-text="0"
       ></button>
     </div>
@@ -100,25 +110,29 @@ const {
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '3' : ${scoreModel} += '3'`}
+        @click={append("3")}
+        @touchend.prevent={append("3")}
         x-text="3"
       ></button>
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '6' : ${scoreModel} += '6'`}
+        @click={append("6")}
+        @touchend.prevent={append("6")}
         x-text="6"
       ></button>
       <button
         type="button"
         class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = '9' : ${scoreModel} += '9'`}
+        @click={append("9")}
+        @touchend.prevent={append("9")}
         x-text="9"
       ></button>
       <button
         type="button"
         class="btn-press justify-center items-center flex flex-1"
-        @click={`${scoreModel} === null ? ${scoreModel} = null : ${scoreModel} = ${scoreModel}.slice(0, -1)`}
+        @click="backspaceScoreDigit($event)"
+        @touchend.prevent="backspaceScoreDigit($event)"
       >
         <BackspaceIcon class="size-6 text-text-muted" />
       </button>

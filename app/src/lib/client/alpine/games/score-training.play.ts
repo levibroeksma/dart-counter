@@ -17,6 +17,7 @@ import {
   revertRoundFromState,
 } from "@lib/shared/games/score-training/state";
 import { t } from "@lib/shared/i18n";
+import * as scoreInput from "@lib/client/alpine/score-input";
 
 export const SCORE_TRAINING_SESSION_KEY = "score-training-session";
 
@@ -35,12 +36,13 @@ export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
   let timerId: ReturnType<typeof setInterval> | null = null;
 
   return {
+    score: null as string | null,
+    _scoreInputClickBlockedUntil: 0,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session: (Alpine as any)
       .$persist(serverSession)
       .as(SCORE_TRAINING_SESSION_KEY)
       .using(sessionStorage) as ScoreTrainingSession | null,
-    score: null as string | null,
     loading: false,
     ready: false,
     error: "",
@@ -95,6 +97,14 @@ export function scoreTrainingPlay(serverSession: ScoreTrainingSession | null) {
     get summaryAverageDisplay() {
       if (!this.summary) return "0.0";
       return this.summary.threeDartAverage.toFixed(1);
+    },
+
+    appendScoreDigit(digit: string, event?: Event) {
+      scoreInput.appendScoreDigit(this, digit, event);
+    },
+
+    backspaceScoreDigit(event?: Event) {
+      scoreInput.backspaceScoreDigit(this, event);
     },
 
     init() {

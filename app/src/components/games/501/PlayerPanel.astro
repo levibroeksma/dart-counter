@@ -1,0 +1,41 @@
+---
+import GamePlayStatRow from "../GamePlayStatRow.astro";
+
+interface Props {
+  playerId: string;
+  nameModel: string;
+  activeExpr: string;
+  remainingModel: string;
+  checkoutHintModel: string;
+  threeDartAverageModel: string;
+  lastScoreModel: string;
+  dartsModel: string;
+}
+
+const {
+  playerId,
+  nameModel,
+  activeExpr,
+  remainingModel,
+  checkoutHintModel,
+  threeDartAverageModel,
+  lastScoreModel,
+  dartsModel,
+} = Astro.props;
+---
+
+<article
+  class="game-panel flex flex-col gap-2 p-2 transition-colors"
+  :class={`(${activeExpr}) ? 'border-accent bg-accent/10' : 'opacity-50'`}
+  data-player-id={playerId}
+>
+  <p class="text-sm text-text-muted text-center" x-text={nameModel}>Player</p>
+  <p class="text-6xl font-bold font-mono leading-none text-center"  :class={`(${activeExpr}) ? 'text-accent' : ''`}x-text={remainingModel}>501</p>
+  <p class="text-sm text-text-muted min-h-5" x-text={checkoutHintModel}></p>
+
+  <dl class="mt-2 flex flex-col gap-1">
+    <GamePlayStatRow label="3-dart avg" value={threeDartAverageModel} />
+    <GamePlayStatRow label="Last score" value={lastScoreModel} />
+    <GamePlayStatRow label="Darts" value={dartsModel} />
+  </dl>
+</article>

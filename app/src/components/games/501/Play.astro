@@ -1,12 +1,106 @@
 ---
+import NumberInputPad from "@components/ui/NumberInputPad.astro";
+import type { FiveOhOneSession } from "@lib/shared/games/501/session";
+import LeaveIcon from "@icons/leave.svg";
+import PlayerPanel from "./PlayerPanel.astro";
+import PlayShellSkeleton from "./PlayShellSkeleton.astro";
+import StarterScreen from "./StarterScreen.astro";
+import Summary from "./Summary.astro";
+
 interface Props {
   displayName: string;
-  slug: string;
+  gameSession?: FiveOhOneSession | null;
 }
-const { displayName, slug } = Astro.props;
+
+const { displayName, gameSession = null } = Astro.props;
+const sessionJson = JSON.stringify(gameSession ?? null).replace(/</g, "\\u003c");
+const firstPlayerId = gameSession?.settings.players[0]?.id ?? "";
+const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
 ---
-<section class="card space-y-2">
-  <p class="text-text-primary">Playing {displayName}</p>
-  <p class="text-text-muted text-sm">Game slug: {slug}</p>
-  <p class="text-text-muted text-sm">[501 play UI placeholder]</p>
+
+<section
+  class="relative flex-1 h-full flex flex-col gap-4"
+  x-data={`fiveOhOnePlay(${sessionJson})`}
+  x-init="init()"
+  :aria-busy="!ready || (showSummary && !summary)"
+>
+  <div class="flex justify-between py-2">
+    <button type="button" class="btn-press" @click="leave()">
+      <LeaveIcon class="size-6 text-text-muted rotate-180" />
+    </button>
+  <h2
+    class="text-lg font-mono font-semibold uppercase"
+    x-text="matchFormatLabelDisplay()"
+    x-show="ready"
+    x-cloak
+  ></h2>
+    <div class="size-6 transparent"></div>
+  </div>
+
+  <div x-show="!ready">
+    <PlayShellSkeleton />
+  </div>
+
+  <div x-show="ready && !showSummary" x-cloak class="flex flex-col gap-4 flex-1">
+
+
+    <StarterScreen
+      x-show="session?.settings.players.length === 2 && session?.state.phase === 'starter'"
+      firstPlayerId={firstPlayerId}
+      firstNameModel={`session?.settings.players.find((player) => player.id === '${firstPlayerId}')?.name ?? ''`}
+      secondPlayerId={secondPlayerId}
+      secondNameModel={`session?.settings.players.find((player) => player.id === '${secondPlayerId}')?.name ?? ''`}
+    />
+
+    <div x-show="session?.state.phase === 'play'" x-cloak class="flex flex-col gap-4 flex-1">
+      <div x-show="session?.settings.players.length === 1" x-cloak>
+        <PlayerPanel
+          playerId={firstPlayerId}
+          nameModel={`session?.settings.players.find((player) => player.id === '${firstPlayerId}')?.name ?? ''`}
+          activeExpr="true"
+          remainingModel={`String(session?.state.players.find((player) => player.playerId === '${firstPlayerId}')?.remaining ?? 0)`}
+          checkoutHintModel={`checkoutHintDisplay('${firstPlayerId}')`}
+          threeDartAverageModel={`threeDartAverageDisplay('${firstPlayerId}')`}
+          lastScoreModel={`lastScoreDisplay('${firstPlayerId}')`}
+          dartsModel={`dartsDisplay('${firstPlayerId}')`}
+        />
+      </div>
+
+      <div x-show="session?.settings.players.length === 2" x-cloak class="grid grid-cols-2 gap-3">
+        <PlayerPanel
+          playerId={firstPlayerId}
+          nameModel={`session?.settings.players.find((player) => player.id === '${firstPlayerId}')?.name ?? ''`}
+          activeExpr={`session?.state.currentPlayerId === '${firstPlayerId}'`}
+          remainingModel={`String(session?.state.players.find((player) => player.playerId === '${firstPlayerId}')?.remaining ?? 0)`}
+          checkoutHintModel={`checkoutHintDisplay('${firstPlayerId}')`}
+          threeDartAverageModel={`threeDartAverageDisplay('${firstPlayerId}')`}
+          lastScoreModel={`lastScoreDisplay('${firstPlayerId}')`}
+          dartsModel={`dartsDisplay('${firstPlayerId}')`}
+        />
+        <PlayerPanel
+          playerId={secondPlayerId}
+          nameModel={`session?.settings.players.find((player) => player.id === '${secondPlayerId}')?.name ?? ''`}
+          activeExpr={`session?.state.currentPlayerId === '${secondPlayerId}'`}
+          remainingModel={`String(session?.state.players.find((player) => player.playerId === '${secondPlayerId}')?.remaining ?? 0)`}
+          checkoutHintModel={`checkoutHintDisplay('${secondPlayerId}')`}
+          threeDartAverageModel={`threeDartAverageDisplay('${secondPlayerId}')`}
+          lastScoreModel={`lastScoreDisplay('${secondPlayerId}')`}
+          dartsModel={`dartsDisplay('${secondPlayerId}')`}
+        />
+      </div>
+
+      <article class="game-panel flex-1 p-4 flex flex-col">
+        <NumberInputPad
+          scoreModel="score"
+          submitAction="submitVisit()"
+          disabledExpr="controlsDisabled"
+          canUndoExpr="session.visitHistory.length > 0"
+          undoAction="undoVisit()"
+        />
+      </article>
+    </div>
+  </div>
+
+  <Summary showSummaryModel="showSummary && summary" persistingModel="persisting" />
+  <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
 </section>

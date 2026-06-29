@@ -1,5 +1,6 @@
 import type { MessageCode } from "@lib/shared/constants/errors.constants";
 import type { GameConfig, GameType } from "@lib/shared/games/types";
+import type { FiveOhOneSummary } from "@lib/shared/games/501/summary";
 import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
 import type { ScoreTrainingSummary } from "@lib/shared/games/score-training/summary";
 import type { SinglesTrainingSummary } from "@lib/shared/games/singles-training/summary";
@@ -18,6 +19,10 @@ export type ScoreTrainingCompleteSuccess = {
   ok: true;
   summary: ScoreTrainingSummary;
 };
+export type FiveOhOneCompleteSuccess = {
+  ok: true;
+  summary: FiveOhOneSummary;
+};
 export type SinglesTrainingCompleteSuccess = {
   ok: true;
   summary: SinglesTrainingSummary;
@@ -33,6 +38,7 @@ export type ApiSuccess =
   | GameConfigSuccess
   | ScoreTrainingSessionSuccess
   | ScoreTrainingCompleteSuccess
+  | FiveOhOneCompleteSuccess
   | SinglesTrainingCompleteSuccess
   | TenUpOneDownCompleteSuccess;
 export type ApiError = { ok: false; code: MessageCode };

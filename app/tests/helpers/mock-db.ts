@@ -6,6 +6,7 @@ import {
   gameSessions,
   userGamePlayCounts,
   playerDartStats,
+  player501Stats,
   playerScoreTrainingStats,
   playerSinglesTrainingStats,
 } from "@db/schema";
@@ -15,6 +16,7 @@ type GameCatalogRow = typeof gameCatalog.$inferSelect;
 type GameSessionsRow = typeof gameSessions.$inferSelect;
 type UserGamePlayCountsRow = typeof userGamePlayCounts.$inferSelect;
 type PlayerDartStatsRow = typeof playerDartStats.$inferSelect;
+type Player501StatsRow = typeof player501Stats.$inferSelect;
 type PlayerScoreTrainingStatsRow = typeof playerScoreTrainingStats.$inferSelect;
 type PlayerSinglesTrainingStatsRow = typeof playerSinglesTrainingStats.$inferSelect;
 
@@ -24,6 +26,7 @@ const tables = {
   gameSessions: new Map<string, GameSessionsRow>(),
   userGamePlayCounts: new Map<string, UserGamePlayCountsRow>(),
   playerDartStats: new Map<string, PlayerDartStatsRow>(),
+  player501Stats: new Map<string, Player501StatsRow>(),
   playerScoreTrainingStats: new Map<string, PlayerScoreTrainingStatsRow>(),
   playerSinglesTrainingStats: new Map<string, PlayerSinglesTrainingStatsRow>(),
 };
@@ -50,6 +53,7 @@ export const mockDb = {
     tables.gameSessions.clear();
     tables.userGamePlayCounts.clear();
     tables.playerDartStats.clear();
+    tables.player501Stats.clear();
     tables.playerScoreTrainingStats.clear();
     tables.playerSinglesTrainingStats.clear();
   },
@@ -99,6 +103,7 @@ function getTableRows(table: unknown): unknown[] {
   if (table === gameSessions) return [...tables.gameSessions.values()];
   if (table === userGamePlayCounts) return [...tables.userGamePlayCounts.values()];
   if (table === playerDartStats) return [...tables.playerDartStats.values()];
+  if (table === player501Stats) return [...tables.player501Stats.values()];
   if (table === playerScoreTrainingStats) {
     return [...tables.playerScoreTrainingStats.values()];
   }
@@ -144,6 +149,13 @@ function filterRowsByEq(table: unknown, filter: unknown): unknown[] {
     const [entryEnv, userId] = eqValues;
     if (!entryEnv || !userId) return getTableRows(table);
     const row = tables.playerDartStats.get(scopedKey(userId, entryEnv));
+    return row ? [row] : [];
+  }
+
+  if (table === player501Stats) {
+    const [entryEnv, userId] = eqValues;
+    if (!entryEnv || !userId) return getTableRows(table);
+    const row = tables.player501Stats.get(scopedKey(userId, entryEnv));
     return row ? [row] : [];
   }
 
@@ -194,6 +206,13 @@ function insertRows(table: unknown, rows: unknown | unknown[]): void {
   } else if (table === playerDartStats) {
     for (const row of list as PlayerDartStatsRow[]) {
       tables.playerDartStats.set(
+        scopedKey(row.userId, row.entryEnv ?? ENTRY_ENV.DEV),
+        row,
+      );
+    }
+  } else if (table === player501Stats) {
+    for (const row of list as Player501StatsRow[]) {
+      tables.player501Stats.set(
         scopedKey(row.userId, row.entryEnv ?? ENTRY_ENV.DEV),
         row,
       );
@@ -271,6 +290,16 @@ function upsertRow(
       userId: r.userId,
       entryEnv,
     } as PlayerDartStatsRow);
+  } else if (table === player501Stats) {
+    const r = row as Player501StatsRow;
+    const entryEnv = r.entryEnv ?? ENTRY_ENV.DEV;
+    const existing = tables.player501Stats.get(scopedKey(r.userId, entryEnv));
+    tables.player501Stats.set(scopedKey(r.userId, entryEnv), {
+      ...(existing ?? r),
+      ...set,
+      userId: r.userId,
+      entryEnv,
+    } as Player501StatsRow);
   } else if (table === playerScoreTrainingStats) {
     const r = row as PlayerScoreTrainingStatsRow;
     const entryEnv = r.entryEnv ?? ENTRY_ENV.DEV;
@@ -367,6 +396,7 @@ vi.mock("@db/index", () => ({
   gameSessions,
   userGamePlayCounts,
   playerDartStats,
+  player501Stats,
   playerScoreTrainingStats,
   playerSinglesTrainingStats,
 }));

@@ -13,7 +13,7 @@ export type GameConfig = {
 };
 
 export const SEED_GAMES: GameType[] = [
-  { slug: "501", displayName: "501", sortOrder: 1, enabled: true, released: false },
+  { slug: "501", displayName: "501", sortOrder: 1, enabled: true, released: true },
   {
     slug: "ten-up-one-down",
     displayName: "Ten Up One Down",

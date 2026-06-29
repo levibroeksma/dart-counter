@@ -12,4 +12,13 @@ if (!connectionString) {
 
 const sql = neon(connectionString);
 export const db = drizzle({ client: sql, schema });
-export * from "./schema";
+export {
+  gameCatalog,
+  gameSessions,
+  player501Stats,
+  playerDartStats,
+  playerScoreTrainingStats,
+  playerSinglesTrainingStats,
+  userGamePlayCounts,
+  userPreferences,
+} from "./schema";

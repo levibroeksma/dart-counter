@@ -90,7 +90,7 @@ describe("games data layer", () => {
   it("getQuickStartGames falls back to first N when no stats", async () => {
     seedCatalog();
     const games = await getQuickStartGames("alex", 2);
-    expect(games.map((g) => g.slug)).toEqual(["ten-up-one-down", "score-training"]);
+    expect(games.map((g) => g.slug)).toEqual(["501", "ten-up-one-down"]);
   });
 
   it("getQuickStartGames sorts by play count when stats exist", async () => {
@@ -158,14 +158,27 @@ describe("games data layer", () => {
     seedCatalog();
     const games = await getGameTypes();
     expect(games.map((g) => g.slug)).toEqual([
+      "501",
       "ten-up-one-down",
       "score-training",
       "singles-training",
     ]);
   });
 
+  it("getGameBySlug returns 501 from catalog", async () => {
+    seedCatalog();
+    const game = await getGameBySlug("501");
+    expect(game).toEqual({
+      slug: "501",
+      displayName: "501",
+      sortOrder: 1,
+      enabled: true,
+      released: true,
+    });
+  });
+
   it("getGameBySlug returns null for unreleased game", async () => {
     seedCatalog();
-    await expect(getGameBySlug("501")).resolves.toBeNull();
+    await expect(getGameBySlug("121")).resolves.toBeNull();
   });
 });

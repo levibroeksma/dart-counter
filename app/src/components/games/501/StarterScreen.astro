@@ -1,0 +1,32 @@
+---
+interface Props {
+  firstPlayerId: string;
+  firstNameModel: string;
+  secondPlayerId: string;
+  secondNameModel: string;
+}
+
+const { firstPlayerId, firstNameModel, secondPlayerId, secondNameModel } = Astro.props;
+---
+
+<article class="game-panel p-4 sm:p-6" x-show="session.state.phase === 'starter'" x-cloak>
+  <h3 class="text-xl font-semibold mb-4">Who starts?</h3>
+  <div class="grid grid-cols-2 gap-3">
+    <button
+      type="button"
+      class="card-interactive btn-press flex items-center justify-center text-center font-semibold"
+      @click={`selectStarter('${firstPlayerId}')`}
+      x-text={firstNameModel}
+    >
+      Player 1
+    </button>
+    <button
+      type="button"
+      class="card-interactive btn-press flex items-center justify-center text-center font-semibold"
+      @click={`selectStarter('${secondPlayerId}')`}
+      x-text={secondNameModel}
+    >
+      Player 2
+    </button>
+  </div>
+</article>

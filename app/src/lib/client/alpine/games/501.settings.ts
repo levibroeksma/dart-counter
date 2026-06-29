@@ -1,0 +1,109 @@
+import Alpine from "alpinejs";
+import type { FiveOhOnePlayer } from "@lib/shared/games/501/settings";
+import { createId } from "@lib/shared/utils/id";
+import {
+  MIN_TARGET_COUNT_LEGS,
+  MAX_TARGET_COUNT_LEGS,
+  MIN_TARGET_COUNT_SETS,
+  MAX_TARGET_COUNT_SETS,
+} from "@lib/shared/games/501/constants";
+const FIVE_OH_ONE_SESSION_KEY = "501-session";
+
+/**
+ * Alpine state factory for 501 settings and player selection.
+ */
+export function fiveOhOneSettings(displayName: string, userId: string) {
+  const userPlayer: FiveOhOnePlayer = {
+    id: userId,
+    type: "user",
+    name: displayName,
+  };
+
+  return {
+    matchMode: "best-of" as "best-of" | "first-to",
+    unit: "legs" as "legs" | "sets",
+    players: [userPlayer] as FiveOhOnePlayer[],
+    guestModalOpen: false,
+    guestNameDraft: "",
+    inProgressSession: false,
+    targetCount: 3,
+
+    get targetCountMin() {
+      return this.unit === "legs"
+        ? MIN_TARGET_COUNT_LEGS
+        : MIN_TARGET_COUNT_SETS;
+    },
+
+    get targetCountMax() {
+      return this.unit === "legs"
+        ? MAX_TARGET_COUNT_LEGS
+        : MAX_TARGET_COUNT_SETS;
+    },
+
+    get hasGuest() {
+      return this.players.length > 1;
+    },
+
+    init() {
+      Alpine.effect(() => {
+        this.targetCount = Math.min(
+          Math.max(this.targetCount, this.targetCountMin),
+          this.targetCountMax,
+        );
+      });
+    },
+
+    incrementTargetCount() {
+      this.targetCount = Math.min(this.targetCountMax, this.targetCount + 1);
+    },
+    decrementTargetCount() {
+      this.targetCount = Math.max(this.targetCountMin, this.targetCount - 1);
+    },
+
+    openGuestModal() {
+      this.guestModalOpen = true;
+      this.guestNameDraft = "";
+    },
+
+    cancelGuestModal() {
+      this.guestModalOpen = false;
+    },
+
+    confirmGuest() {
+      const guestName = this.guestNameDraft.trim();
+      if (!guestName || this.hasGuest) return;
+
+      const guest: FiveOhOnePlayer = {
+        id: createId(),
+        type: "guest",
+        name: guestName,
+      };
+      this.players = [...this.players, guest];
+      this.guestModalOpen = false;
+      this.guestNameDraft = "";
+    },
+
+    removeGuest() {
+      if (!this.hasGuest) return;
+      this.players = this.players.filter((player) => player.type !== "guest");
+    },
+
+    serializePlayers(): string {
+      return JSON.stringify(this.players);
+    },
+
+    checkInProgressSession() {
+      const key = Alpine.prefixed(FIVE_OH_ONE_SESSION_KEY);
+      this.inProgressSession = sessionStorage.getItem(key) !== null;
+    },
+
+    resumeGame() {
+      window.location.href = "/games/501";
+    },
+
+    abandonSession() {
+      sessionStorage.removeItem(Alpine.prefixed(FIVE_OH_ONE_SESSION_KEY));
+      this.inProgressSession = false;
+    },
+  };
+}
