@@ -24,6 +24,7 @@ import {
   revertRoundFromState,
 } from "@lib/shared/games/ten-up-one-down/state";
 import { t } from "@lib/shared/i18n";
+import * as scoreInput from "@lib/client/alpine/score-input";
 
 export const TEN_UP_ONE_DOWN_SESSION_KEY = "ten-up-one-down-session";
 
@@ -42,12 +43,13 @@ export function tenUpOneDownPlay(serverSession: TenUpOneDownSession | null) {
   let timerId: ReturnType<typeof setInterval> | null = null;
 
   return {
+    score: null as string | null,
+    _scoreInputClickBlockedUntil: 0,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session: (Alpine as any)
       .$persist(serverSession)
       .as(TEN_UP_ONE_DOWN_SESSION_KEY)
       .using(sessionStorage) as TenUpOneDownSession | null,
-    score: null as string | null,
     showModal: false,
     outcome: null as "success" | "failure" | null,
     dartsOnDouble: null as number | null,
@@ -100,6 +102,14 @@ export function tenUpOneDownPlay(serverSession: TenUpOneDownSession | null) {
         return false;
       }
       return this.dartsOnDouble <= this.dartsUsed;
+    },
+
+    appendScoreDigit(digit: string, event?: Event) {
+      scoreInput.appendScoreDigit(this, digit, event);
+    },
+
+    backspaceScoreDigit(event?: Event) {
+      scoreInput.backspaceScoreDigit(this, event);
     },
 
     init() {
