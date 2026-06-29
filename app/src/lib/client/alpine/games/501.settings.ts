@@ -1,6 +1,12 @@
 import Alpine from "alpinejs";
 import type { FiveOhOnePlayer } from "@lib/shared/games/501/settings";
-
+import { createId } from "@lib/shared/utils/id";
+import {
+  MIN_TARGET_COUNT_LEGS,
+  MAX_TARGET_COUNT_LEGS,
+  MIN_TARGET_COUNT_SETS,
+  MAX_TARGET_COUNT_SETS,
+} from "@lib/shared/games/501/constants";
 const FIVE_OH_ONE_SESSION_KEY = "501-session";
 
 /**
@@ -20,9 +26,38 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
     guestModalOpen: false,
     guestNameDraft: "",
     inProgressSession: false,
+    targetCount: 3,
+
+    get targetCountMin() {
+      return this.unit === "legs"
+        ? MIN_TARGET_COUNT_LEGS
+        : MIN_TARGET_COUNT_SETS;
+    },
+
+    get targetCountMax() {
+      return this.unit === "legs"
+        ? MAX_TARGET_COUNT_LEGS
+        : MAX_TARGET_COUNT_SETS;
+    },
 
     get hasGuest() {
       return this.players.length > 1;
+    },
+
+    init() {
+      Alpine.effect(() => {
+        this.targetCount = Math.min(
+          Math.max(this.targetCount, this.targetCountMin),
+          this.targetCountMax,
+        );
+      });
+    },
+
+    incrementTargetCount() {
+      this.targetCount = Math.min(this.targetCountMax, this.targetCount + 1);
+    },
+    decrementTargetCount() {
+      this.targetCount = Math.max(this.targetCountMin, this.targetCount - 1);
     },
 
     openGuestModal() {
@@ -39,7 +74,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
       if (!guestName || this.hasGuest) return;
 
       const guest: FiveOhOnePlayer = {
-        id: crypto.randomUUID(),
+        id: createId(),
         type: "guest",
         name: guestName,
       };

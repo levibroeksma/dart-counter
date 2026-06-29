@@ -2,6 +2,7 @@
 import Input from "@components/ui/Input.astro";
 import RadioCard from "@components/ui/RadioCard.astro";
 import PlayerPicker from "@components/games/501/PlayerPicker.astro";
+import CustomNumSelect from "@components/games/501/CustomNumSelect.astro";
 ---
 
 <fieldset class="space-y-3">
@@ -12,8 +13,8 @@ import PlayerPicker from "@components/games/501/PlayerPicker.astro";
 
 <fieldset class="space-y-3">
   <legend class="section-label">Match format</legend>
-  <div class="flex flex-col gap-3 @sm:flex-row @sm:items-end">
-    <fieldset class="flex gap-3 flex-1">
+  <div class="flex  gap-3 @sm:flex-row @sm:items-end">
+    <fieldset class="flex justify-between flex-1 flex-col">
       <RadioCard
         name="matchMode"
         value="best-of"
@@ -28,17 +29,13 @@ import PlayerPicker from "@components/games/501/PlayerPicker.astro";
         x-model="matchMode"
       />
     </fieldset>
-    <Input
+
+    <CustomNumSelect
       id="target-count"
       name="targetCount"
-      label=" "
-      type="number"
       value={3}
-      min={1}
-      max={11}
-      class="w-20"
     />
-    <fieldset class="flex gap-3 flex-1">
+    <fieldset class="flex justify-between flex-1 flex-col">
       <RadioCard
         name="unit"
         value="legs"

@@ -1,6 +1,9 @@
 import { DARTS_PER_VISIT } from "@lib/shared/games/501/constants";
 import type { FiveOhOneSettings } from "@lib/shared/games/501/settings";
-import type { FiveOhOneSession, FiveOhOneVisitRecord } from "@lib/shared/games/501/session";
+import type {
+  FiveOhOneSession,
+  FiveOhOneVisitRecord,
+} from "@lib/shared/games/501/session";
 
 export type FiveOhOneSummary = {
   resultLabel: string;
@@ -27,7 +30,7 @@ function toUnitLabel(unit: FiveOhOneSettings["unit"], count: number): string {
   return unit;
 }
 
-function buildMatchFormatLabel(settings: FiveOhOneSettings): string {
+export function buildMatchFormatLabel(settings: FiveOhOneSettings): string {
   const unitLabel = toUnitLabel(settings.unit, settings.targetCount);
   if (settings.matchMode === "first-to") {
     return `First to ${settings.targetCount} ${unitLabel}`;
@@ -47,7 +50,8 @@ function getPlayerSummaryStats(
   }, 0);
 
   return {
-    threeDartAverage: dartsThrown === 0 ? 0 : pointsScored / (dartsThrown / DARTS_PER_VISIT),
+    threeDartAverage:
+      dartsThrown === 0 ? 0 : pointsScored / (dartsThrown / DARTS_PER_VISIT),
     dartsThrown,
     checkouts: playerVisits.filter((visit) => visit.checkout).length,
   };
@@ -71,8 +75,12 @@ function buildResultLabel(session: FiveOhOneSession): string {
  * Builds 501 end-of-match summary values from session history and settings.
  */
 export function buildSummary(session: FiveOhOneSession): FiveOhOneSummary {
-  const userPlayer = session.settings.players.find((player) => player.type === "user");
-  const guestPlayer = session.settings.players.find((player) => player.type === "guest");
+  const userPlayer = session.settings.players.find(
+    (player) => player.type === "user",
+  );
+  const guestPlayer = session.settings.players.find(
+    (player) => player.type === "guest",
+  );
   const userStats = userPlayer
     ? getPlayerSummaryStats(session.visitHistory, userPlayer.id)
     : { threeDartAverage: 0, dartsThrown: 0, checkouts: 0 };
@@ -87,7 +95,10 @@ export function buildSummary(session: FiveOhOneSession): FiveOhOneSummary {
   };
 
   if (session.settings.players.length === 2 && guestPlayer) {
-    const guestStats = getPlayerSummaryStats(session.visitHistory, guestPlayer.id);
+    const guestStats = getPlayerSummaryStats(
+      session.visitHistory,
+      guestPlayer.id,
+    );
     summary.guestThreeDartAverage = guestStats.threeDartAverage;
     summary.guestDartsThrown = guestStats.dartsThrown;
     summary.guestCheckouts = guestStats.checkouts;

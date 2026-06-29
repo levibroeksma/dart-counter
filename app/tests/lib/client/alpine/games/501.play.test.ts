@@ -1,6 +1,14 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import Alpine from "alpinejs";
 import {
   FIVE_OH_ONE_SESSION_KEY,
@@ -13,8 +21,23 @@ import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
 import { applyVisit } from "@lib/shared/games/501/state";
 
 beforeAll(() => {
-  (Alpine as unknown as Record<string, unknown>).$persist = (value: unknown) => ({
-    as: (_key: string) => ({ using: (_storage: Storage) => value }),
+  (Alpine as unknown as Record<string, unknown>).$persist = (
+    value: unknown,
+  ) => ({
+    as: (_key: string) => ({
+      using: (_storage: Storage) =>
+        value && typeof value === "object"
+          ? new Proxy(value as object, {
+              get(target, prop, receiver) {
+                const result = Reflect.get(target, prop, receiver);
+                if (result && typeof result === "object") {
+                  return new Proxy(result, {});
+                }
+                return result;
+              },
+            })
+          : value,
+    }),
   });
 });
 
@@ -132,7 +155,9 @@ describe("fiveOhOnePlay", () => {
     await play.persistCompletion();
 
     expect(play.persisting).toBe(false);
-    expect(sessionStorage.getItem(Alpine.prefixed(FIVE_OH_ONE_SESSION_KEY))).toBeNull();
+    expect(
+      sessionStorage.getItem(Alpine.prefixed(FIVE_OH_ONE_SESSION_KEY)),
+    ).toBeNull();
   });
 
   it("blocks playAgain and back while persisting", () => {
@@ -154,6 +179,8 @@ describe("fiveOhOnePlay", () => {
 
     clearPersistedFiveOhOneSession();
 
-    expect(sessionStorage.getItem(Alpine.prefixed(FIVE_OH_ONE_SESSION_KEY))).toBeNull();
+    expect(
+      sessionStorage.getItem(Alpine.prefixed(FIVE_OH_ONE_SESSION_KEY)),
+    ).toBeNull();
   });
 });

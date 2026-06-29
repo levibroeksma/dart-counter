@@ -28,7 +28,12 @@ const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
     <button type="button" class="btn-press" @click="leave()">
       <LeaveIcon class="size-6 text-text-muted rotate-180" />
     </button>
-    <h2 class="text-xl font-semibold">{displayName}</h2>
+  <h2
+    class="text-lg font-mono font-semibold uppercase"
+    x-text="matchFormatLabelDisplay()"
+    x-show="ready"
+    x-cloak
+  ></h2>
     <div class="size-6 transparent"></div>
   </div>
 
@@ -37,10 +42,7 @@ const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
   </div>
 
   <div x-show="ready && !showSummary" x-cloak class="flex flex-col gap-4 flex-1">
-    <p
-      class="section-label"
-      x-text="session?.settings.unit === 'sets' ? `Set ${session.state.currentSet} · Leg ${session.state.currentLeg}` : `Leg ${session.state.currentLeg}`"
-    ></p>
+
 
     <StarterScreen
       x-show="session?.settings.players.length === 2 && session?.state.phase === 'starter'"

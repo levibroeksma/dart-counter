@@ -4,26 +4,30 @@ import CrossIcon from "@icons/cross.svg";
 ---
 
 <div class="flex flex-wrap items-center gap-3">
-  <div class="flex items-center gap-2">
-    <div class="flex size-10 items-center justify-center rounded-full border border-border bg-surface-elevated text-text-muted">
-      <ProfileIcon class="size-5" aria-hidden="true" />
+  <div class="flex items-center flex-col gap-2">
+    <div class="flex size-16 items-center justify-center rounded-full border border-border bg-surface-elevated text-text-muted">
+      <ProfileIcon class="size-10" aria-hidden="true" />
     </div>
     <span class="text-sm font-medium text-text-primary" x-text="players[0]?.name"></span>
   </div>
 
-  <button
-    type="button"
-    class="btn-press flex size-10 items-center justify-center rounded-full border border-dashed border-border text-lg text-text-muted hover:text-text-primary"
-    x-show="!hasGuest"
-    @click="openGuestModal()"
-    aria-label="Add guest player"
-  >
-    +
-  </button>
+  <div class="flex flex-col items-center gap-2 text-sm font-medium text-text-primary">
+      <button
+      type="button"
+      class="btn-press flex size-16 items-center justify-center rounded-full border border-dashed border-border text-lg text-text-muted hover:text-text-primary"
+      x-show="!hasGuest"
+      x-cloak
+      @click="openGuestModal()"
+      aria-label="Add guest player"
+    >
+      +
+    </button>
+    <span class="invisible">Add </span>
+  </div>
 
-  <div class="relative flex items-center gap-2" x-show="hasGuest" x-cloak>
+  <div class="relative flex flex-col items-center gap-2" x-show="hasGuest" x-cloak>
     <div class="relative">
-      <div class="flex size-10 items-center justify-center rounded-full border border-border bg-surface-elevated text-sm font-semibold text-text-primary">
+      <div class="flex size-16 items-center justify-center rounded-full border border-border bg-surface-elevated text-sm font-semibold text-text-primary">
         <span x-text="(players.find((player) => player.type === 'guest')?.name?.charAt(0) || '?').toUpperCase()"></span>
       </div>
       <button

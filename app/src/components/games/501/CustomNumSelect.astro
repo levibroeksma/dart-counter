@@ -1,0 +1,43 @@
+---
+import UpIcon from "@icons/up.svg";
+import DownIcon from "@icons/down.svg";
+
+interface Props {
+  id?: string;
+  name?: string;
+  value?: number;
+  class?: string;
+}
+
+const {
+  id = "target-count",
+  name = "targetCount",
+  class: className = "",
+} = Astro.props;
+---
+
+<div class:list={["flex flex-col items-center bg-accent text-accent-foreground rounded-full px-4 py-2", className]}>
+  <input type="hidden" {id} {name} :value="targetCount" />
+
+  <button
+    type="button"
+    class="btn-press"
+    @click="incrementTargetCount()"
+    :disabled="targetCount >= targetCountMax"
+    aria-label="Increase"
+  >
+    <UpIcon class="size-8" />
+  </button>
+
+  <span class="text-2xl font-bold tabular-nums" x-text="targetCount" aria-live="polite"></span>
+
+  <button
+    type="button"
+    class="btn-press"
+    @click="decrementTargetCount()"
+    :disabled="targetCount <= targetCountMin"
+    aria-label="Decrease"
+  >
+    <DownIcon class="size-8" />
+  </button>
+</div>

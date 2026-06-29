@@ -1,6 +1,9 @@
 import Alpine from "alpinejs";
 import type { ConfirmationModalStore } from "@lib/client/alpine/stores/confirmationModal.store";
-import type { ApiResponse, FiveOhOneCompleteSuccess } from "@lib/shared/api/types";
+import type {
+  ApiResponse,
+  FiveOhOneCompleteSuccess,
+} from "@lib/shared/api/types";
 import { getCheckoutHint } from "@lib/shared/darts/checkouts";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
@@ -9,10 +12,14 @@ import {
   type FiveOhOneSession,
 } from "@lib/shared/games/501/session";
 import type { FiveOhOneSummary } from "@lib/shared/games/501/summary";
-import { buildSummary } from "@lib/shared/games/501/summary";
+import {
+  buildSummary,
+  buildMatchFormatLabel,
+} from "@lib/shared/games/501/summary";
 import { applyVisit, revertLastVisit } from "@lib/shared/games/501/state";
 import { validateVisitScore } from "@lib/shared/games/501/validation";
 import { t } from "@lib/shared/i18n";
+import * as scoreInput from "@lib/client/alpine/score-input";
 
 export const FIVE_OH_ONE_SESSION_KEY = "501-session";
 
@@ -28,12 +35,13 @@ function getPlayerVisits(session: FiveOhOneSession, playerId: string) {
 /** Alpine state factory for 501 play flow. */
 export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
   return {
+    score: null as string | null,
+    _scoreInputClickBlockedUntil: 0,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session: (Alpine as any)
       .$persist(serverSession)
       .as(FIVE_OH_ONE_SESSION_KEY)
       .using(sessionStorage) as FiveOhOneSession | null,
-    score: null as string | null,
     ready: false,
     error: "",
     showSummary: false,
@@ -42,6 +50,19 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
 
     get controlsDisabled() {
       return !this.ready || this.showSummary || this.persisting;
+    },
+
+    appendScoreDigit(digit: string, event?: Event) {
+      scoreInput.appendScoreDigit(this, digit, event);
+    },
+
+    backspaceScoreDigit(event?: Event) {
+      scoreInput.backspaceScoreDigit(this, event);
+    },
+
+    matchFormatLabelDisplay() {
+      if (!this.session) return "";
+      return buildMatchFormatLabel(this.session.settings);
     },
 
     init() {
