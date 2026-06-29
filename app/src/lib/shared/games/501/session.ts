@@ -34,6 +34,7 @@ export type FiveOhOneVisitRecord = {
   checkout: boolean;
   legNumber: number;
   setNumber: number;
+  stateSnapshot: FiveOhOneGameState;
 };
 
 export type FiveOhOneSession = {
