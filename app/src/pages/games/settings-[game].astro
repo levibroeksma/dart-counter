@@ -4,7 +4,9 @@ import GameSettingsShell from "@components/games/GameSettingsShell.astro";
 import TenUpOneDownSettingsShell from "@components/games/ten-up-one-down/TenUpOneDownSettingsShell.astro";
 import ScoreTrainingSettingsShell from "@components/games/score-training/ScoreTrainingSettingsShell.astro";
 import SinglesTrainingSettingsShell from "@components/games/singles-training/SinglesTrainingSettingsShell.astro";
+import FiveOhOneSettingsShell from "@components/games/501/FiveOhOneSettingsShell.astro";
 import { getGameBySlug } from "@lib/server/data/games";
+import { getPreferences } from "@lib/server/data/preferences";
 import {
   getSettingsFormComponent,
   hasGameComponents,
@@ -26,6 +28,15 @@ if (!hasGameComponents(slug)) {
 }
 
 const SettingsForm = getSettingsFormComponent(slug)!;
+
+const session = Astro.locals.session!;
+const userId = session.userId ?? "";
+let displayName = "You";
+
+if (slug === "501" && userId) {
+  const preferences = await getPreferences(userId);
+  displayName = preferences.displayName?.trim() || displayName;
+}
 ---
 
 <AppLayout
@@ -46,6 +57,10 @@ const SettingsForm = getSettingsFormComponent(slug)!;
       <SinglesTrainingSettingsShell game={game}>
         <SettingsForm />
       </SinglesTrainingSettingsShell>
+    ) : slug === "501" ? (
+      <FiveOhOneSettingsShell game={game} displayName={displayName} userId={userId}>
+        <SettingsForm />
+      </FiveOhOneSettingsShell>
     ) : (
       <GameSettingsShell game={game}>
         <SettingsForm />

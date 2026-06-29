@@ -1,0 +1,43 @@
+---
+import Input from "@components/ui/Input.astro";
+---
+
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+  x-show="guestModalOpen"
+  x-cloak
+  @keydown.escape.window="cancelGuestModal()"
+>
+  <div class="card-interactive w-full max-w-sm rounded-md p-4" @click.stop>
+    <h2 class="text-lg font-semibold text-text-primary">Add guest</h2>
+    <p class="mt-1 text-sm text-text-muted">Choose a display name for the guest player.</p>
+
+    <div class="mt-4">
+      <Input
+        id="guest-name"
+        name="guestNameDraft"
+        label="Guest name"
+        x-model="guestNameDraft"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="mt-4 flex gap-3">
+      <button
+        type="button"
+        class="btn-secondary btn-press w-full"
+        @click="cancelGuestModal()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-primary btn-press w-full disabled:pointer-events-none disabled:opacity-50"
+        @click="confirmGuest()"
+        :disabled="guestNameDraft.trim().length === 0"
+      >
+        Confirm
+      </button>
+    </div>
+  </div>
+</div>
