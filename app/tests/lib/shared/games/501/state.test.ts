@@ -21,6 +21,24 @@ const twoPlayerSettings = {
 };
 
 describe("applyVisit", () => {
+  it("applies visit when session state is a reactive proxy", () => {
+    const session = buildFiveOhOneSession(onePlayerSettings);
+    const proxiedSession = new Proxy(session, {
+      get(target, prop, receiver) {
+        const value = Reflect.get(target, prop, receiver);
+        if (value && typeof value === "object") {
+          return new Proxy(value, {});
+        }
+        return value;
+      },
+    });
+
+    const next = applyVisit(proxiedSession, 60);
+
+    expect(next.visitHistory).toHaveLength(1);
+    expect(next.state.players[0]!.remaining).toBe(441);
+  });
+
   it("updates score and darts on non-bust visit", () => {
     const session = buildFiveOhOneSession(onePlayerSettings);
     session.updatedAt = "2020-01-01T00:00:00.000Z";

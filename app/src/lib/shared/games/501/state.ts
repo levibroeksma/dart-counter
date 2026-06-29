@@ -7,9 +7,10 @@ import type {
   FiveOhOneVisitRecord,
 } from "@lib/shared/games/501/session";
 import { classifyVisit } from "@lib/shared/games/501/visit";
+import { deepClone } from "@lib/shared/utils/deep-clone";
 
 function cloneGameState(state: FiveOhOneGameState): FiveOhOneGameState {
-  return structuredClone(state);
+  return deepClone(state);
 }
 
 function getOpponentId(players: FiveOhOnePlayerState[], playerId: string): string {
@@ -39,9 +40,10 @@ export function applyVisit(
   session: FiveOhOneSession,
   visitScore: number,
 ): FiveOhOneSession {
+  const sessionBase = deepClone(session);
   const now = new Date().toISOString();
-  const stateBeforeVisit = cloneGameState(session.state);
-  const nextState = cloneGameState(session.state);
+  const stateBeforeVisit = cloneGameState(sessionBase.state);
+  const nextState = cloneGameState(sessionBase.state);
   const currentPlayer = nextState.players.find(
     (player) => player.playerId === nextState.currentPlayerId,
   );
@@ -54,7 +56,7 @@ export function applyVisit(
   nextState.scoreAtVisitStart = currentPlayer.remaining;
 
   const visitRecord: FiveOhOneVisitRecord = {
-    visitNumber: session.visitHistory.length + 1,
+    visitNumber: sessionBase.visitHistory.length + 1,
     playerId: currentPlayer.playerId,
     visitScore,
     remainingBefore: currentPlayer.remaining,
@@ -66,7 +68,7 @@ export function applyVisit(
     stateSnapshot: stateBeforeVisit,
   };
 
-  const nextHistory = [...session.visitHistory, visitRecord];
+  const nextHistory = [...sessionBase.visitHistory, visitRecord];
   const isTwoPlayer = nextState.players.length === 2;
 
   if (!outcome.bust) {
@@ -88,7 +90,7 @@ export function applyVisit(
       nextState.currentSet += 1;
     }
 
-    if (hasPlayerWonMatch(session.settings, currentPlayer)) {
+    if (hasPlayerWonMatch(sessionBase.settings, currentPlayer)) {
       nextState.status = "completed";
       nextState.phase = "summary";
     } else {
@@ -110,7 +112,7 @@ export function applyVisit(
   }
 
   return {
-    ...session,
+    ...sessionBase,
     state: nextState,
     visitHistory: nextHistory,
     updatedAt: now,
@@ -121,20 +123,22 @@ export function applyVisit(
  * Reverts the most recent visit by restoring the pre-visit state snapshot.
  */
 export function revertLastVisit(session: FiveOhOneSession): FiveOhOneSession {
-  if (session.visitHistory.length === 0) {
-    return session;
+  const sessionBase = deepClone(session);
+
+  if (sessionBase.visitHistory.length === 0) {
+    return sessionBase;
   }
 
   const now = new Date().toISOString();
-  const nextHistory = [...session.visitHistory];
+  const nextHistory = [...sessionBase.visitHistory];
   const lastVisit = nextHistory.pop();
 
   if (!lastVisit) {
-    return session;
+    return sessionBase;
   }
 
   return {
-    ...session,
+    ...sessionBase,
     state: cloneGameState(lastVisit.stateSnapshot),
     visitHistory: nextHistory,
     updatedAt: now,
