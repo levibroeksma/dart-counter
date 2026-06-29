@@ -32,16 +32,17 @@ assert_contains "$GAMES_HTML" "settings-501" "games page lists 501"
 
 SETTINGS_HTML=$(curl -sf -b "$JAR" -L "$BASE_URL/games/settings-501")
 assert_contains "$SETTINGS_HTML" "fiveOhOneSettings" "settings page renders Alpine factory"
-assert_contains "$SETTINGS_HTML" "PlayerPicker" "settings includes player picker"
+assert_contains "$SETTINGS_HTML" "Add guest player" "settings includes player picker"
 
 PLAYERS_JSON='[{"id":"00000000-0000-4000-8000-000000000099","type":"user","name":"CurlTest"}]'
 HTML=$(curl -sf -b "$JAR" -X POST "$BASE_URL/games/501" \
+  "${ORIGIN_HEADER[@]}" \
   --data-urlencode "matchMode=first-to" \
   --data-urlencode "targetCount=1" \
   --data-urlencode "unit=legs" \
   --data-urlencode "players=$PLAYERS_JSON")
 assert_contains "$HTML" "fiveOhOnePlay" "play page renders Alpine factory from POST"
-assert_contains "$HTML" "PlayShellSkeleton" "play shell skeleton present"
+assert_contains "$HTML" 'class="skeleton' "play shell skeleton present"
 
 COMPLETE_BODY=$(npx tsx scripts/fixtures/build-completed-501-session.ts)
 COMPLETE_RESP=$(curl -sf -b "$JAR" -X POST "$BASE_URL/api/games/501/complete" \
