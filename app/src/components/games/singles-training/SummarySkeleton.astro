@@ -5,26 +5,24 @@ import Skeleton from "@components/ui/Skeleton.astro";
 <article class="game-panel p-6 flex flex-col gap-4" data-testid="st-summary-skeleton">
   <Skeleton variant="bar" class="h-6 w-40" />
   <dl class="grid grid-cols-2 gap-3">
-    <Skeleton variant="text" class="h-4 w-24" />
+    <span class="text-text-muted">Total score</span>
     <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
+    <span class="text-text-muted">Miss</span>
     <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
+    <span class="text-text-muted">Single</span>
     <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
+    <span class="text-text-muted">Double</span>
     <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
+    <span class="text-text-muted">Triple</span>
     <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
+    <span class="text-text-muted">Hit ratio</span>
     <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
-    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
+    <span class="text-text-muted">Darts thrown</span>
     <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
   </dl>
-  <Skeleton variant="text" class="h-4 w-56" />
+  <h3 class="font-semibold text-lg col-span-2">Do you want to play again?</h3>
   <div class="grid grid-cols-2 gap-2">
-    <Skeleton variant="block" class="h-10 rounded-full" />
-    <Skeleton variant="block" class="h-10 rounded-full" />
+    <span class="btn-secondary btn-press font-medium flex items-center justify-center opacity-50 cursor-not-allowed">No</span>
+    <span class="btn-primary btn-press font-medium flex items-center justify-center opacity-50 cursor-not-allowed">Yes</span>
   </div>
 </article>

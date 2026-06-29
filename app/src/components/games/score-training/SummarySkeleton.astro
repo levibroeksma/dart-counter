@@ -3,16 +3,24 @@ import Skeleton from "@components/ui/Skeleton.astro";
 ---
 
 <article class="game-panel p-6 flex flex-col gap-4" data-testid="st-summary-skeleton">
-  <Skeleton variant="bar" class="h-6 w-40" />
+  <h2 class="text-xl font-semibold">Game Complete</h2>
   <dl class="grid grid-cols-2 gap-3">
-    <Skeleton variant="text" class="h-4 w-24" />
-    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
-    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
-    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
-    <Skeleton variant="text" class="h-4 w-24" />
-    <Skeleton variant="text" class="h-4 w-12 justify-self-end" />
+    <span class="text-text-muted">Total score</span>
+    <Skeleton variant="text" class="h-3 w-12 justify-self-end" />
+    <span class="text-text-muted">3-dart average</span>
+    <Skeleton variant="text" class="h-3 w-12 justify-self-end" />
+    <span class="text-text-muted">Rounds played</span>
+    <Skeleton variant="text" class="h-3 w-12 justify-self-end" />
+    <span class="text-text-muted">Darts thrown</span>
+    <Skeleton variant="text" class="h-3 w-12 justify-self-end" />
   </dl>
-  <Skeleton variant="block" class="h-10 w-full rounded-full" />
+  <h3 class="font-semibold">Do you want to play again?</h3>
+  <div class="grid grid-cols-2 gap-3">
+    <span class="btn-secondary btn-press font-medium flex items-center justify-center">No</span>
+    <span
+      class="btn-primary btn-press font-medium flex items-center justify-center opacity-50 cursor-not-allowed"
+    >
+      Yes
+    </span>
+  </div>
 </article>

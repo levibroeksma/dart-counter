@@ -24,12 +24,12 @@ const summary = {
 ---
 
 <article
-  class="game-panel p-6 flex flex-col gap-4"
+  class="game-panel p-6 flex flex-col gap-6"
   x-show={showSummaryModel}
   x-cloak
 >
-  <h2 class="text-xl font-semibold">Game Complete</h2>
-  <dl class="flex flex-col gap-1 text-sm">
+  <h2 class="text-2xl font-semibold">Game Complete</h2>
+  <dl class="flex flex-col gap-1 ">
     {
       Object.entries(summary).map(([label, value]) => (
         <SummaryStatRow label={label} value={value} />
@@ -37,8 +37,8 @@ const summary = {
     }
   </dl>
 
-  <h3 class="t font-semibold">Do you want to play again?</h3>
   <div class="grid grid-cols-2 gap-3">
+    <h3 class="font-semibold text-lg col-span-2">Do you want to play again?</h3>
     <a
       href="/games"
       class="btn-secondary btn-press font-medium flex items-center justify-center"

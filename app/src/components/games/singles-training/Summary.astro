@@ -20,17 +20,14 @@ const summary = {
   "Double": `${summaryModel}?.segmentCounts?.double ?? 0`,
   "Triple": `${summaryModel}?.segmentCounts?.triple ?? 0`,
   "Hit ratio": `((${summaryModel}?.hitRatio ?? 0) * 100).toFixed(1) + '%'`,
-  "Singles success rate": `((${summaryModel}?.dartPositionSuccessRates?.[0] ?? 0) * 100).toFixed(1) + '%'`,
-  "Doubles success rate": `((${summaryModel}?.dartPositionSuccessRates?.[1] ?? 0) * 100).toFixed(1) + '%'`,
-  "Triples success rate": `((${summaryModel}?.dartPositionSuccessRates?.[2] ?? 0) * 100).toFixed(1) + '%'`,
 };
 ---
 
-<article class="game-panel p-6 flex flex-col gap-4" x-show={showSummaryModel} x-cloak>
+<article class="game-panel p-6 flex flex-col gap-6" x-show={showSummaryModel} x-cloak>
   <h2 class="text-xl font-semibold" x-text={`${summaryModel}?.status === 'dead' ? 'Game Over' : 'Game Complete'`}>
     Game Complete
   </h2>
-  <dl class="flex flex-col gap-1 text-sm">
+  <dl class="flex flex-col gap-1">
     {
       Object.entries(summary).map(([label, value]) => (
         <SummaryStatRow label={label} value={value} />
@@ -38,12 +35,12 @@ const summary = {
     }
   </dl>
 
-  <h3 class="t font-semibold">Do you want to play again?</h3>
 
   <div class="grid grid-cols-2 gap-2">
-    <button type="button" class="btn-secondary btn-press" :disabled={loadingModel} @click="window.location.href='/games'">
+    <h3 class="font-semibold text-lg col-span-2">Do you want to play again?</h3>
+    <a href="/games" class="btn-secondary btn-press font-medium flex items-center justify-center" :class={loadingModel + " && 'pointer-events-none opacity-50'"}>
       No
-    </button>
+    </a>
     <button
       type="button"
       class="btn-primary btn-press"
