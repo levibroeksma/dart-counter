@@ -11,6 +11,8 @@ import { tenUpOneDownPlay } from "@lib/client/alpine/games/ten-up-one-down.play"
 import { scoreTrainingSettings } from "@lib/client/alpine/games/score-training.settings";
 import { scoreTrainingPlay } from "@lib/client/alpine/games/score-training.play";
 import { singlesTrainingPlay } from "@lib/client/alpine/games/singles-training.play";
+import { fiveOhOneSettings } from "@lib/client/alpine/games/501.settings";
+import { fiveOhOnePlay } from "@lib/client/alpine/games/501.play";
 
 import { confirmationModalState } from "@lib/client/alpine/stores/confirmationModal.store";
 
@@ -27,6 +29,8 @@ export default (Alpine: Alpine) => {
   Alpine.data("tenUpOneDownPlay", tenUpOneDownPlay);
   Alpine.data("scoreTrainingPlay", scoreTrainingPlay);
   Alpine.data("singlesTrainingPlay", singlesTrainingPlay);
+  Alpine.data("fiveOhOneSettings", fiveOhOneSettings);
+  Alpine.data("fiveOhOnePlay", fiveOhOnePlay);
 
   const confirmationModal = confirmationModalState(Alpine);
   Alpine.store("confirmationModal", confirmationModal);
