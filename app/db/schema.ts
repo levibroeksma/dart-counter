@@ -74,6 +74,21 @@ export const playerScoreTrainingStats = pgTable(
   (table) => [primaryKey({ columns: [table.userId, table.entryEnv] })],
 );
 
+export const player501Stats = pgTable(
+  "player_501_stats",
+  {
+    userId: uuid("user_id").notNull(),
+    entryEnv: entryEnvColumn(),
+    gamesCompleted: integer("games_completed").notNull().default(0),
+    gamesWon: integer("games_won").notNull().default(0),
+    totalDartsThrown: integer("total_darts_thrown").notNull().default(0),
+    totalCheckouts: integer("total_checkouts").notNull().default(0),
+    bestLegAverage: real("best_leg_average").notNull().default(0),
+    bestMatchAverage: real("best_match_average").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.entryEnv] })],
+);
+
 export const playerSinglesTrainingStats = pgTable(
   "player_singles_training_stats",
   {
