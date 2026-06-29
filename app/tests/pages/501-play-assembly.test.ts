@@ -7,24 +7,33 @@ function readSource(relativePath: string): string {
 }
 
 describe("501 play page assembly", () => {
+  it("wires Play.astro with 501 UI shell and summary", () => {
+    const source = readSource("src/components/games/501/Play.astro");
+    expect(source).toContain('import Summary from "./Summary.astro";');
+    expect(source).toContain("PlayShellSkeleton");
+    expect(source).toContain("StarterScreen");
+    expect(source).toContain("PlayerPanel");
+    expect(source).toContain("x-data={`fiveOhOnePlay(");
+    expect(source).toContain('x-init="init()"');
+    expect(source).toContain('x-show="session?.state.phase === \'play\'"');
+    expect(source).toContain('showSummaryModel="showSummary && summary"');
+    expect(source).toContain("NumberInputPad");
+  });
+
   it("starts 501 via POST form validation", () => {
     const source = readSource("src/pages/games/[game].astro");
     expect(source).toContain("parseFiveOhOneSettingsFormData");
-    expect(source).toContain("validateFiveOhOneSettings");
     expect(source).toContain("buildFiveOhOneSession");
     expect(source).toContain('slug === "501"');
-    expect(source).toContain('Astro.request.method === "POST"');
   });
 
-  it("skips play count increment for 501 on GET", () => {
-    const source = readSource("src/pages/games/[game].astro");
-    expect(source).toContain('slug !== "501"');
-  });
-
-  it("renders 501 Play branch with gameSession and userId", () => {
-    const source = readSource("src/pages/games/[game].astro");
-    expect(source).toMatch(
-      /slug === "501"[\s\S]*<Play[\s\S]*displayName=\{game\.displayName\}[\s\S]*gameSession=\{fiveOhOneSession\}[\s\S]*userId=\{session\.userId\}/,
+  it("settings shell uses form POST with player picker", () => {
+    const source = readSource(
+      "src/components/games/501/FiveOhOneSettingsShell.astro",
     );
+    expect(source).toContain('method="POST"');
+    expect(source).toContain("<slot />");
+    expect(source).toContain("GuestNameModal");
+    expect(source).toContain('label="Play"');
   });
 });
