@@ -13,7 +13,7 @@ const { title, description, backHref } = Astro.props;
 ---
 
 <BaseLayout>
-  <div class="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+  <div class="flex h-full min-h-0 flex-1 touch-manipulation flex-col overflow-hidden">
     <AppHeader title={title} description={description} backHref={backHref} />
     <div class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
       <slot />
