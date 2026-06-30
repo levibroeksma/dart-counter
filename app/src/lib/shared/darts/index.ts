@@ -18,3 +18,10 @@ export {
   buildSuccessModalQuestions,
   getCheckoutConstraints,
 } from "./checkout-constraints";
+
+// Partial checkout double-attempt helpers (501 play modal)
+export {
+  buildPartialDoubleModalQuestion,
+  isSingleDartFinishable,
+  maxDartsOnDoubleForPartialVisit,
+} from "./checkout-partial";
