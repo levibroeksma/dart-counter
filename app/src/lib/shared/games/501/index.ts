@@ -56,6 +56,7 @@ export { format501PlayerDisplayName } from "./display";
 // DartBot glue
 export {
   canUndoDartBotPair,
+  canUndoUserCheckoutBeforeBotLegStart,
   getOpponentPlayer,
   isDartBotSession,
   isDartBotTurn,

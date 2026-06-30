@@ -12,6 +12,7 @@ import {
   buildMatchFormatLabel,
   buildSummary,
   canUndoDartBotPair,
+  canUndoUserCheckoutBeforeBotLegStart,
   isDartBotSession,
   isDartBotTurn,
   isFiveOhOneSession,
@@ -71,7 +72,10 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
     get canUndo() {
       if (!this.session) return false;
       if (isDartBotSession(this.session)) {
-        return canUndoDartBotPair(this.session);
+        return (
+          canUndoDartBotPair(this.session) ||
+          canUndoUserCheckoutBeforeBotLegStart(this.session)
+        );
       }
       return this.session.visitHistory.length > 0;
     },
@@ -158,6 +162,10 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
     undoVisit() {
       if (!this.session || this.persisting || this.botTurnActive) return;
       if (isDartBotSession(this.session)) {
+        if (canUndoUserCheckoutBeforeBotLegStart(this.session)) {
+          this.session = revertLastVisit(this.session);
+          return;
+        }
         this.session = revertLastOpponentPair(this.session);
         return;
       }

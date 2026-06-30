@@ -3,6 +3,7 @@ import {
   applyVisit,
   buildFiveOhOneSession,
   canUndoDartBotPair,
+  canUndoUserCheckoutBeforeBotLegStart,
   getOpponentPlayer,
   isDartBotSession,
   isDartBotTurn,
@@ -71,5 +72,51 @@ describe("bot-helpers", () => {
 
     expect(canUndoDartBotPair(afterBot)).toBe(true);
     expect(canUndoDartBotPair(afterUser)).toBe(false);
+  });
+
+  it("allows undo after user leg checkout before bot starts next leg", () => {
+    const session = buildFiveOhOneSession(
+      {
+        ...botSettings,
+        targetCount: 2,
+      },
+      "u1",
+    );
+    session.state.phase = "play";
+    session.state.players[0]!.remaining = 40;
+    session.state.currentPlayerId = "u1";
+
+    const afterCheckout = applyVisit(session, 40);
+
+    expect(isDartBotTurn(afterCheckout)).toBe(true);
+    expect(afterCheckout.visitHistory.at(-1)?.checkout).toBe(true);
+    expect(canUndoUserCheckoutBeforeBotLegStart(afterCheckout)).toBe(true);
+  });
+
+  it("disallows checkout undo when it is not bot turn", () => {
+    const session = buildFiveOhOneSession(
+      {
+        ...botSettings,
+        targetCount: 2,
+      },
+      "u1",
+    );
+    session.state.phase = "play";
+    session.state.players[0]!.remaining = 40;
+    session.state.currentPlayerId = "u1";
+
+    const afterCheckout = applyVisit(session, 40);
+    afterCheckout.state.currentPlayerId = "u1";
+
+    expect(canUndoUserCheckoutBeforeBotLegStart(afterCheckout)).toBe(false);
+  });
+
+  it("disallows checkout undo when last visit is not a checkout", () => {
+    const session = buildFiveOhOneSession(botSettings, "u1");
+    session.state.phase = "play";
+    const afterUser = applyVisit(session, 60);
+    const afterBot = applyVisit(afterUser, 45);
+
+    expect(canUndoUserCheckoutBeforeBotLegStart(afterBot)).toBe(false);
   });
 });

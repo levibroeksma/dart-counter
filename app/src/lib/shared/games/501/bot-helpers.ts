@@ -1,6 +1,9 @@
 import type { FiveOhOnePlayer, FiveOhOneSession } from "./types";
 
-function getPlayerById(session: FiveOhOneSession, playerId: string): FiveOhOnePlayer | undefined {
+function getPlayerById(
+  session: FiveOhOneSession,
+  playerId: string,
+): FiveOhOnePlayer | undefined {
   return session.settings.players.find((player) => player.id === playerId);
 }
 
@@ -23,7 +26,9 @@ export function isDartBotTurn(session: FiveOhOneSession): boolean {
   return current?.type === "dartbot";
 }
 
-export function lastTwoVisitsAreUserThenDartBot(session: FiveOhOneSession): boolean {
+export function lastTwoVisitsAreUserThenDartBot(
+  session: FiveOhOneSession,
+): boolean {
   if (session.visitHistory.length < 2) return false;
 
   const userVisit = session.visitHistory.at(-2);
@@ -42,4 +47,14 @@ export function canUndoDartBotPair(session: FiveOhOneSession): boolean {
     !isDartBotTurn(session) &&
     lastTwoVisitsAreUserThenDartBot(session)
   );
+}
+
+export function canUndoUserCheckoutBeforeBotLegStart(
+  session: FiveOhOneSession,
+): boolean {
+  if (!isDartBotSession(session) || !isDartBotTurn(session)) return false;
+  const last = session.visitHistory.at(-1);
+  if (!last?.checkout) return false;
+  const player = getPlayerById(session, last.playerId);
+  return player?.type === "user";
 }
