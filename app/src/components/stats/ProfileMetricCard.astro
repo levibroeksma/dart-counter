@@ -1,0 +1,26 @@
+---
+import type { MetricKind } from "@lib/shared/stats";
+
+interface Props {
+  label: string;
+  value: string;
+  metricKind: MetricKind;
+  chartToken: "chart-1" | "chart-2" | "chart-3";
+  showChart: boolean;
+}
+
+const { label, value, metricKind, chartToken, showChart } = Astro.props;
+---
+<article
+  class="card-metric-liquid w-full"
+  data-metric-kind={metricKind}
+  data-chart-token={chartToken}
+  data-show-chart={showChart ? "true" : "false"}
+>
+  {showChart && <canvas class="card-metric-liquid-canvas" aria-hidden="true"></canvas>}
+  <div class="card-metric-liquid-scrim" aria-hidden="true"></div>
+  <div class="card-metric-liquid-content">
+    <span class="text-muted-foreground/80 text-xs tracking-wider uppercase">{label}</span>
+    <span class="text-foreground font-mono text-xl font-bold">{value}</span>
+  </div>
+</article>

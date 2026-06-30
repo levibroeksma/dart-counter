@@ -1,0 +1,19 @@
+---
+interface Props {
+  title: string;
+  href?: string;
+}
+const { title, href } = Astro.props;
+---
+<div class="flex items-center justify-between gap-4">
+  {href ? (
+    <a href={href} class="font-display shrink-0 text-2xl uppercase tracking-wide text-muted-foreground">
+      {title}
+    </a>
+  ) : (
+    <h2 class="font-display shrink-0 text-2xl uppercase tracking-wide text-muted-foreground">
+      {title}
+    </h2>
+  )}
+  <div class="bg-border/40 w-full pt-px"></div>
+</div>
