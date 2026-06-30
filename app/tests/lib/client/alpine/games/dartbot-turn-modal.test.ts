@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { SimulatedVisit } from "@lib/shared/dartbot/types";
+import type { SimulatedVisit } from "@lib/shared/dartbot";
 import { animateDartBotVisit } from "@lib/client/alpine/games/dartbot-turn-modal";
 
 function buildVisit(labels: string[]): SimulatedVisit {

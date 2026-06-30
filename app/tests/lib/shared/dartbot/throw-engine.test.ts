@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { createRng, getSkillProfile, parseSegment } from "@lib/shared/dartbot";
 import { throwDart } from "@lib/shared/dartbot/throw-engine";
-import { createRng } from "@lib/shared/dartbot/rng";
-import { parseSegment } from "@lib/shared/dartbot/segments";
-import { getSkillProfile } from "@lib/shared/dartbot/levels";
 
 describe("throwDart", () => {
   it("hits target when rng below hitAccuracy", () => {

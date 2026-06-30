@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateMatchPlan } from "@lib/shared/dartbot/match-planner";
-import { getSkillProfile } from "@lib/shared/dartbot/levels";
+import { generateMatchPlan, getSkillProfile } from "@lib/shared/dartbot";
 
 describe("generateMatchPlan", () => {
   it("distributes leg targets around skill midpoint", () => {

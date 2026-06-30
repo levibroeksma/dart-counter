@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseSegment, scoreForSegment } from "@lib/shared/dartbot/segments";
+import { parseSegment, scoreForSegment } from "@lib/shared/dartbot";
 
 describe("segments", () => {
   it("scores singles, doubles, triples, and bull", () => {

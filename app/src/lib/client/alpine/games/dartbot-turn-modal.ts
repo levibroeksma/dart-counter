@@ -1,4 +1,4 @@
-import type { SimulatedVisit } from "@lib/shared/dartbot/types";
+import type { SimulatedVisit } from "@lib/shared/dartbot";
 
 type DelayResult = "elapsed" | "aborted";
 

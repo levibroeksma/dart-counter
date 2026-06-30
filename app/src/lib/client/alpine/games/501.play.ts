@@ -23,7 +23,7 @@ import {
   type FiveOhOneSession,
   type FiveOhOneSummary,
 } from "@lib/shared/games/501";
-import { validateMatchStats } from "@lib/shared/dartbot/statistics-engine";
+import { validateMatchStats } from "@lib/shared/dartbot";
 import { animateDartBotVisit } from "@lib/client/alpine/games/dartbot-turn-modal";
 import { t } from "@lib/shared/i18n";
 import * as scoreInput from "@lib/client/alpine/score-input";

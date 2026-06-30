@@ -1,7 +1,9 @@
-import { simulateVisit } from "@lib/shared/dartbot/dart-bot";
-import { generateMatchPlan } from "@lib/shared/dartbot/match-planner";
-import { createRng } from "@lib/shared/dartbot/rng";
-import type { SimulatedVisit } from "@lib/shared/dartbot/types";
+import {
+  createRng,
+  generateMatchPlan,
+  simulateVisit,
+  type SimulatedVisit,
+} from "@lib/shared/dartbot";
 import { isFinishableCheckout } from "@lib/shared/darts/checkout-solver";
 import { isDartBotTurn } from "./bot-helpers";
 import { DARTS_PER_VISIT } from "./constants";

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createRng, hashSeed } from "@lib/shared/dartbot/rng";
+import { createRng, hashSeed } from "@lib/shared/dartbot";
 
 describe("rng", () => {
   it("is deterministic for same seed", () => {

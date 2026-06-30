@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { createRng, getSkillProfile } from "@lib/shared/dartbot";
 import { chooseIntent } from "@lib/shared/dartbot/strategy-engine";
 import { chooseScoringTarget } from "@lib/shared/dartbot/route-engine";
-import { getSkillProfile } from "@lib/shared/dartbot/levels";
-import { createRng } from "@lib/shared/dartbot/rng";
 
 describe("strategy-engine", () => {
   it("chooses checkout when remaining <= 170 and finishable", () => {

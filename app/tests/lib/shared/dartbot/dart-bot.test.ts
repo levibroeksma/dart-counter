@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createRng, type Rng } from "@lib/shared/dartbot/rng";
-import { getSkillProfile } from "@lib/shared/dartbot/levels";
-import { simulateVisit } from "@lib/shared/dartbot/dart-bot";
-import type { SimulatedDart } from "@lib/shared/dartbot/types";
+import {
+  createRng,
+  getSkillProfile,
+  simulateVisit,
+  type Rng,
+  type SimulatedDart,
+} from "@lib/shared/dartbot";
 
 function sequenceRng(values: number[]): Rng {
   let index = 0;

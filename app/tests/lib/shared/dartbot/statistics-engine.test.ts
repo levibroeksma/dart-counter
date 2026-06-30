@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateMatchStats } from "@lib/shared/dartbot/statistics-engine";
-import { getSkillProfile } from "@lib/shared/dartbot/levels";
+import { getSkillProfile, validateMatchStats } from "@lib/shared/dartbot";
 
 describe("validateMatchStats", () => {
   it("passes when actual stats within tolerance", () => {

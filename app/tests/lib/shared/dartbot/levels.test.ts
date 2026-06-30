@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getSkillProfile, ANCHOR_LEVELS } from "@lib/shared/dartbot/levels";
+import { ANCHOR_LEVELS, getSkillProfile } from "@lib/shared/dartbot";
 
 describe("levels", () => {
   it("returns anchor profiles unchanged", () => {
