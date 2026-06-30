@@ -1,0 +1,65 @@
+---
+import SummaryStatRow from "../SummaryStatRow.astro";
+
+interface Props {
+  summaryModel?: string;
+}
+
+const { summaryModel = "summary" } = Astro.props;
+
+const p0 = `${summaryModel}?.players[0]`;
+---
+
+<div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-2 justify-center items-center">
+    <h3 class="text-lg font-semibold uppercase text-text-muted">Winner!</h3>
+    <h2
+      class="text-2xl font-bold font-mono text-accent"
+      x-text={`${summaryModel}?.winnerDisplayName ?? 'Match Complete'`}
+    ></h2>
+  </div>
+  <dl class="flex flex-col gap-1">
+    <div x-show={`${summaryModel}?.showSetsRow`} x-cloak>
+      <SummaryStatRow
+        label="Sets"
+        value={`formatSummaryInteger(${p0}?.setsWon)`}
+      />
+    </div>
+    <SummaryStatRow
+      label="Legs"
+      value={`formatSummaryInteger(${p0}?.legsWon)`}
+    />
+    <SummaryStatRow
+      label="3-dart avg."
+      value={`formatSummaryAverage(${p0}?.threeDartAverage)`}
+    />
+    <SummaryStatRow
+      label="first 9 avg."
+      value={`formatSummaryAverage(${p0}?.firstNineAverage)`}
+    />
+    <SummaryStatRow
+      label="checkout rate"
+      value={`formatSummaryCheckoutRate(${p0}?.checkoutRate)`}
+    />
+    <SummaryStatRow
+      label="checkouts"
+      value={`formatSummaryCheckouts(${p0}?.checkoutsMade, ${p0}?.checkoutAttempts)`}
+    />
+    <SummaryStatRow
+      label="Highest finish"
+      value={`formatSummaryInteger(${p0}?.highestFinish)`}
+    />
+    <SummaryStatRow
+      label="Highest score"
+      value={`formatSummaryInteger(${p0}?.highestScore)`}
+    />
+    <SummaryStatRow
+      label="Best leg"
+      value={`formatSummaryInteger(${p0}?.bestLegDarts)`}
+    />
+    <SummaryStatRow
+      label="worst leg"
+      value={`formatSummaryInteger(${p0}?.worstLegDarts)`}
+    />
+  </dl>
+</div>
