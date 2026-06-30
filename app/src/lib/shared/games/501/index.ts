@@ -50,6 +50,8 @@ export {
   type CheckoutModalKind,
   type Resolved501CheckoutModal,
 } from "./checkout-modal";
+export { deriveBotVisitDartMetadata } from "./bot-dart-metadata";
+export { format501PlayerDisplayName } from "./display";
 
 // DartBot glue
 export {
