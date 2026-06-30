@@ -1,66 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { buildFiveOhOneSession, buildSummary } from "@lib/shared/games/501";
 
-describe("buildSummary", () => {
-  it("builds completed 1-player summary", () => {
-    const session = buildFiveOhOneSession({
-      matchMode: "first-to",
-      targetCount: 1,
-      unit: "legs",
-      players: [{ id: "u1", type: "user", name: "Levi" }],
-    });
-
-    session.state.status = "completed";
-    session.state.phase = "summary";
-    session.visitHistory = [
-      {
-        visitNumber: 1,
-        playerId: "u1",
-        visitScore: 180,
-        remainingBefore: 501,
-        remainingAfter: 321,
-        bust: false,
-        checkout: false,
-        legNumber: 1,
-        setNumber: 1,
-        dartsThrown: 3,
-        stateSnapshot: structuredClone(session.state),
-      },
-      {
-        visitNumber: 2,
-        playerId: "u1",
-        visitScore: 321,
-        remainingBefore: 321,
-        remainingAfter: 0,
-        bust: false,
-        checkout: true,
-        legNumber: 1,
-        setNumber: 1,
-        dartsThrown: 3,
-        stateSnapshot: structuredClone(session.state),
-      },
-    ];
-
-    expect(buildSummary(session)).toEqual({
-      resultLabel: "Completed",
-      matchFormatLabel: "First to 1 leg",
-      legsPlayed: 1,
-      userThreeDartAverage: 250.5,
-      userDartsThrown: 6,
-      checkouts: 1,
-    });
+function buildMinimalCompletedSession(
+  players: Parameters<typeof buildFiveOhOneSession>[0]["players"],
+) {
+  const session = buildFiveOhOneSession({
+    matchMode: "first-to",
+    targetCount: 1,
+    unit: "legs",
+    players,
   });
+  session.state.status = "completed";
+  session.state.phase = "summary";
+  return session;
+}
 
-  it("uses per-visit dartsThrown instead of assuming 3 per visit", () => {
-    const session = buildFiveOhOneSession({
-      matchMode: "first-to",
-      targetCount: 1,
-      unit: "legs",
-      players: [{ id: "u1", type: "user", name: "Levi" }],
-    });
-
-    session.state.status = "completed";
-    session.state.phase = "summary";
+describe("buildSummary", () => {
+  it("returns players array with one entry for 1-player match", () => {
+    const session = buildMinimalCompletedSession([
+      { id: "u1", type: "user", name: "Levi" },
+    ]);
     session.visitHistory = [
       {
         visitNumber: 1,
@@ -85,43 +44,47 @@ describe("buildSummary", () => {
         checkout: true,
         legNumber: 1,
         setNumber: 1,
-        dartsThrown: 2,
+        dartsThrown: 3,
+        dartsOnDouble: 1,
         stateSnapshot: structuredClone(session.state),
       },
     ];
+    session.state.players[0].totalLegsWon = 1;
 
     const summary = buildSummary(session);
 
-    expect(summary).toMatchObject({
-      resultLabel: "Completed",
-      matchFormatLabel: "First to 1 leg",
-      legsPlayed: 1,
-      userDartsThrown: 5,
-      checkouts: 1,
+    expect(summary.winnerDisplayName).toBe("Levi");
+    expect(summary.showSetsRow).toBe(false);
+    expect(summary.players).toHaveLength(1);
+    expect(summary.players[0]).toMatchObject({
+      playerId: "u1",
+      displayName: "Levi",
+      isBot: false,
+      isGuest: false,
+      isWinner: true,
+      legsWon: 1,
+      threeDartAverage: 250.5,
+      checkoutsMade: 1,
+      checkoutAttempts: 1,
+      checkoutRate: 100,
+      highestFinish: 321,
+      highestScore: 321,
+      bestLegDarts: 6,
+      worstLegDarts: 6,
     });
-    expect(summary.userThreeDartAverage).toBeCloseTo(300.6);
   });
 
-  it("builds completed 2-player summary and includes guest stats", () => {
-    const session = buildFiveOhOneSession({
-      matchMode: "first-to",
-      targetCount: 3,
-      unit: "legs",
-      players: [
-        { id: "u1", type: "user", name: "Levi" },
-        { id: "g1", type: "guest", name: "Guest" },
-      ],
-    });
-
-    session.state.status = "completed";
-    session.state.phase = "summary";
+  it("returns null firstNineAverage when player has fewer than 3 visits", () => {
+    const session = buildMinimalCompletedSession([
+      { id: "u1", type: "user", name: "Levi" },
+    ]);
     session.visitHistory = [
       {
         visitNumber: 1,
         playerId: "u1",
-        visitScore: 100,
+        visitScore: 180,
         remainingBefore: 501,
-        remainingAfter: 401,
+        remainingAfter: 321,
         bust: false,
         checkout: false,
         legNumber: 1,
@@ -131,23 +94,57 @@ describe("buildSummary", () => {
       },
       {
         visitNumber: 2,
-        playerId: "g1",
-        visitScore: 120,
+        playerId: "u1",
+        visitScore: 321,
+        remainingBefore: 321,
+        remainingAfter: 0,
+        bust: false,
+        checkout: true,
+        legNumber: 1,
+        setNumber: 1,
+        dartsThrown: 3,
+        stateSnapshot: structuredClone(session.state),
+      },
+    ];
+
+    expect(buildSummary(session).players[0].firstNineAverage).toBeNull();
+  });
+
+  it("returns null checkoutRate when no double attempts", () => {
+    const session = buildMinimalCompletedSession([
+      { id: "u1", type: "user", name: "Levi" },
+    ]);
+    session.visitHistory = [
+      {
+        visitNumber: 1,
+        playerId: "u1",
+        visitScore: 501,
         remainingBefore: 501,
-        remainingAfter: 381,
+        remainingAfter: 0,
         bust: false,
-        checkout: false,
+        checkout: true,
         legNumber: 1,
         setNumber: 1,
         dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
+    ];
+
+    expect(buildSummary(session).players[0].checkoutRate).toBeNull();
+  });
+
+  it("returns null bestLegDarts and worstLegDarts when player won no legs", () => {
+    const session = buildMinimalCompletedSession([
+      { id: "u1", type: "user", name: "Levi" },
+      { id: "g1", type: "guest", name: "Guest" },
+    ]);
+    session.visitHistory = [
       {
-        visitNumber: 3,
+        visitNumber: 1,
         playerId: "u1",
-        visitScore: 100,
-        remainingBefore: 401,
-        remainingAfter: 301,
+        visitScore: 60,
+        remainingBefore: 501,
+        remainingAfter: 441,
         bust: false,
         checkout: false,
         legNumber: 1,
@@ -156,49 +153,10 @@ describe("buildSummary", () => {
         stateSnapshot: structuredClone(session.state),
       },
       {
-        visitNumber: 4,
-        playerId: "g1",
-        visitScore: 120,
-        remainingBefore: 381,
-        remainingAfter: 261,
-        bust: false,
-        checkout: false,
-        legNumber: 1,
-        setNumber: 1,
-        dartsThrown: 3,
-        stateSnapshot: structuredClone(session.state),
-      },
-      {
-        visitNumber: 5,
-        playerId: "u1",
-        visitScore: 100,
-        remainingBefore: 301,
-        remainingAfter: 201,
-        bust: false,
-        checkout: false,
-        legNumber: 1,
-        setNumber: 1,
-        dartsThrown: 3,
-        stateSnapshot: structuredClone(session.state),
-      },
-      {
-        visitNumber: 6,
-        playerId: "g1",
-        visitScore: 120,
-        remainingBefore: 261,
-        remainingAfter: 141,
-        bust: false,
-        checkout: false,
-        legNumber: 1,
-        setNumber: 1,
-        dartsThrown: 3,
-        stateSnapshot: structuredClone(session.state),
-      },
-      {
-        visitNumber: 7,
+        visitNumber: 2,
         playerId: "g1",
         visitScore: 141,
-        remainingBefore: 141,
+        remainingBefore: 501,
         remainingAfter: 0,
         bust: false,
         checkout: true,
@@ -208,83 +166,58 @@ describe("buildSummary", () => {
         stateSnapshot: structuredClone(session.state),
       },
     ];
-
-    expect(buildSummary(session)).toEqual({
-      resultLabel: "Guest wins",
-      matchFormatLabel: "First to 3 legs",
-      legsPlayed: 1,
-      userThreeDartAverage: 100,
-      userDartsThrown: 9,
-      checkouts: 0,
-      guestThreeDartAverage: 125.25,
-      guestDartsThrown: 12,
-      guestCheckouts: 1,
-    });
-  });
-
-  it("includes opponent stats for dartbot", () => {
-    const session = buildFiveOhOneSession(
-      {
-        matchMode: "first-to",
-        targetCount: 3,
-        unit: "legs",
-        players: [
-          { id: "u1", type: "user", name: "Levi" },
-          { id: "b1", type: "dartbot", name: "DartBot", level: 10 },
-        ],
-      },
-      "u1",
-    );
-
-    session.state.status = "completed";
-    session.state.phase = "summary";
-    session.visitHistory = [
-      {
-        visitNumber: 1,
-        playerId: "u1",
-        visitScore: 100,
-        remainingBefore: 501,
-        remainingAfter: 401,
-        bust: false,
-        checkout: false,
-        legNumber: 1,
-        setNumber: 1,
-        dartsThrown: 3,
-        stateSnapshot: structuredClone(session.state),
-      },
-      {
-        visitNumber: 2,
-        playerId: "b1",
-        visitScore: 120,
-        remainingBefore: 501,
-        remainingAfter: 381,
-        bust: false,
-        checkout: false,
-        legNumber: 1,
-        setNumber: 1,
-        dartsThrown: 3,
-        stateSnapshot: structuredClone(session.state),
-      },
-      {
-        visitNumber: 3,
-        playerId: "b1",
-        visitScore: 381,
-        remainingBefore: 381,
-        remainingAfter: 0,
-        bust: false,
-        checkout: true,
-        legNumber: 1,
-        setNumber: 1,
-        dartsThrown: 3,
-        stateSnapshot: structuredClone(session.state),
-      },
-    ];
+    session.state.players[1].totalLegsWon = 1;
 
     const summary = buildSummary(session);
 
-    expect(summary.guestThreeDartAverage).toBeDefined();
-    expect(summary.guestDartsThrown).toBe(6);
-    expect(summary.guestCheckouts).toBe(1);
-    expect(summary.resultLabel).toContain("DartBot");
+    expect(summary.players[0].bestLegDarts).toBeNull();
+    expect(summary.players[0].worstLegDarts).toBeNull();
+    expect(summary.players[1].bestLegDarts).toBe(3);
+    expect(summary.players[1].worstLegDarts).toBe(3);
+  });
+
+  it("orders two-player summary as [user, opponent]", () => {
+    const session = buildMinimalCompletedSession([
+      { id: "u1", type: "user", name: "Levi" },
+      { id: "b1", type: "dartbot", name: "DartBot", level: 5 },
+    ]);
+    session.visitHistory = [
+      {
+        visitNumber: 1,
+        playerId: "b1",
+        visitScore: 141,
+        remainingBefore: 501,
+        remainingAfter: 0,
+        bust: false,
+        checkout: true,
+        legNumber: 1,
+        setNumber: 1,
+        dartsThrown: 3,
+        stateSnapshot: structuredClone(session.state),
+      },
+    ];
+    session.state.players[1].totalLegsWon = 1;
+
+    const summary = buildSummary(session);
+
+    expect(summary.players).toHaveLength(2);
+    expect(summary.players[0].playerId).toBe("u1");
+    expect(summary.players[1].playerId).toBe("b1");
+    expect(summary.players[1].displayName).toBe("DartBot");
+    expect(summary.players[1].isBot).toBe(true);
+    expect(summary.winnerDisplayName).toBe("DartBot");
+  });
+
+  it("sets showSetsRow true when unit is sets", () => {
+    const session = buildFiveOhOneSession({
+      matchMode: "first-to",
+      targetCount: 2,
+      unit: "sets",
+      players: [{ id: "u1", type: "user", name: "Levi" }],
+    });
+    session.state.status = "completed";
+    session.state.phase = "summary";
+
+    expect(buildSummary(session).showSetsRow).toBe(true);
   });
 });
