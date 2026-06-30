@@ -6,22 +6,47 @@ import {
   validateCompletedFiveOhOneSession,
 } from "@lib/shared/games/501";
 
+const botSettings = {
+  matchMode: "first-to" as const,
+  targetCount: 1,
+  unit: "legs" as const,
+  players: [
+    { id: "u1", type: "user" as const, name: "Levi" },
+    { id: "b1", type: "dartbot" as const, name: "DartBot" as const, level: 10 },
+  ],
+};
+
 function buildCompletedDartBotSession() {
-  let session = buildFiveOhOneSession(
-    {
-      matchMode: "first-to",
-      targetCount: 1,
-      unit: "legs",
-      players: [
-        { id: "u1", type: "user", name: "Levi" },
-        { id: "b1", type: "dartbot", name: "DartBot", level: 10 },
-      ],
-    },
-    "u1",
-  );
+  let session = buildFiveOhOneSession(botSettings, "u1");
 
   for (const score of [180, 180, 180, 180, 141]) {
     session = applyVisit(session, score);
+  }
+
+  session.botState!.rngState = 999999;
+  return session;
+}
+
+function buildCompletedDartBotSessionWithBotRng() {
+  let session = buildFiveOhOneSession(botSettings, "u1");
+  session.state.phase = "play";
+
+  const visits: Array<{ score: number; botRngBefore?: number }> = [
+    { score: 180, botRngBefore: 100 },
+    { score: 180 },
+    { score: 180, botRngBefore: 200 },
+    { score: 180 },
+    { score: 141, botRngBefore: 300 },
+  ];
+
+  for (const visit of visits) {
+    session = applyVisit(
+      session,
+      visit.score,
+      visit.botRngBefore !== undefined
+        ? { botRngBefore: visit.botRngBefore }
+        : undefined,
+    );
   }
 
   session.botState!.rngState = 999999;
@@ -63,7 +88,10 @@ describe("validateCompletedFiveOhOneSession", () => {
     });
 
     const result = validateCompletedFiveOhOneSession(session);
-    expect(result).toEqual({ valid: false, code: MessageCode.GAME_NOT_COMPLETE });
+    expect(result).toEqual({
+      valid: false,
+      code: MessageCode.GAME_NOT_COMPLETE,
+    });
   });
 
   it("rejects tampered visit history", () => {
@@ -84,8 +112,17 @@ describe("validateCompletedFiveOhOneSession", () => {
     }
   });
 
+  it("validates completed dartbot session with botRngBefore on user visits", () => {
+    const session = buildCompletedDartBotSessionWithBotRng();
+    const result = validateCompletedFiveOhOneSession(session);
+
+    expect(result.valid).toBe(true);
+  });
+
   it("rejects invalid shape", () => {
-    const result = validateCompletedFiveOhOneSession({ slug: "score-training" });
+    const result = validateCompletedFiveOhOneSession({
+      slug: "score-training",
+    });
     expect(result).toEqual({
       valid: false,
       code: MessageCode.INVALID_GAME_SETTINGS,

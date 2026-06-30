@@ -7,10 +7,7 @@ import type {
   FiveOhOneVisitRecord,
 } from "./types";
 import { applyVisit } from "./state";
-import {
-  validateFiveOhOneSettings,
-  validateVisitScore,
-} from "./validation";
+import { validateFiveOhOneSettings, validateVisitScore } from "./validation";
 
 export type ValidateCompletedFiveOhOneResult =
   | { valid: true; value: FiveOhOneSession }
@@ -26,8 +23,19 @@ function statesMatch(a: FiveOhOneGameState, b: FiveOhOneGameState): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-function visitsMatch(a: FiveOhOneVisitRecord, b: FiveOhOneVisitRecord): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+function visitGameplayFields(v: FiveOhOneVisitRecord) {
+  const { stateSnapshot: _, ...rest } = v;
+  return rest;
+}
+
+function visitsMatch(
+  a: FiveOhOneVisitRecord,
+  b: FiveOhOneVisitRecord,
+): boolean {
+  return (
+    JSON.stringify(visitGameplayFields(a)) ===
+    JSON.stringify(visitGameplayFields(b))
+  );
 }
 
 /**
@@ -76,7 +84,12 @@ export function validateCompletedFiveOhOneSession(
       return { valid: false, code: MessageCode.INVALID_SCORE };
     }
 
-    replayed = applyVisit(replayed, submittedVisit.visitScore);
+    replayed = applyVisit(replayed, submittedVisit.visitScore, {
+      botRngBefore: submittedVisit.botRngBefore,
+      dartsThrown: submittedVisit.dartsThrown,
+      dartsOnDouble: submittedVisit.dartsOnDouble,
+      dartsForFinish: submittedVisit.dartsForFinish,
+    });
     const expectedVisit = replayed.visitHistory[index];
     if (!expectedVisit || !visitsMatch(expectedVisit, submittedVisit)) {
       return { valid: false, code: MessageCode.INVALID_SCORE };
