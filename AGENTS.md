@@ -326,6 +326,8 @@ npm run lint
 
 After schema changes: `npm run db:migrate`.
 
+**After pulling DB migrations:** run `cd app && npm run db:migrate` before local completion API smoke tests. Missing tables (e.g. `player_501_stats`) cause 500s; stale schema causes confusing play-flow failures.
+
 ### Curl smoke tests
 
 Runtime SSR/API wiring — requires dev server (`npm run dev` in another terminal). Uses cookie jar login; defaults match `npm run seed:auth` / `DEV_AUTH_DEFAULTS` (`test@example.com` / `testpass`).
