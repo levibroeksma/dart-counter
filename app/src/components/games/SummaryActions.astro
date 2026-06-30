@@ -1,0 +1,71 @@
+---
+interface Props {
+  variant: "back-play" | "yes-no";
+  disabledModel?: string;
+  noStyle?: "link" | "button";
+  actionsGapClass?: string;
+}
+
+const {
+  variant,
+  disabledModel = variant === "back-play" ? "persisting" : "loading",
+  noStyle = "link",
+  actionsGapClass = variant === "back-play" ? "gap-6 mt-3" : "gap-3",
+} = Astro.props;
+---
+
+{
+  variant === "back-play" ? (
+    <div class={`grid grid-cols-2 ${actionsGapClass}`}>
+      <button
+        type="button"
+        class="btn-secondary btn-press font-medium flex items-center justify-center"
+        @click="backToGames()"
+      >
+        Back
+      </button>
+      <button
+        type="button"
+        class="btn-primary btn-press"
+        :disabled={disabledModel}
+        @click="playAgain()"
+      >
+        Play again
+      </button>
+    </div>
+  ) : (
+    <>
+      <h3 class="font-semibold text-lg col-span-2">
+        Do you want to play again?
+      </h3>
+      <div class={`grid grid-cols-2 ${actionsGapClass}`}>
+        {noStyle === "link" ? (
+          <a
+            href="/games"
+            class="btn-secondary btn-press font-medium flex items-center justify-center"
+            :class={disabledModel + " && 'pointer-events-none opacity-50'"}
+          >
+            <span>No</span>
+          </a>
+        ) : (
+          <button
+            type="button"
+            class="btn-secondary btn-press"
+            :disabled={disabledModel}
+            @click="window.location.href='/games'"
+          >
+            No
+          </button>
+        )}
+        <button
+          type="button"
+          class="btn-primary btn-press"
+          :disabled={disabledModel}
+          @click="playAgain()"
+        >
+          Yes
+        </button>
+      </div>
+    </>
+  )
+}
