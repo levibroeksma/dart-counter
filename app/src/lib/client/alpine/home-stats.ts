@@ -1,4 +1,3 @@
-import type { Alpine } from 'alpinejs';
 import type { SparklineSeries } from '@lib/shared/stats';
 import {
   createSparkline,
@@ -6,16 +5,24 @@ import {
 } from '@lib/client/charts/sparkline';
 import type { Chart } from 'chart.js';
 
-export function homeStats() {
+interface HomeStatsState {
+  $el: HTMLElement;
+  init(this: HomeStatsState): void;
+  destroy(this: HomeStatsState): void;
+}
+
+export function homeStats(): HomeStatsState {
   const charts = new Map<string, Chart>();
 
   return {
+    $el: undefined as unknown as HTMLElement,
+
     init() {
-      const root = this.$el as HTMLElement;
+      const root = this.$el;
       const raw = root.dataset.sparklines;
       if (!raw) return;
 
-      let series: SparklineSeries[] = [];
+      let series: SparklineSeries[];
       try {
         series = JSON.parse(raw) as SparklineSeries[];
       } catch {
@@ -43,9 +50,5 @@ export function homeStats() {
       for (const chart of charts.values()) destroySparkline(chart);
       charts.clear();
     },
-  };
-}
-
-export function registerHomeStats(Alpine: Alpine): void {
-  Alpine.data('homeStats', homeStats);
+  } satisfies HomeStatsState;
 }

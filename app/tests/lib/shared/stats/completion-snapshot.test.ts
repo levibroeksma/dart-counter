@@ -46,7 +46,7 @@ describe('build501CompletionSnapshot', () => {
 
 describe('buildScoreTrainingCompletionSnapshot', () => {
   it('extracts scoring totals and milestones from rounds', () => {
-    let session = buildScoreTrainingSession({ endMode: 'rounds', roundCount: 3 });
+    const session = buildScoreTrainingSession({ endMode: 'rounds', roundCount: 3 });
 
     for (const score of [60, 120, 140]) {
       const round = buildScoreRoundRecord(
@@ -74,7 +74,7 @@ describe('buildScoreTrainingCompletionSnapshot', () => {
 
 describe('buildTenUpOneDownCompletionSnapshot', () => {
   it('extracts double attempts and hits from round history', () => {
-    let session = buildTenUpOneDownSession({ endMode: 'rounds', roundCount: 2 });
+    const session = buildTenUpOneDownSession({ endMode: 'rounds', roundCount: 2 });
 
     const successRound = buildTenUpOneDownRoundRecord(1, session.state.currentTarget, {
       outcome: 'success',

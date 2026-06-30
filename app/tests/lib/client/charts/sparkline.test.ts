@@ -62,7 +62,10 @@ describe("sparkline chart utils", () => {
     createSparkline(canvas, [], "chart-1");
 
     expect(chartFactory).toHaveBeenCalledTimes(1);
-    const [, config] = chartFactory.mock.calls[0] as [HTMLCanvasElement, any];
+    const [, config] = chartFactory.mock.calls[0] as [
+      HTMLCanvasElement,
+      { data: { labels: string[]; datasets: { data: number[] }[] } },
+    ];
     expect(config.data.labels).toEqual([]);
     expect(config.data.datasets[0].data).toEqual([]);
   });
