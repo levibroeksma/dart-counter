@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "@api/games/501/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { createEmptyPlayerDartStats } from "@lib/shared/stats";
+import {
+  build501CompletionSnapshot,
+  createEmptyPlayerDartStats,
+} from "@lib/shared/stats";
 import {
   applyVisit,
   buildFiveOhOneSession,
@@ -15,6 +18,7 @@ const mockSavePlayer501Stats = vi.fn();
 const mockGetPlayerDartStats = vi.fn();
 const mockSavePlayerDartStats = vi.fn();
 const mockIncrementPlayCount = vi.fn();
+const mockInsertPlayerStatCompletion = vi.fn();
 
 vi.mock("@lib/server/auth/session", () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -32,6 +36,11 @@ vi.mock("@lib/server/data/player-dart-stats", () => ({
 
 vi.mock("@lib/server/data/games", () => ({
   incrementPlayCount: (...args: unknown[]) => mockIncrementPlayCount(...args),
+}));
+
+vi.mock("@lib/server/data/player-stat-completions", () => ({
+  insertPlayerStatCompletion: (...args: unknown[]) =>
+    mockInsertPlayerStatCompletion(...args),
 }));
 
 function buildCompletedSession() {
@@ -93,6 +102,7 @@ describe("POST /api/games/501/complete", () => {
     mockGetPlayerDartStats.mockResolvedValue(createEmptyPlayerDartStats());
     mockSavePlayerDartStats.mockResolvedValue(undefined);
     mockIncrementPlayCount.mockResolvedValue(undefined);
+    mockInsertPlayerStatCompletion.mockResolvedValue(undefined);
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -145,6 +155,10 @@ describe("POST /api/games/501/complete", () => {
       ],
     });
     expect(mockSavePlayer501Stats).toHaveBeenCalledTimes(1);
+    expect(mockInsertPlayerStatCompletion).toHaveBeenCalledWith(
+      "00000000-0000-4000-8000-000000000001",
+      build501CompletionSnapshot(session),
+    );
     expect(mockIncrementPlayCount).toHaveBeenCalledWith(
       "00000000-0000-4000-8000-000000000001",
       "501",
@@ -155,5 +169,15 @@ describe("POST /api/games/501/complete", () => {
     const session = buildCompletedSessionWithCheckoutMetadata();
     await POST(createContext({ session }));
     expect(mockSavePlayerDartStats).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 500 when completion snapshot insert fails", async () => {
+    mockInsertPlayerStatCompletion.mockRejectedValueOnce(new Error("db down"));
+    const response = await POST(createContext({ session: buildCompletedSession() }));
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      ok: false,
+      code: MessageCode.SERVER_ERROR,
+    });
   });
 });

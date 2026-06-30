@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "@api/games/singles-training/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
+import { buildSinglesTrainingCompletionSnapshot } from "@lib/shared/stats";
 import {
   applyDartToSession,
   buildSinglesTrainingSession,
@@ -12,6 +13,7 @@ const mockGetSession = vi.fn();
 const mockGetPlayerSinglesTrainingStats = vi.fn();
 const mockSavePlayerSinglesTrainingStats = vi.fn();
 const mockIncrementPlayCount = vi.fn();
+const mockInsertPlayerStatCompletion = vi.fn();
 
 vi.mock("@lib/server/auth/session", () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -26,6 +28,11 @@ vi.mock("@lib/server/data/player-singles-training-stats", () => ({
 
 vi.mock("@lib/server/data/games", () => ({
   incrementPlayCount: (...args: unknown[]) => mockIncrementPlayCount(...args),
+}));
+
+vi.mock("@lib/server/data/player-stat-completions", () => ({
+  insertPlayerStatCompletion: (...args: unknown[]) =>
+    mockInsertPlayerStatCompletion(...args),
 }));
 
 function buildDeadSession() {
@@ -63,6 +70,7 @@ describe("POST /api/games/singles-training/complete", () => {
     );
     mockSavePlayerSinglesTrainingStats.mockResolvedValue(undefined);
     mockIncrementPlayCount.mockResolvedValue(undefined);
+    mockInsertPlayerStatCompletion.mockResolvedValue(undefined);
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -102,9 +110,23 @@ describe("POST /api/games/singles-training/complete", () => {
     expect(data.summary.status).toBe("dead");
     expect(data.summary.dartsThrown).toBe(3);
     expect(mockSavePlayerSinglesTrainingStats).toHaveBeenCalledTimes(1);
+    expect(mockInsertPlayerStatCompletion).toHaveBeenCalledWith(
+      "00000000-0000-4000-8000-000000000001",
+      buildSinglesTrainingCompletionSnapshot(session),
+    );
     expect(mockIncrementPlayCount).toHaveBeenCalledWith(
       "00000000-0000-4000-8000-000000000001",
       "singles-training",
     );
+  });
+
+  it("returns 500 when completion snapshot insert fails", async () => {
+    mockInsertPlayerStatCompletion.mockRejectedValueOnce(new Error("db down"));
+    const response = await POST(createContext({ session: buildDeadSession() }));
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      ok: false,
+      code: MessageCode.SERVER_ERROR,
+    });
   });
 });
