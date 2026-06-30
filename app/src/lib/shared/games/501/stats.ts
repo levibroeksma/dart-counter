@@ -80,17 +80,24 @@ export function applyGameCompletionToStats(
   const summary = buildSummary(session);
   const user = session.settings.players.find((player) => player.type === "user");
   const userId = user?.id;
+  const userSummary = summary.players[0];
 
   stats.gamesCompleted += 1;
   if (didUserWin(session)) {
     stats.gamesWon += 1;
   }
 
-  stats.totalDartsThrown += summary.userDartsThrown;
-  stats.totalCheckouts += summary.checkouts;
+  if (userId) {
+    stats.totalDartsThrown += session.visitHistory
+      .filter((visit) => visit.playerId === userId)
+      .reduce((sum, visit) => sum + visit.dartsThrown, 0);
+  }
 
-  if (summary.userThreeDartAverage > stats.bestMatchAverage) {
-    stats.bestMatchAverage = summary.userThreeDartAverage;
+  if (userSummary) {
+    stats.totalCheckouts += userSummary.checkoutsMade;
+    if (userSummary.threeDartAverage > stats.bestMatchAverage) {
+      stats.bestMatchAverage = userSummary.threeDartAverage;
+    }
   }
 
   if (userId) {
