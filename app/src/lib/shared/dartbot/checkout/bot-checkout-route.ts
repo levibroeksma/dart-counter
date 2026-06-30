@@ -1,4 +1,4 @@
-import type { Segment } from "@lib/shared/dartbot/types";
+import type { Segment } from "../types";
 
 export type BotCheckoutRoute = {
   finish: number;

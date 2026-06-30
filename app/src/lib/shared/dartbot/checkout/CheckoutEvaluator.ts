@@ -1,4 +1,4 @@
-import type { BotCheckoutRoute } from "@lib/shared/dartbot/checkout/bot-checkout-route";
+import type { BotCheckoutRoute } from "./bot-checkout-route";
 
 export function evaluateSetupRoute(route: BotCheckoutRoute): number {
   const leave =

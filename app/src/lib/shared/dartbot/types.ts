@@ -48,3 +48,8 @@ export type SimulateVisitContext = {
   legTarget: number;
   dartsInVisit: number;
 };
+
+export type { Rng } from "./rng";
+export type { BotCheckoutRoute } from "./checkout/bot-checkout-route";
+export type { ThrowIntent } from "./strategy-engine";
+export type { MatchStats, StatsValidation } from "./statistics-engine";

@@ -1,4 +1,4 @@
-import type { LevelProfile } from "@lib/shared/dartbot/types";
+import type { LevelProfile } from "./types";
 
 export type MatchStats = {
   threeDartAverage: number;

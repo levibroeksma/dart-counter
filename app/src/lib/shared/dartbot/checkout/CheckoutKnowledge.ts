@@ -1,7 +1,7 @@
-import routesJson from "@lib/shared/dartbot/checkout/checkout-routes.json";
-import { parseSegment } from "@lib/shared/dartbot/segments";
-import type { BotCheckoutRoute } from "@lib/shared/dartbot/checkout/bot-checkout-route";
-import { generatedRoutes } from "@lib/shared/dartbot/checkout/GeneratedCheckoutKnowledge";
+import routesJson from "./checkout-routes.json";
+import { parseSegment } from "../segments";
+import type { BotCheckoutRoute } from "./bot-checkout-route";
+import { generatedRoutes } from "./GeneratedCheckoutKnowledge";
 
 export interface CheckoutKnowledge {
   routes(remaining: number): BotCheckoutRoute[];

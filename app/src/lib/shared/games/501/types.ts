@@ -1,4 +1,4 @@
-import type { MatchPlan } from "@lib/shared/dartbot/types";
+import type { MatchPlan } from "@lib/shared/dartbot";
 
 export type FiveOhOneUserOrGuestPlayer = {
   id: string;

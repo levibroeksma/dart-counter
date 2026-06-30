@@ -1,5 +1,5 @@
-import type { Segment } from "@lib/shared/dartbot/types";
-import type { Rng } from "@lib/shared/dartbot/rng";
+import type { Segment } from "./types";
+import type { Rng } from "./rng";
 
 export function resolveMiss(
   target: Segment,

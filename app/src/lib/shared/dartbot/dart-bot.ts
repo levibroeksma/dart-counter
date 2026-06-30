@@ -1,21 +1,21 @@
-import { chooseScoringTarget } from "@lib/shared/dartbot/route-engine";
-import { scoreForSegment, parseSegment } from "@lib/shared/dartbot/segments";
-import { chooseIntent } from "@lib/shared/dartbot/strategy-engine";
-import { throwDart } from "@lib/shared/dartbot/throw-engine";
+import { chooseScoringTarget } from "./route-engine";
+import { scoreForSegment, parseSegment } from "./segments";
+import { chooseIntent } from "./strategy-engine";
+import { throwDart } from "./throw-engine";
 import {
   createCheckoutKnowledge,
   type CheckoutKnowledge,
-} from "@lib/shared/dartbot/checkout/CheckoutKnowledge";
-import { SkillCheckoutPolicy } from "@lib/shared/dartbot/checkout/CheckoutPolicy";
-import { CheckoutPlanner } from "@lib/shared/dartbot/checkout/CheckoutPlanner";
-import { evaluateSetupRoute } from "@lib/shared/dartbot/checkout/CheckoutEvaluator";
-import type { BotCheckoutRoute } from "@lib/shared/dartbot/checkout/bot-checkout-route";
-import type { Rng } from "@lib/shared/dartbot/rng";
+} from "./checkout/CheckoutKnowledge";
+import { SkillCheckoutPolicy } from "./checkout/CheckoutPolicy";
+import { CheckoutPlanner } from "./checkout/CheckoutPlanner";
+import { evaluateSetupRoute } from "./checkout/CheckoutEvaluator";
+import type { BotCheckoutRoute } from "./checkout/bot-checkout-route";
+import type { Rng } from "./rng";
 import type {
   Segment,
   SimulateVisitContext,
   SimulatedVisit,
-} from "@lib/shared/dartbot/types";
+} from "./types";
 
 const checkoutKnowledge = createCheckoutKnowledge();
 const checkoutPlanner = new CheckoutPlanner(

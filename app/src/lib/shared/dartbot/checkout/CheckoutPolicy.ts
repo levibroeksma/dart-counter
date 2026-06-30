@@ -1,5 +1,5 @@
-import type { BotCheckoutRoute } from "@lib/shared/dartbot/checkout/bot-checkout-route";
-import type { SkillProfile } from "@lib/shared/dartbot/types";
+import type { BotCheckoutRoute } from "./bot-checkout-route";
+import type { SkillProfile } from "../types";
 
 export interface CheckoutPolicy {
   select(routes: BotCheckoutRoute[], skill: SkillProfile): BotCheckoutRoute;

@@ -1,7 +1,7 @@
-import type { CheckoutKnowledge } from "@lib/shared/dartbot/checkout/CheckoutKnowledge";
-import type { CheckoutPolicy } from "@lib/shared/dartbot/checkout/CheckoutPolicy";
-import type { BotCheckoutRoute } from "@lib/shared/dartbot/checkout/bot-checkout-route";
-import type { SkillProfile } from "@lib/shared/dartbot/types";
+import type { CheckoutKnowledge } from "./CheckoutKnowledge";
+import type { CheckoutPolicy } from "./CheckoutPolicy";
+import type { BotCheckoutRoute } from "./bot-checkout-route";
+import type { SkillProfile } from "../types";
 
 export class CheckoutPlanner {
   constructor(

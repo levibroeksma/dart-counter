@@ -1,6 +1,6 @@
-import type { Segment, SkillProfile } from "@lib/shared/dartbot/types";
-import type { Rng } from "@lib/shared/dartbot/rng";
-import { resolveMiss } from "@lib/shared/dartbot/miss-resolver";
+import type { Segment, SkillProfile } from "./types";
+import type { Rng } from "./rng";
+import { resolveMiss } from "./miss-resolver";
 
 export function throwDart(
   target: Segment,

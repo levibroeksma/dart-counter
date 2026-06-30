@@ -1,5 +1,5 @@
-import type { MatchPlan, SkillProfile } from "@lib/shared/dartbot/types";
-import { createRng } from "@lib/shared/dartbot/rng";
+import type { MatchPlan, SkillProfile } from "./types";
+import { createRng } from "./rng";
 
 function targetMidpoint(skill: SkillProfile): number {
   return (skill.threeDartAverage.min + skill.threeDartAverage.max) / 2;

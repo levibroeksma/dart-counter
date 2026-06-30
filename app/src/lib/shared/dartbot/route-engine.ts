@@ -1,6 +1,6 @@
-import { parseSegment } from "@lib/shared/dartbot/segments";
-import type { Segment, SkillProfile } from "@lib/shared/dartbot/types";
-import type { Rng } from "@lib/shared/dartbot/rng";
+import { parseSegment } from "./segments";
+import type { Segment, SkillProfile } from "./types";
+import type { Rng } from "./rng";
 
 export function chooseScoringTarget(input: {
   skill: SkillProfile;

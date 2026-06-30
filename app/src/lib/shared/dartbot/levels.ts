@@ -1,4 +1,4 @@
-import type { LevelProfile, SkillProfile } from "@lib/shared/dartbot/types";
+import type { LevelProfile, SkillProfile } from "./types";
 
 export const ANCHOR_LEVELS: LevelProfile[] = [
   {
