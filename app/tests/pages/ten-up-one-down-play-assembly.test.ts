@@ -37,4 +37,10 @@ describe("ten-up-one-down play page assembly", () => {
     expect(source).not.toContain("resume()");
     expect(source).not.toContain("abandon()");
   });
+
+  it("Summary.astro uses shared SummaryActions", () => {
+    const source = readSource("src/components/games/ten-up-one-down/Summary.astro");
+    expect(source).toContain("SummaryActions");
+    expect(source).toContain('variant="yes-no"');
+  });
 });

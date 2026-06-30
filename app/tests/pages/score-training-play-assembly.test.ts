@@ -85,4 +85,10 @@ describe("score-training play page assembly", () => {
     expect(source).toContain("?.roundsPlayed ?? 0");
     expect(source).toContain("?.dartsThrown ?? 0");
   });
+
+  it("Summary.astro uses shared SummaryActions", () => {
+    const source = readSource("src/components/games/score-training/Summary.astro");
+    expect(source).toContain("SummaryActions");
+    expect(source).toContain('variant="yes-no"');
+  });
 });
