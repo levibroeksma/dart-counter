@@ -16,7 +16,7 @@ const {
 } = Astro.props;
 ---
 
-<div class:list={["flex flex-col items-center bg-accent text-accent-foreground rounded-full px-4 py-2", className]}>
+<div class:list={["flex flex-col items-center bg-primary text-primary-foreground rounded-full px-4 py-2", className]}>
   <input type="hidden" {id} {name} :value="targetCount" />
 
   <button
