@@ -14,7 +14,7 @@ interface Props {
   gameSession?: FiveOhOneSession | null;
 }
 
-const { displayName, gameSession = null } = Astro.props;
+const { gameSession = null } = Astro.props;
 const sessionJson = JSON.stringify(gameSession ?? null).replace(/</g, "\\u003c");
 const firstPlayerId = gameSession?.settings.players[0]?.id ?? "";
 const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
