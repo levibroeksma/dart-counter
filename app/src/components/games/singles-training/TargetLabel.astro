@@ -7,10 +7,10 @@ const { targetDisplayModel = "targetDisplay" } = Astro.props;
 ---
 
 <div class="flex justify-between px-2">
-  <p class="text-text-muted font-mono text-sm">
+  <p class="text-muted-foreground font-mono text-sm">
   Your target is <span x-text={targetDisplayModel}></span>
 </p>
-<p class="text-text-muted font-mono text-sm">
+<p class="text-muted-foreground font-mono text-sm">
   <span x-text="session.settings.mode === 'normal' ? 'Normal' : session.settings.mode === 'hard' ? 'Hard' : 'Extreme'"></span> mode
 </p>
 </div>
