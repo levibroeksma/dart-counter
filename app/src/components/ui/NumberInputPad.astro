@@ -1,6 +1,6 @@
 ---
-import BackspaceIcon from "@icons/backspace.svg";
-import UndoIcon from "@icons/undo.svg";
+import BackspaceIcon from '@icons/backspace.svg';
+import UndoIcon from '@icons/undo.svg';
 
 interface Props {
   scoreModel: string;
@@ -13,26 +13,30 @@ interface Props {
 const {
   scoreModel,
   submitAction,
-  disabledExpr = "false",
-  canUndoExpr = "false",
-  undoAction = "",
+  disabledExpr = 'false',
+  canUndoExpr = 'false',
+  undoAction = '',
 } = Astro.props;
 
-const append = (digit: string) =>
-  `appendScoreDigit('${digit}', $event)`;
+const append = (digit: string) => `appendScoreDigit('${digit}', $event)`;
 ---
 
-<div data-testid="tuod-number-pad" class="flex flex-col flex-1">
-  <div class="flex items-center h-fit border rounded-md border-white/20 bg-white/10">
+<div
+  data-testid="tuod-number-pad"
+  class="flex flex-1 flex-col"
+>
+  <div
+    class="border-border bg-muted/40 flex h-fit items-center rounded-md border"
+  >
     <span
       data-testid="tuod-score-display"
-      class="text-xs font-bold flex-1 px-4 py-2"
+      class="flex-1 px-4 py-2 text-xs font-bold"
       x-text={`${scoreModel} ? ${scoreModel} : 'Enter a score'`}
     ></span>
-    <div class="rounded-r-full border-muted pl-4 pr-2 py-2">
+    <div class="border-muted rounded-r-full py-2 pr-2 pl-4">
       <button
         type="button"
-        class="bg-accent rounded-md px-4 py-2 text-slate-900 text-xs"
+        class="bg-primary text-primary-foreground rounded-md px-4 py-2 text-xs"
         :disabled={disabledExpr}
         @click={submitAction}
       >
@@ -41,100 +45,108 @@ const append = (digit: string) =>
     </div>
   </div>
 
-  <div class="grid grid-cols-3 grid-rows-4 mt-4 divide-x divide-white/10 flex-1">
-    <div class="flex flex-col row-span-4 justify-evenly divide-y divide-white/10">
+  <div
+    class="border-border mt-4 grid flex-1 grid-cols-3 grid-rows-4 divide-x"
+  >
+    <div
+      class="border-border row-span-4 flex flex-col justify-evenly divide-y"
+    >
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("1")}
-        @touchend.prevent={append("1")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('1')}
+        @touchend.prevent={append('1')}
         x-text="1"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("4")}
-        @touchend.prevent={append("4")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('4')}
+        @touchend.prevent={append('4')}
         x-text="4"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("7")}
-        @touchend.prevent={append("7")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('7')}
+        @touchend.prevent={append('7')}
         x-text="7"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center items-center flex flex-1"
+        class="btn-press flex flex-1 items-center justify-center"
         :class={`!(${canUndoExpr}) ? 'opacity-50 cursor-not-allowed' : ''`}
         :disabled={`!(${canUndoExpr})`}
         @click={undoAction}
       >
-        <UndoIcon class="size-6 text-text-muted" />
+        <UndoIcon class="text-muted-foreground size-6" />
       </button>
     </div>
 
-    <div class="flex flex-col row-span-4 justify-evenly divide-y divide-white/10">
+    <div
+      class="border-border row-span-4 flex flex-col justify-evenly divide-y"
+    >
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("2")}
-        @touchend.prevent={append("2")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('2')}
+        @touchend.prevent={append('2')}
         x-text="2"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("5")}
-        @touchend.prevent={append("5")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('5')}
+        @touchend.prevent={append('5')}
         x-text="5"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("8")}
-        @touchend.prevent={append("8")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('8')}
+        @touchend.prevent={append('8')}
         x-text="8"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("0")}
-        @touchend.prevent={append("0")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('0')}
+        @touchend.prevent={append('0')}
         x-text="0"
       ></button>
     </div>
 
-    <div class="flex flex-col row-span-4 justify-evenly divide-y divide-white/10">
+    <div
+      class="border-border row-span-4 flex flex-col justify-evenly divide-y"
+    >
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("3")}
-        @touchend.prevent={append("3")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('3')}
+        @touchend.prevent={append('3')}
         x-text="3"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("6")}
-        @touchend.prevent={append("6")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('6')}
+        @touchend.prevent={append('6')}
         x-text="6"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center font-bold flex items-center flex-1"
-        @click={append("9")}
-        @touchend.prevent={append("9")}
+        class="btn-press flex flex-1 items-center justify-center font-bold"
+        @click={append('9')}
+        @touchend.prevent={append('9')}
         x-text="9"
       ></button>
       <button
         type="button"
-        class="btn-press justify-center items-center flex flex-1"
+        class="btn-press flex flex-1 items-center justify-center"
         @click="backspaceScoreDigit($event)"
         @touchend.prevent="backspaceScoreDigit($event)"
       >
-        <BackspaceIcon class="size-6 text-text-muted" />
+        <BackspaceIcon class="text-muted-foreground size-6" />
       </button>
     </div>
   </div>
