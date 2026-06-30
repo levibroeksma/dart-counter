@@ -20,13 +20,13 @@ const checkoutHintFallback =
 <article class="game-panel p-3 h-40" data-testid="tuod-target-card">
   <div class="flex items-center justify-center flex-col gap-6">
     <div class="flex items-center justify-center flex-col gap-2">
-      <span class="text-sm text-text-muted font-mono uppercase tracking-wider">Target</span>
+      <span class="text-sm text-muted-foreground font-mono uppercase tracking-wider">Target</span>
       <span class="text-4xl font-bold" x-text={targetModel}>{target}</span>
     </div>
 
     <span
       class="checkout-hint"
-      :class={`{ 'text-text-muted': !${checkoutHintModel} }`}
+      :class={`{ 'text-muted-foreground': !${checkoutHintModel} }`}
       x-text={`${checkoutHintModel} || 'No checkout route'`}
     >
       {checkoutHintFallback}
