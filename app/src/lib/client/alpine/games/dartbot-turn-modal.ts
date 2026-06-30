@@ -4,6 +4,7 @@ type DelayResult = "elapsed" | "aborted";
 
 export type AnimateDartBotVisitOptions = {
   dartMs?: number;
+  holdMs?: number;
   onDart?: (segmentLabel: string, index: number) => void;
   onComplete?: () => void;
   signal?: AbortSignal;
@@ -16,14 +17,22 @@ export async function animateDartBotVisit(
   visit: SimulatedVisit,
   options: AnimateDartBotVisitOptions = {},
 ): Promise<void> {
-  const { dartMs = 550, onDart, onComplete, signal } = options;
+  const { dartMs = 550, holdMs = 0, onDart, onComplete, signal } = options;
+  let aborted = false;
 
   for (let index = 0; index < visit.darts.length; index += 1) {
     const result = await delayWithVisibilityPause(dartMs, signal);
-    if (result === "aborted") break;
+    if (result === "aborted") {
+      aborted = true;
+      break;
+    }
     const segmentLabel = visit.darts[index]?.actual.label;
     if (!segmentLabel) continue;
     onDart?.(segmentLabel, index);
+  }
+
+  if (!aborted && holdMs > 0) {
+    await delayWithVisibilityPause(holdMs, signal);
   }
 
   onComplete?.();

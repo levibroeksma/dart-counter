@@ -265,6 +265,8 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
         const landedLabels = simulated.visit.darts.map((dart) => dart.actual.label);
 
         await animateDartBotVisit(simulated.visit, {
+          dartMs: 800,
+          holdMs: 600,
           signal: this.botAbortController.signal,
           onDart: (segmentLabel, index) => {
             this.botModalSegmentLabel = segmentLabel;

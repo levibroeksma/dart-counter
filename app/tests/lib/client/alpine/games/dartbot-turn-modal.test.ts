@@ -46,6 +46,50 @@ describe("animateDartBotVisit", () => {
     expect(events).toEqual(["T20", "T20", "D20", "complete"]);
   });
 
+  it("waits holdMs after last dart before completing", async () => {
+    vi.useFakeTimers();
+    const events: string[] = [];
+
+    const done = animateDartBotVisit(buildVisit(["T20"]), {
+      dartMs: 400,
+      holdMs: 300,
+      onDart: (segmentLabel) => events.push(segmentLabel),
+      onComplete: () => events.push("complete"),
+    });
+
+    await vi.advanceTimersByTimeAsync(400);
+    expect(events).toEqual(["T20"]);
+
+    await vi.advanceTimersByTimeAsync(299);
+    expect(events).toEqual(["T20"]);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await done;
+    expect(events).toEqual(["T20", "complete"]);
+  });
+
+  it("skips hold delay when aborted", async () => {
+    vi.useFakeTimers();
+    const events: string[] = [];
+    const controller = new AbortController();
+
+    const done = animateDartBotVisit(buildVisit(["20", "5"]), {
+      dartMs: 500,
+      holdMs: 800,
+      onDart: (segmentLabel) => events.push(segmentLabel),
+      onComplete: () => events.push("complete"),
+      signal: controller.signal,
+    });
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(events).toEqual(["20"]);
+
+    controller.abort();
+    await done;
+
+    expect(events).toEqual(["20", "complete"]);
+  });
+
   it("skips remaining delays when aborted and still completes once", async () => {
     vi.useFakeTimers();
     const events: string[] = [];
