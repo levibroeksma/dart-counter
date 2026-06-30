@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "@api/games/501/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
+import { createEmptyPlayerDartStats } from "@lib/shared/stats";
 import {
   applyVisit,
   buildFiveOhOneSession,
@@ -11,6 +12,8 @@ import {
 const mockGetSession = vi.fn();
 const mockGetPlayer501Stats = vi.fn();
 const mockSavePlayer501Stats = vi.fn();
+const mockGetPlayerDartStats = vi.fn();
+const mockSavePlayerDartStats = vi.fn();
 const mockIncrementPlayCount = vi.fn();
 
 vi.mock("@lib/server/auth/session", () => ({
@@ -20,6 +23,11 @@ vi.mock("@lib/server/auth/session", () => ({
 vi.mock("@lib/server/data/player-501-stats", () => ({
   getPlayer501Stats: (...args: unknown[]) => mockGetPlayer501Stats(...args),
   savePlayer501Stats: (...args: unknown[]) => mockSavePlayer501Stats(...args),
+}));
+
+vi.mock("@lib/server/data/player-dart-stats", () => ({
+  getPlayerDartStats: (...args: unknown[]) => mockGetPlayerDartStats(...args),
+  savePlayerDartStats: (...args: unknown[]) => mockSavePlayerDartStats(...args),
 }));
 
 vi.mock("@lib/server/data/games", () => ({
@@ -37,6 +45,27 @@ function buildCompletedSession() {
   for (const score of [180, 180, 141]) {
     session = applyVisit(session, score);
   }
+
+  return session;
+}
+
+function buildCompletedSessionWithCheckoutMetadata() {
+  let session = buildFiveOhOneSession({
+    matchMode: "first-to",
+    targetCount: 1,
+    unit: "legs",
+    players: [{ id: "u1", type: "user", name: "Levi" }],
+  });
+
+  for (const score of [180, 180]) {
+    session = applyVisit(session, score);
+  }
+
+  session = applyVisit(session, 141, {
+    dartsOnDouble: 1,
+    dartsForFinish: 2,
+    dartsThrown: 2,
+  });
 
   return session;
 }
@@ -61,6 +90,8 @@ describe("POST /api/games/501/complete", () => {
     });
     mockGetPlayer501Stats.mockResolvedValue(createEmpty501Stats());
     mockSavePlayer501Stats.mockResolvedValue(undefined);
+    mockGetPlayerDartStats.mockResolvedValue(createEmptyPlayerDartStats());
+    mockSavePlayerDartStats.mockResolvedValue(undefined);
     mockIncrementPlayCount.mockResolvedValue(undefined);
   });
 
@@ -112,5 +143,11 @@ describe("POST /api/games/501/complete", () => {
       "00000000-0000-4000-8000-000000000001",
       "501",
     );
+  });
+
+  it("saves player_dart_stats on completion", async () => {
+    const session = buildCompletedSessionWithCheckoutMetadata();
+    await POST(createContext({ session }));
+    expect(mockSavePlayerDartStats).toHaveBeenCalledTimes(1);
   });
 });
