@@ -29,6 +29,13 @@
       "when": 1782044714899,
       "tag": "0003_release_501",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782845153559,
+      "tag": "0004_wakeful_human_robot",
+      "breakpoints": true
     }
   ]
 }

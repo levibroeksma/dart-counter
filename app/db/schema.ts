@@ -1,10 +1,12 @@
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
   primaryKey,
   real,
+  smallint,
   timestamp,
   uuid,
   varchar,
@@ -108,6 +110,38 @@ export const playerSinglesTrainingStats = pgTable(
     bestScore: integer("best_score").notNull().default(0),
   },
   (table) => [primaryKey({ columns: [table.userId, table.entryEnv] })],
+);
+
+export const playerStatCompletions = pgTable(
+  "player_stat_completions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    entryEnv: entryEnvColumn(),
+    gameSlug: varchar("game_slug", { length: 64 }).notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    pointsScored: integer("points_scored").notNull().default(0),
+    dartsThrown: integer("darts_thrown").notNull().default(0),
+    scoringPoints: integer("scoring_points").notNull().default(0),
+    scoringVisits: integer("scoring_visits").notNull().default(0),
+    doubleAttempts: integer("double_attempts").notNull().default(0),
+    doubleHits: integer("double_hits").notNull().default(0),
+    visits100Plus: smallint("visits_100_plus").notNull().default(0),
+    visits120Plus: smallint("visits_120_plus").notNull().default(0),
+    visits140Plus: smallint("visits_140_plus").notNull().default(0),
+    visits180: smallint("visits_180").notNull().default(0),
+    segmentHits: integer("segment_hits").notNull().default(0),
+    segmentAttempts: integer("segment_attempts").notNull().default(0),
+  },
+  (table) => [
+    index("player_stat_completions_user_completed_idx").on(
+      table.userId,
+      table.entryEnv,
+      table.completedAt,
+    ),
+  ],
 );
 
 export const gameSessions = pgTable(

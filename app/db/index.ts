@@ -19,6 +19,7 @@ export {
   playerDartStats,
   playerScoreTrainingStats,
   playerSinglesTrainingStats,
+  playerStatCompletions,
   userGamePlayCounts,
   userPreferences,
 } from "./schema";
