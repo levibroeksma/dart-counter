@@ -32,24 +32,29 @@ Current DartBot simulation does not match desired play feel or stat targets:
 | ---- | ------- |
 | **3-dart average** | Expected scoring level over time from current configuration. Indicates strength; actual results vary with checkout situations, target preference, and normal game variance. |
 | **Scoring average** | Expected average points per scoring visit. Indication only — true scores deviate during play. |
-| **Checkout percentage** | How often DartBot successfully finishes when throwing at a double. Formula: `checkouts / dartsOnDouble` (matches 501 summary `checkoutPercentage`). Displayed and validated as a **min–max range** per level. |
+| **Checkout percentage** | How often DartBot successfully finishes when throwing at a double. Formula: `checkouts / dartsOnDouble` (matches 501 summary `checkoutPercentage`). Displayed and validated as a **min–max range** per level. Per double attempt, a dedicated function picks a hit rate within that range (see §11). |
+| **Max deviation** | Per-level slack (points) allowed beyond the scoring / 3-dart average target range during Monte Carlo and match validation. See §3. |
 
 ---
 
 ## 3. Level stat ranges (all levels)
 
-| Lvl | 3-dart avg | Scoring avg | Checkout % |
-| --- | ---------- | ----------- | ---------- |
-| 1 | 30–40 | 37–47 | 8–30 |
-| 2 | 33–43 | 40–50 | 10–30 |
-| 3 | 37–47 | 43–53 | 10–35 |
-| 4 | 41–51 | 45–55 | 15–35 |
-| 5 | 45–55 | 48–58 | 15–40 |
-| 6 | 48–58 | 53–63 | 20–40 |
-| 7 | 52–62 | 57–67 | 20–45 |
-| 8 | 56–66 | 60–70 | 25–45 |
-| 9 | 64–74 | 68–78 | 30–50 |
-| 10 | 67–77 | 75–85 | 30–50 |
+Each stat uses `{ min, max, maxDeviation }`. **Target band** shown in UI: `min–max`. **Validation band** for tests: `[min - maxDeviation, max + maxDeviation]`.
+
+| Lvl | 3-dart avg | 3DA ± | Scoring avg | Scoring ± | Checkout % |
+| --- | ---------- | ----- | ----------- | --------- | ---------- |
+| 1 | 30–40 | 5 | 37–47 | 6 | 8–30 |
+| 2 | 33–43 | 5 | 40–50 | 6 | 10–30 |
+| 3 | 37–47 | 5 | 43–53 | 6 | 10–35 |
+| 4 | 41–51 | 5 | 45–55 | 6 | 15–35 |
+| 5 | 45–55 | 6 | 48–58 | 7 | 15–40 |
+| 6 | 48–58 | 6 | 53–63 | 7 | 20–40 |
+| 7 | 52–62 | 6 | 57–67 | 7 | 20–45 |
+| 8 | 56–66 | 7 | 60–70 | 8 | 25–45 |
+| 9 | 64–74 | 7 | 68–78 | 8 | 30–50 |
+| 10 | 67–77 | 7 | 75–85 | 8 | 30–50 |
+
+`maxDeviation` values are initial targets; tune during Monte Carlo calibration.
 
 ---
 
@@ -87,11 +92,17 @@ type DoubleOutcomes = {
   other: number;
 };
 
+type StatRange = {
+  min: number;
+  max: number;
+  maxDeviation: number; // points; validation slack beyond [min, max]
+};
+
 type LevelProfile = {
   level: number;
-  threeDartAverage: { min: number; max: number };
-  scoringAverage: { min: number; max: number };
-  checkoutPercentage: { min: number; max: number };
+  threeDartAverage: StatRange;
+  scoringAverage: StatRange;
+  checkoutPercentage: { min: number; max: number }; // percent 0–100; no maxDeviation (see per-dart function)
   scoring: {
     aim: "S20" | "T20";
     outcomes: ScoringOutcomes;
@@ -128,6 +139,7 @@ lib/shared/dartbot/
 ├── scoring-throw.ts        # scoring-visit distribution sampling
 ├── setup-throw.ts          # setup singles/trebles/bull distribution sampling
 ├── double-throw.ts         # double-finish distribution sampling
+├── checkout-hit-rate.ts    # per-dart double hit rate within checkout % range
 ├── throw-engine.ts         # dispatch by intent + target ring
 ├── checkout-target.ts      # getCheckoutHint(remaining) → next aim segment
 ├── dart-bot.ts             # simulateVisit with per-dart replanning
@@ -427,9 +439,40 @@ function nextCheckoutTarget(remaining: number): Segment | null {
 
 Resolve buckets relative to `target` using §7 rules and `segments.ts` neighbors.
 
+### Per-dart checkout hit rate (`checkout-hit-rate.ts`)
+
+Each double attempt gets its **own** hit probability within the level's checkout % range. Rates differ per dart in the same visit (e.g. dart 1 → 10%, dart 2 → 23%, dart 3 → 17% on a level 1 bot with range 8–30%).
+
+```ts
+/**
+ * Returns hit probability for one double attempt (0–1).
+ * Always within [checkoutPercentage.min, checkoutPercentage.max] / 100.
+ * Sampled independently per call so consecutive darts in a visit can differ.
+ */
+function checkoutHitRateForDart(
+  profile: SkillProfile,
+  dartIndexInVisit: 1 | 2 | 3,
+  rng: Rng,
+): number;
+```
+
+**Algorithm:**
+
+1. `min = profile.checkoutPercentage.min / 100`, `max = profile.checkoutPercentage.max / 100`.
+2. `rate = min + rng.next() * (max - min)` — uniform in range.
+3. Optional: `dartIndexInVisit` may seed a sub-range or stratified slice so darts 1–3 spread across the band (implementation choice; must stay within [min, max]).
+
+**Wiring into `throwDoubleDart`:**
+
+1. `hitRate = checkoutHitRateForDart(profile, dartIndex, rng)`.
+2. Scale base `profile.doubles.outcomes` miss buckets proportionally so `hit = hitRate * 100` (percent) and all buckets sum to 100.
+3. Sample bucket, resolve segment per §8.
+
+**Match-level checkout %** still aggregates across all double attempts; long-run Monte Carlo should land inside `checkoutPercentage` range (validation uses range only, not per-dart rates).
+
 ### Doubles (`double-throw.ts`)
 
-`throwDoubleDart(target, profile, rng)` — sample `profile.doubles.outcomes`; resolve per §8.
+`throwDoubleDart(target, profile, dartIndexInVisit, rng)` — dynamic hit rate from `checkoutHitRateForDart`, then sample scaled `profile.doubles.outcomes`; resolve per §8.
 
 ### Dispatch (`throw-engine.ts`)
 
@@ -446,7 +489,7 @@ function throwDart(
 | ------ | ------ |
 | `score` | `throwScoringDart` |
 | `setup` | `throwSetupDart(target, ...)` |
-| `checkout` | `throwDoubleDart(target, ...)` |
+| `checkout` | `throwDoubleDart(target, dartIndexInVisit, ...)` |
 
 ### `simulateVisit` changes
 
@@ -463,14 +506,15 @@ function throwDart(
 
 Per level 1–10: ≥500 scoring visits, ≥500 setup throws (singles + trebles), ≥500 double attempts.
 
-| Assert | Tolerance |
-| ------ | --------- |
-| Scoring average | within `scoringAverage` range |
-| 3-dart average | within `threeDartAverage` range |
-| Checkout % | within `checkoutPercentage` range |
+| Assert | Pass condition |
+| ------ | -------------- |
+| Scoring average | `scoringAverage.min - maxDeviation ≤ actual ≤ scoringAverage.max + maxDeviation` |
+| 3-dart average | `threeDartAverage.min - maxDeviation ≤ actual ≤ threeDartAverage.max + maxDeviation` |
+| Checkout % | within `checkoutPercentage` range (no extra deviation) |
 
 ### Unit tests
 
+- `checkout-hit-rate.test.ts` — each returned rate ∈ [min, max]; three calls in one visit can differ; scales double table correctly
 - `setup-throw.test.ts` — S12 neighbors are S5/S14; T14 neighbor trebles; bull other > outside at L1
 - `checkout-target.test.ts` — replan 74→60→55 uses S15 on third dart after hint update
 - `scoring-throw.test.ts`, `double-throw.test.ts`, `interpolate-levels.test.ts`
@@ -492,7 +536,7 @@ checkoutSuccessRate: `${min}–${max}%`;
 | `darts/checkout-hints.data.ts` | 55 → `["15", "D20"]`; audit safer singles |
 | `games/501/validation.ts` | `level <= 10` |
 | Settings UI | Slider max 10 |
-| `statistics-engine.ts` | Range-based checkout validation |
+| `statistics-engine.ts` | Range-based checkout validation; scoring/3DA use `maxDeviation` |
 | `AGENTS.md` | Level cap 10, new dartbot file layout |
 
 ---
@@ -514,4 +558,5 @@ checkoutSuccessRate: `${min}–${max}%`;
 4. Checkout range uses `getCheckoutHint` with per-dart replanning (player parity).
 5. `getCheckoutHint(55)` is `S15 → D20`; 74 miss example routes correctly.
 6. Bull setup: `other` >> `outside` at low levels.
-7. Monte Carlo passes for all 10 levels.
+7. Monte Carlo passes for all 10 levels within validation bands (§3 `maxDeviation`).
+8. `checkoutHitRateForDart` returns independent rates per double attempt, each within checkout % range.
