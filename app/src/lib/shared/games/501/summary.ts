@@ -1,5 +1,5 @@
-import { getOpponentPlayer } from "@lib/shared/games/501/bot-helpers";
-import { DARTS_PER_VISIT } from "@lib/shared/games/501/constants";
+import { getOpponentPlayer } from "./bot-helpers";
+import { DARTS_PER_VISIT } from "./constants";
 import type {
   FiveOhOneSession,
   FiveOhOneSettings,

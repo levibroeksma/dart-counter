@@ -3,10 +3,10 @@ import { generateMatchPlan } from "@lib/shared/dartbot/match-planner";
 import { createRng } from "@lib/shared/dartbot/rng";
 import type { SimulatedVisit } from "@lib/shared/dartbot/types";
 import { isFinishableCheckout } from "@lib/shared/darts/checkout-solver";
-import { isDartBotTurn } from "@lib/shared/games/501/bot-helpers";
-import { DARTS_PER_VISIT } from "@lib/shared/games/501/constants";
-import { hasPlayerWonMatch, hasPlayerWonSet } from "@lib/shared/games/501/match";
-import type { FiveOhOnePlayerState, FiveOhOneSession } from "@lib/shared/games/501/session";
+import { isDartBotTurn } from "./bot-helpers";
+import { DARTS_PER_VISIT } from "./constants";
+import { hasPlayerWonMatch, hasPlayerWonSet } from "./match";
+import type { FiveOhOnePlayerState, FiveOhOneSession } from "./types";
 import { deepClone } from "@lib/shared/utils/deep-clone";
 
 type SimulateDartBotVisitResult = {

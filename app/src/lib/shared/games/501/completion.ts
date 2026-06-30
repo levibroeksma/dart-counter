@@ -1,16 +1,16 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import {
-  isFiveOhOneSession,
-  type FiveOhOneGameState,
-  type FiveOhOneSession,
-  type FiveOhOneVisitRecord,
-} from "@lib/shared/games/501/session";
-import { applyVisit } from "@lib/shared/games/501/state";
+import { buildFiveOhOneSession } from "./session-factory";
+import { isFiveOhOneSession } from "./session";
+import type {
+  FiveOhOneGameState,
+  FiveOhOneSession,
+  FiveOhOneVisitRecord,
+} from "./types";
+import { applyVisit } from "./state";
 import {
   validateFiveOhOneSettings,
   validateVisitScore,
-} from "@lib/shared/games/501/validation";
+} from "./validation";
 
 export type ValidateCompletedFiveOhOneResult =
   | { valid: true; value: FiveOhOneSession }

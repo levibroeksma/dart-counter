@@ -1,13 +1,13 @@
-import { DARTS_PER_VISIT, STARTING_SCORE } from "@lib/shared/games/501/constants";
-import { hasPlayerWonMatch, hasPlayerWonSet } from "@lib/shared/games/501/match";
-import { lastTwoVisitsAreUserThenDartBot } from "@lib/shared/games/501/bot-helpers";
+import { DARTS_PER_VISIT, STARTING_SCORE } from "./constants";
+import { hasPlayerWonMatch, hasPlayerWonSet } from "./match";
+import { lastTwoVisitsAreUserThenDartBot } from "./bot-helpers";
 import type {
   FiveOhOneGameState,
   FiveOhOnePlayerState,
   FiveOhOneSession,
   FiveOhOneVisitRecord,
-} from "@lib/shared/games/501/session";
-import { classifyVisit } from "@lib/shared/games/501/visit";
+} from "./types";
+import { classifyVisit } from "./visit";
 import { deepClone } from "@lib/shared/utils/deep-clone";
 
 function cloneGameState(state: FiveOhOneGameState): FiveOhOneGameState {

@@ -1,4 +1,4 @@
-import { LEGS_PER_SET } from "@lib/shared/games/501/constants";
+import { LEGS_PER_SET } from "./constants";
 import type { FiveOhOneSettings } from "./types";
 
 export function estimateLegCount(settings: FiveOhOneSettings): number {

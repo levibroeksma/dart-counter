@@ -1,6 +1,6 @@
-import { hasPlayerWonMatch } from "@lib/shared/games/501/match";
+import { hasPlayerWonMatch } from "./match";
 import type { FiveOhOneSession, Player501Stats } from "./types";
-import { buildSummary } from "@lib/shared/games/501/summary";
+import { buildSummary } from "./summary";
 
 export type { Player501Stats } from "./types";
 
