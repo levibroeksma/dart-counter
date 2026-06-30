@@ -15,7 +15,7 @@ Every feature module under `app/src/lib/shared/` should follow this layout:
   *.ts          # logic files (private helpers stay unexported)
 ```
 
-**Pilot modules (barrels in place or in progress):** `games/501`, `dartbot`
+**Pilot modules (barrels complete):** `games/501`, `dartbot`
 **Pending rollout:** `games/score-training`, `games/singles-training`, `games/ten-up-one-down`, other shared subsystems
 
 When editing a module that already has a barrel, follow the rules below. When creating a new module, set up `types.ts` and `index.ts` from the start.
@@ -118,12 +118,12 @@ Do **not** export:
 
 Defined in `app/tsconfig.json`:
 
-| Alias | Path |
-| ----- | ---- |
-| `@lib/*` | `app/src/lib/*` |
+| Alias           | Path                   |
+| --------------- | ---------------------- |
+| `@lib/*`        | `app/src/lib/*`        |
 | `@components/*` | `app/src/components/*` |
-| `@api/*` | `app/src/pages/api/*` |
-| `@tests/*` | `app/tests/*` |
+| `@api/*`        | `app/src/pages/api/*`  |
+| `@tests/*`      | `app/tests/*`          |
 
 ---
 
@@ -135,6 +135,7 @@ After changes to shared modules:
 cd app
 npm run check
 npm test
+npx fallow # important to check if files are actually redundant, e.g. app.factory.ts is used in astro.config.mjs but is marked as unused
 npm run lint
 ```
 
@@ -143,4 +144,5 @@ npm run lint
 ## Related docs
 
 - Design spec: `docs/superpowers/specs/2026-06-30-module-barrels-types-design.md`
+- Rollout handoff: `docs/superpowers/context/module-barrels-types-handoff.md`
 - Feature specs: `docs/superpowers/specs/`
