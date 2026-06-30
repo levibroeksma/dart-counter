@@ -3,7 +3,7 @@ import {
   buildPartialDoubleModalQuestion,
   isSingleDartFinishable,
   maxDartsOnDoubleForPartialVisit,
-} from "@lib/shared/darts/checkout-partial";
+} from "@lib/shared/darts";
 
 describe("checkout-partial", () => {
   it("isSingleDartFinishable is true for 40 and 50, false for 51", () => {

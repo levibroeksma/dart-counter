@@ -50,6 +50,7 @@ export {
   type CheckoutModalKind,
   type Resolved501CheckoutModal,
 } from "./checkout-modal";
+export { classifyVisit } from "./visit";
 export { deriveBotVisitDartMetadata } from "./bot-dart-metadata";
 export { format501PlayerDisplayName } from "./display";
 

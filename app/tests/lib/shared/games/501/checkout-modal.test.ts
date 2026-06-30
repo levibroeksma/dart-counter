@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyVisit } from "@lib/shared/games/501/visit";
-import { resolve501CheckoutModal } from "@lib/shared/games/501/checkout-modal";
+import { classifyVisit, resolve501CheckoutModal } from "@lib/shared/games/501";
 
 describe("resolve501CheckoutModal", () => {
   it("returns finish modal on checkout", () => {
