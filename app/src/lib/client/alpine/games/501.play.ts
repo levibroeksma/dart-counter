@@ -4,7 +4,7 @@ import type {
   ApiResponse,
   FiveOhOneCompleteSuccess,
 } from "@lib/shared/api/types";
-import { getCheckoutHint, type ModalQuestion } from "@lib/shared/darts";
+import { getCheckoutHint, type ModalQuestion, isSingleDartFinishable } from "@lib/shared/darts";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
   applyVisit,
@@ -75,6 +75,7 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
     dartsOnDouble: null as number | null,
     dartsForFinish: null as number | null,
     pendingVisitScore: null as number | null,
+    pendingRemainingBefore: null as number | null,
     botRngBefore: null as number | null,
 
     get controlsDisabled() {
@@ -198,6 +199,7 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
         this.modalKind = resolvedModal.kind;
         this.modalQuestions = resolvedModal.questions;
         this.pendingVisitScore = visitScore;
+        this.pendingRemainingBefore = previewVisit.remainingBefore;
         this.dartsOnDouble = null;
         this.dartsForFinish = null;
         this.applyAutoValues();
@@ -232,6 +234,19 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       }
     },
 
+    selectDartsForFinish(n: number) {
+      this.dartsForFinish = n;
+      if (
+        this.pendingRemainingBefore !== null &&
+        isSingleDartFinishable(this.pendingRemainingBefore) &&
+        n === 1
+      ) {
+        this.dartsOnDouble = 1;
+      } else if (this.dartsOnDouble !== null && this.dartsOnDouble > n) {
+        this.dartsOnDouble = n;
+      }
+    },
+
     closeModal() {
       this.showModal = false;
       this.modalKind = null;
@@ -239,6 +254,7 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       this.dartsOnDouble = null;
       this.dartsForFinish = null;
       this.pendingVisitScore = null;
+      this.pendingRemainingBefore = null;
     },
 
     async commitVisit(
@@ -307,15 +323,19 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
             const scored = visit.remainingBefore - visit.remainingAfter;
             return total + (scored > 0 ? scored : 0);
           }, 0);
+          const totalDarts = botVisits.reduce(
+            (total, visit) => total + (visit.dartsThrown ?? 0),
+            0,
+          );
+          const doubleAttempts = botVisits.reduce(
+            (total, visit) => total + (visit.dartsOnDouble ?? 0),
+            0,
+          );
           const matchStats = {
-            threeDartAverage: botVisits.length === 0 ? 0 : pointsScored / botVisits.length,
+            threeDartAverage: totalDarts === 0 ? 0 : (pointsScored / totalDarts) * 3,
             scoringAverage: botVisits.length === 0 ? 0 : pointsScored / botVisits.length,
-            checkoutAverage:
-              checkouts.length === 0
-                ? 0
-                : checkouts.reduce((sum, visit) => sum + visit.remainingBefore, 0) /
-                  checkouts.length,
-            checkoutRate: botVisits.length === 0 ? 0 : checkouts.length / botVisits.length,
+            checkoutPercentage:
+              doubleAttempts === 0 ? 0 : (checkouts.length / doubleAttempts) * 100,
           };
           const validation = validateMatchStats(
             matchStats,

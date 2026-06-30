@@ -4,14 +4,11 @@ import { getSkillProfile, validateMatchStats } from "@lib/shared/dartbot";
 describe("validateMatchStats", () => {
   it("passes when actual stats within tolerance", () => {
     const profile = getSkillProfile(10);
-    const midpoint =
-      (profile.threeDartAverage.min + profile.threeDartAverage.max) / 2;
     const result = validateMatchStats(
       {
-        threeDartAverage: midpoint,
+        threeDartAverage: profile.threeDartAverage.min,
         scoringAverage: 80,
-        checkoutAverage: 30,
-        checkoutRate: 0.55,
+        checkoutPercentage: 35,
       },
       profile,
     );
@@ -24,8 +21,7 @@ describe("validateMatchStats", () => {
       {
         threeDartAverage: 20,
         scoringAverage: 20,
-        checkoutAverage: 5,
-        checkoutRate: 0.1,
+        checkoutPercentage: 5,
       },
       profile,
     );

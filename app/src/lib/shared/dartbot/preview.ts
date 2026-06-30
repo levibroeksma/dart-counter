@@ -4,7 +4,6 @@ const OPEN_ENDED_MAX = 999;
 
 export type DartbotLevelPreview = {
   threeDartAverage: string;
-  checkoutAverage: string;
   checkoutSuccessRate: string;
 };
 
@@ -26,7 +25,6 @@ export function formatDartbotLevelPreview(level: number): DartbotLevelPreview {
       profile.threeDartAverage.min,
       profile.threeDartAverage.max,
     ),
-    checkoutAverage: String(Math.round(profile.checkout.average)),
-    checkoutSuccessRate: `${Math.round(profile.checkout.successRate * 100)}%`,
+    checkoutSuccessRate: `${profile.checkoutPercentage.min}–${profile.checkoutPercentage.max}%`,
   };
 }

@@ -5,24 +5,14 @@ describe("formatDartbotLevelPreview", () => {
   it("formats anchor level 1", () => {
     expect(formatDartbotLevelPreview(1)).toEqual({
       threeDartAverage: "30–40",
-      checkoutAverage: "8",
-      checkoutSuccessRate: "30%",
+      checkoutSuccessRate: "8–30%",
     });
   });
 
   it("formats anchor level 10", () => {
     expect(formatDartbotLevelPreview(10)).toEqual({
       threeDartAverage: "67–77",
-      checkoutAverage: "30",
-      checkoutSuccessRate: "55%",
-    });
-  });
-
-  it("formats level 15 with open-ended scoring average", () => {
-    expect(formatDartbotLevelPreview(15)).toEqual({
-      threeDartAverage: "90+",
-      checkoutAverage: "45",
-      checkoutSuccessRate: "80%",
+      checkoutSuccessRate: "30–50%",
     });
   });
 

@@ -72,7 +72,7 @@ describe("fiveOhOneSettings", () => {
       id: expect.any(String),
       type: "dartbot",
       name: "DartBot",
-      level: 12,
+      level: 10,
     });
   });
 
@@ -83,8 +83,7 @@ describe("fiveOhOneSettings", () => {
 
     expect(component.dartbotLevelPreview).toEqual({
       threeDartAverage: "67–77",
-      checkoutAverage: "30",
-      checkoutSuccessRate: "55%",
+      checkoutSuccessRate: "30–50%",
     });
   });
 

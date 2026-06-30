@@ -27,4 +27,16 @@ describe("generateMatchPlan", () => {
     expect(extended).toHaveLength(5);
     expect(extended.slice(0, 3)).toEqual(plan.legTargets);
   });
+
+  it("uses asymmetric leg deviation bands for sampling", () => {
+    const skill = getSkillProfile(10);
+    const plan = generateMatchPlan(skill, 50, 7);
+    const midpoint =
+      (skill.threeDartAverage.min + skill.threeDartAverage.max) / 2;
+    const offsets = plan.legTargets.map((value) => value - midpoint);
+    const minOffset = Math.min(...offsets);
+    const maxOffset = Math.max(...offsets);
+
+    expect(Math.abs(maxOffset)).toBeGreaterThan(Math.abs(minOffset));
+  });
 });

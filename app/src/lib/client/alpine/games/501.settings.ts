@@ -49,7 +49,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
 
     get dartbotLevelPreview() {
       const level = Math.min(
-        15,
+        10,
         Math.max(1, Math.round(Number(this.dartbotLevel) || 1)),
       );
       return formatDartbotLevelPreview(level);
@@ -108,7 +108,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
     confirmDartBot() {
       if (this.hasOpponent) return;
       const level = Math.min(
-        15,
+        10,
         Math.max(1, Math.round(Number(this.dartbotLevel) || 1)),
       );
       this.dartbotLevel = level;
@@ -133,7 +133,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
 
     serializePlayers(): string {
       const level = Math.min(
-        15,
+        10,
         Math.max(1, Math.round(Number(this.dartbotLevel) || 1)),
       );
       const players = this.players.map((player) =>
