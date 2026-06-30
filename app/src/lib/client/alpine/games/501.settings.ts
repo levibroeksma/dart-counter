@@ -1,5 +1,5 @@
 import Alpine from "alpinejs";
-import type { FiveOhOnePlayer } from "@lib/shared/games/501/settings";
+import type { FiveOhOnePlayer } from "@lib/shared/games/501/types";
 import { createId } from "@lib/shared/utils/id";
 import {
   MIN_TARGET_COUNT_LEGS,

@@ -7,10 +7,7 @@ import {
   MIN_TARGET_COUNT_SETS,
   MIN_VISIT_SCORE,
 } from "@lib/shared/games/501/constants";
-import type {
-  FiveOhOnePlayer,
-  FiveOhOneSettings,
-} from "@lib/shared/games/501/settings";
+import type { FiveOhOnePlayer, FiveOhOneSettings } from "./types";
 
 export type ValidateSettingsResult =
   | { valid: true; value: FiveOhOneSettings }

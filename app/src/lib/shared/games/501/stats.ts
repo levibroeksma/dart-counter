@@ -1,15 +1,8 @@
 import { hasPlayerWonMatch } from "@lib/shared/games/501/match";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
+import type { FiveOhOneSession, Player501Stats } from "./types";
 import { buildSummary } from "@lib/shared/games/501/summary";
 
-export type Player501Stats = {
-  gamesCompleted: number;
-  gamesWon: number;
-  totalDartsThrown: number;
-  totalCheckouts: number;
-  bestLegAverage: number;
-  bestMatchAverage: number;
-};
+export type { Player501Stats } from "./types";
 
 /**
  * Creates a zeroed aggregate stats object for 501 player history.

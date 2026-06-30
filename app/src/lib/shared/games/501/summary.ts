@@ -1,22 +1,13 @@
 import { getOpponentPlayer } from "@lib/shared/games/501/bot-helpers";
 import { DARTS_PER_VISIT } from "@lib/shared/games/501/constants";
-import type { FiveOhOneSettings } from "@lib/shared/games/501/settings";
 import type {
   FiveOhOneSession,
+  FiveOhOneSettings,
+  FiveOhOneSummary,
   FiveOhOneVisitRecord,
-} from "@lib/shared/games/501/session";
+} from "./types";
 
-export type FiveOhOneSummary = {
-  resultLabel: string;
-  matchFormatLabel: string;
-  legsPlayed: number;
-  userThreeDartAverage: number;
-  userDartsThrown: number;
-  checkouts: number;
-  guestThreeDartAverage?: number;
-  guestDartsThrown?: number;
-  guestCheckouts?: number;
-};
+export type { FiveOhOneSummary } from "./types";
 
 type PlayerSummaryStats = {
   threeDartAverage: number;

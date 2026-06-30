@@ -1,59 +1,14 @@
-import type { MatchPlan } from "@lib/shared/dartbot/types";
-import type { FiveOhOneSettings } from "@lib/shared/games/501/settings";
+import type { FiveOhOneSession } from "./types";
 
-export type FiveOhOneGameStatus = "active" | "completed";
-export type FiveOhOnePhase = "starter" | "play" | "summary";
-
-export type FiveOhOnePlayerState = {
-  playerId: string;
-  remaining: number;
-  dartsThisLeg: number;
-  lastVisitScore: number | null;
-  legsWonInSet: number;
-  setsWon: number;
-  totalLegsWon: number;
-};
-
-export type FiveOhOneGameState = {
-  status: FiveOhOneGameStatus;
-  phase: FiveOhOnePhase;
-  currentPlayerId: string;
-  currentLeg: number;
-  currentSet: number;
-  players: FiveOhOnePlayerState[];
-  scoreAtVisitStart: number;
-  legStartingPlayerId: string;
-};
-
-export type FiveOhOneBotState = {
-  matchPlan: MatchPlan;
-  rngState: number;
-  currentLegIndex: number;
-};
-
-export type FiveOhOneVisitRecord = {
-  visitNumber: number;
-  playerId: string;
-  visitScore: number;
-  remainingBefore: number;
-  remainingAfter: number;
-  bust: boolean;
-  checkout: boolean;
-  legNumber: number;
-  setNumber: number;
-  stateSnapshot: FiveOhOneGameState;
-  botRngBefore?: number;
-};
-
-export type FiveOhOneSession = {
-  slug: "501";
-  settings: FiveOhOneSettings;
-  state: FiveOhOneGameState;
-  visitHistory: FiveOhOneVisitRecord[];
-  createdAt: string;
-  updatedAt: string;
-  botState?: FiveOhOneBotState;
-};
+export type {
+  FiveOhOneBotState,
+  FiveOhOneGameState,
+  FiveOhOneGameStatus,
+  FiveOhOnePhase,
+  FiveOhOnePlayerState,
+  FiveOhOneSession,
+  FiveOhOneVisitRecord,
+} from "./types";
 
 export function isFiveOhOneSession(value: unknown): value is FiveOhOneSession {
   if (!value || typeof value !== "object") return false;

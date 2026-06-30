@@ -1,7 +1,4 @@
-import type {
-  FiveOhOnePlayer,
-} from "@lib/shared/games/501/settings";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
+import type { FiveOhOnePlayer, FiveOhOneSession } from "./types";
 
 function getPlayerById(session: FiveOhOneSession, playerId: string): FiveOhOnePlayer | undefined {
   return session.settings.players.find((player) => player.id === playerId);

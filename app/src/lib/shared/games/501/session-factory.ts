@@ -3,8 +3,7 @@ import { generateMatchPlan } from "@lib/shared/dartbot/match-planner";
 import { createRng, hashSeed } from "@lib/shared/dartbot/rng";
 import { STARTING_SCORE } from "@lib/shared/games/501/constants";
 import { estimateLegCount } from "@lib/shared/games/501/leg-estimate";
-import type { FiveOhOneSettings } from "@lib/shared/games/501/settings";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
+import type { FiveOhOneSession, FiveOhOneSettings } from "./types";
 
 function createPlayerState(playerId: string) {
   return {

@@ -1,10 +1,7 @@
 import { isFinishableCheckout } from "@lib/shared/darts/checkout-solver";
+import type { VisitClassification } from "./types";
 
-export type VisitClassification = {
-  bust: boolean;
-  checkout: boolean;
-  remainingAfter: number;
-};
+export type { VisitClassification } from "./types";
 
 /**
  * Classifies a visit outcome from remaining score and visit total.
