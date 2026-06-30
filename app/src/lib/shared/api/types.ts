@@ -1,6 +1,6 @@
 import type { MessageCode } from "@lib/shared/constants/errors.constants";
 import type { GameConfig, GameType } from "@lib/shared/games/types";
-import type { FiveOhOneSummary } from "@lib/shared/games/501/summary";
+import type { FiveOhOneSummary } from "@lib/shared/games/501";
 import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
 import type { ScoreTrainingSummary } from "@lib/shared/games/score-training/summary";
 import type { SinglesTrainingSummary } from "@lib/shared/games/singles-training/summary";
