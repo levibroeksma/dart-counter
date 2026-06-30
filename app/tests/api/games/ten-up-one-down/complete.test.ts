@@ -26,7 +26,7 @@ vi.mock("@lib/server/data/games", () => ({
 }));
 
 function buildCompletedRoundsSession() {
-  let session = buildTenUpOneDownSession({ endMode: "rounds", roundCount: 2 });
+  const session = buildTenUpOneDownSession({ endMode: "rounds", roundCount: 2 });
   for (let i = 0; i < 2; i++) {
     const round = buildRoundRecord(session.state.currentRound, session.state.currentTarget, {
       outcome: "failure",

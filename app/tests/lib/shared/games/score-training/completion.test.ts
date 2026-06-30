@@ -7,7 +7,7 @@ import { buildRoundRecord } from "@lib/shared/games/score-training/round";
 
 describe("validateCompletedScoreTrainingSession", () => {
   it("accepts a legitimately completed rounds session", () => {
-    let session = buildScoreTrainingSession({ endMode: "rounds", roundCount: 2 });
+    const session = buildScoreTrainingSession({ endMode: "rounds", roundCount: 2 });
     for (let i = 0; i < 2; i++) {
       const round = buildRoundRecord(session.state.currentRound, 60, session.state.currentScore);
       session.state = applyRoundToState(session.state, round, session.settings);
@@ -25,7 +25,7 @@ describe("validateCompletedScoreTrainingSession", () => {
   });
 
   it("rejects tampered running totals", () => {
-    let session = buildScoreTrainingSession({ endMode: "rounds", roundCount: 1 });
+    const session = buildScoreTrainingSession({ endMode: "rounds", roundCount: 1 });
     const round = buildRoundRecord(1, 60, session.state.currentScore);
     session.state = applyRoundToState(session.state, round, session.settings);
     session.roundHistory.push({ ...round, runningTotal: 999 });

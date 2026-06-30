@@ -7,7 +7,7 @@ import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
 
 describe("applyGameCompletionToStats", () => {
   it("applies all rounds from session to player dart stats", () => {
-    let session = buildTenUpOneDownSession({ endMode: "rounds", roundCount: 2 });
+    const session = buildTenUpOneDownSession({ endMode: "rounds", roundCount: 2 });
     const success = buildRoundRecord(1, 41, {
       outcome: "success",
       dartsForFinish: 2,

@@ -13,6 +13,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest run --passWithNoTests",
+    "lint": "eslint src tests scripts",
     "test:watch": "vitest",
     "seed:auth": "npx tsx scripts/seed-neon-auth-user.ts",
     "deploy": "netlify deploy --prod",
@@ -34,12 +35,15 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/alpinejs__persist": "^3.13.4",
     "drizzle-kit": "^0.31.10",
+    "eslint": "^10.6.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.8.4",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "typescript-eslint": "^8.62.1",
     "vitest": "^4.1.8"
   }
 }

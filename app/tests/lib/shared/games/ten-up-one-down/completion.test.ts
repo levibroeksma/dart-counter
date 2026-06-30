@@ -6,7 +6,7 @@ import { applyRoundToState } from "@lib/shared/games/ten-up-one-down/state";
 import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
 
 function buildCompletedRoundsSession(roundCount = 2) {
-  let session = buildTenUpOneDownSession({ endMode: "rounds", roundCount });
+  const session = buildTenUpOneDownSession({ endMode: "rounds", roundCount });
   for (let i = 0; i < roundCount; i++) {
     const round = buildRoundRecord(session.state.currentRound, session.state.currentTarget, {
       outcome: "failure",

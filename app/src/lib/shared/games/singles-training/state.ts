@@ -68,7 +68,7 @@ export function applyDartToSession(
   const segmentCounts = { ...session.state.segmentCounts };
   segmentCounts[record.outcome.type] += 1;
 
-  let next: SinglesTrainingSession = {
+  const next: SinglesTrainingSession = {
     ...session,
     dartHistory: [...session.dartHistory, record],
     state: {

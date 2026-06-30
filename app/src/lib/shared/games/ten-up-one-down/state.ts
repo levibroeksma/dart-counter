@@ -22,7 +22,7 @@ export function applyRoundToState(
   round.targetAfter = target;
 
   let status = state.status;
-  let currentRound = state.currentRound + 1;
+  const currentRound = state.currentRound + 1;
 
   if (completedOn170) {
     status = "completed";

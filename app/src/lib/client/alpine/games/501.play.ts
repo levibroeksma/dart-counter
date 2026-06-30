@@ -249,7 +249,7 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       this.botModalSegmentLabel = "Thinking...";
       this.botModalDartLabels = [];
       this.botAbortController = new AbortController();
-      let visitScore = 0;
+      let visitScore: number;
 
       try {
         const simulated = simulateDartBotVisitForSession(this.session);
