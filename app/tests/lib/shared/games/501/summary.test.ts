@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import { buildSummary } from "@lib/shared/games/501/summary";
+import { buildFiveOhOneSession, buildSummary } from "@lib/shared/games/501";
 
 describe("buildSummary", () => {
   it("builds completed 1-player summary", () => {

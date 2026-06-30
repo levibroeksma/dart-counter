@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { LEGS_PER_SET, STARTING_SCORE } from "@lib/shared/games/501/constants";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
 import {
   applyVisit,
+  buildFiveOhOneSession,
+  LEGS_PER_SET,
   revertLastOpponentPair,
   revertLastVisit,
-} from "@lib/shared/games/501/state";
+  STARTING_SCORE,
+} from "@lib/shared/games/501";
 
 const onePlayerSettings = {
   matchMode: "first-to" as const,

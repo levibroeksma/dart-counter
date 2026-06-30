@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "@api/games/501/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { createEmpty501Stats } from "@lib/shared/games/501/stats";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import { applyVisit } from "@lib/shared/games/501/state";
+import {
+  applyVisit,
+  buildFiveOhOneSession,
+  createEmpty501Stats,
+} from "@lib/shared/games/501";
 
 const mockGetSession = vi.fn();
 const mockGetPlayer501Stats = vi.fn();

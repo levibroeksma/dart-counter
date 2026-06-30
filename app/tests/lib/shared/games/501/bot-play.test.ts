@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import { simulateDartBotVisitForSession } from "@lib/shared/games/501/bot-play";
+import {
+  buildFiveOhOneSession,
+  simulateDartBotVisitForSession,
+} from "@lib/shared/games/501";
 import { deepClone } from "@lib/shared/utils/deep-clone";
 
 function buildDartBotSession() {

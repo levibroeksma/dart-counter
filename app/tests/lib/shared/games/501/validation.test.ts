@@ -3,7 +3,7 @@ import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
   validateFiveOhOneSettings,
   validateVisitScore,
-} from "@lib/shared/games/501/validation";
+} from "@lib/shared/games/501";
 
 describe("validateFiveOhOneSettings", () => {
   const userPlayer = { id: "u1", type: "user" as const, name: "Levi" };

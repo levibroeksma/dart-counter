@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
 import {
+  applyVisit,
+  buildFiveOhOneSession,
   canUndoDartBotPair,
   getOpponentPlayer,
   isDartBotSession,
   isDartBotTurn,
   lastTwoVisitsAreUserThenDartBot,
-} from "@lib/shared/games/501/bot-helpers";
-import { applyVisit } from "@lib/shared/games/501/state";
+} from "@lib/shared/games/501";
 
 const botSettings = {
   matchMode: "first-to" as const,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseFiveOhOneSettingsFormData } from "@lib/shared/games/501/form-data";
+import { parseFiveOhOneSettingsFormData } from "@lib/shared/games/501";
 
 describe("parseFiveOhOneSettingsFormData", () => {
   it("parses match format fields and players JSON", () => {

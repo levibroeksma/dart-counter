@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { STARTING_SCORE } from "@lib/shared/games/501/constants";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
+import { buildFiveOhOneSession, STARTING_SCORE } from "@lib/shared/games/501";
 
 const settings1P = {
   matchMode: "best-of" as const,

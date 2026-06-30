@@ -15,10 +15,12 @@ import {
   clearPersistedFiveOhOneSession,
   fiveOhOnePlay,
 } from "@lib/client/alpine/games/501.play";
-import { buildSummary } from "@lib/shared/games/501/summary";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import { applyVisit } from "@lib/shared/games/501/state";
+import {
+  applyVisit,
+  buildFiveOhOneSession,
+  buildSummary,
+  type FiveOhOneSession,
+} from "@lib/shared/games/501";
 
 beforeAll(() => {
   (Alpine as unknown as Record<string, unknown>).$persist = (
