@@ -1,7 +1,7 @@
 ---
-
+const {class: className = "", ...props} = Astro.props;
 ---
 
-<article class="card w-full h-fit">
+<article class={`card w-full h-fit ${className}`} {...props}>
   <slot>Card content</slot>
 </article>
