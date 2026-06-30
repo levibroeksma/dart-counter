@@ -1,6 +1,7 @@
 ---
 
 import SummaryStatRow from "../SummaryStatRow.astro";
+import SummaryActions from "../SummaryActions.astro";
 interface Props {
   showSummaryModel?: string;
   summaryModel?: string;
@@ -37,22 +38,5 @@ const summary = {
     }
   </dl>
 
-  <div class="grid grid-cols-2 gap-3">
-    <h3 class="font-semibold text-lg col-span-2">Do you want to play again?</h3>
-    <a
-      href="/games"
-      class="btn-secondary btn-press font-medium flex items-center justify-center"
-      :class={loadingModel + " && 'pointer-events-none opacity-50'"}
-    >
-      <span>No</span>
-    </a>
-    <button
-      type="button"
-      class="btn-primary btn-press"
-      :disabled={loadingModel}
-      @click="playAgain()"
-    >
-      Yes
-    </button>
-  </div>
+  <SummaryActions variant="yes-no" disabledModel={loadingModel} />
 </article>
