@@ -19,3 +19,11 @@ export {
 
 // Visit milestones
 export { countVisitMilestones } from "./milestones";
+
+// Profile metrics
+export {
+  computeProfileMetrics,
+  computeSparklineSeries,
+  computeMonthDelta,
+  type MonthDelta,
+} from "./profile-metrics";
