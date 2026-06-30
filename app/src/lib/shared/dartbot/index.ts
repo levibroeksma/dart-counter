@@ -1,18 +1,29 @@
 export type {
   BotCheckoutRoute,
+  BullSetupOutcomes,
+  ConvergenceBias,
+  ConvergenceConfig,
+  DeviationBand,
+  DoubleOutcomes,
   LevelProfile,
   MatchPlan,
   MatchStats,
   Rng,
+  ScoringOutcomes,
   Segment,
   SegmentLabel,
+  SetRunningStats,
+  SetupOutcomes,
   SimulatedDart,
   SimulatedVisit,
   SimulateVisitContext,
   SkillProfile,
+  StatRange,
   StatsValidation,
   ThrowIntent,
 } from "./types";
+
+export { createEmptySetRunningStats } from "./types";
 
 export { simulateVisit } from "./dart-bot";
 export { ANCHOR_LEVELS, getSkillProfile } from "./levels";
