@@ -4,7 +4,7 @@ import type {
   ApiResponse,
   FiveOhOneCompleteSuccess,
 } from "@lib/shared/api/types";
-import { getCheckoutHint } from "@lib/shared/darts";
+import { getCheckoutHint, type ModalQuestion } from "@lib/shared/darts";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
   applyVisit,
@@ -13,14 +13,17 @@ import {
   buildSummary,
   canUndoDartBotPair,
   canUndoUserCheckoutBeforeBotLegStart,
+  deriveBotVisitDartMetadata,
   isDartBotSession,
   isDartBotTurn,
   isFiveOhOneSession,
   isMatchWinningCheckoutPossible,
   revertLastOpponentPair,
   revertLastVisit,
+  resolve501CheckoutModal,
   simulateDartBotVisitForSession,
   validateVisitScore,
+  type CheckoutModalKind,
   type FiveOhOneSession,
   type FiveOhOneSummary,
 } from "@lib/shared/games/501";
@@ -64,13 +67,26 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
     botModalSegmentLabel: "—",
     botModalDartLabels: [] as string[],
     botAbortController: null as AbortController | null,
+    showModal: false,
+    modalKind: null as CheckoutModalKind | null,
+    modalQuestions: [] as ModalQuestion[],
+    dartsOnDouble: null as number | null,
+    dartsForFinish: null as number | null,
+    pendingVisitScore: null as number | null,
+    botRngBefore: null as number | null,
 
     get controlsDisabled() {
-      return !this.ready || this.showSummary || this.persisting || this.botTurnActive;
+      return (
+        !this.ready ||
+        this.showSummary ||
+        this.persisting ||
+        this.botTurnActive ||
+        this.showModal
+      );
     },
 
     get canUndo() {
-      if (!this.session) return false;
+      if (!this.session || this.showModal) return false;
       if (isDartBotSession(this.session)) {
         return (
           canUndoDartBotPair(this.session) ||
@@ -78,6 +94,15 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
         );
       }
       return this.session.visitHistory.length > 0;
+    },
+
+    get modalCanSubmit() {
+      if (this.dartsOnDouble === null) return false;
+      if (this.modalKind === "finish") {
+        if (this.dartsForFinish === null) return false;
+        return this.dartsOnDouble <= this.dartsForFinish;
+      }
+      return true;
     },
 
     appendScoreDigit(digit: string, event?: Event) {
@@ -131,22 +156,99 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       this.session.state.legStartingPlayerId = playerId;
       this.session.state.currentPlayerId = playerId;
       this.session.state.phase = "play";
+      void this.maybePlayBotTurn();
     },
 
     async submitVisit() {
       if (
         !this.session ||
         this.session.state.phase !== "play" ||
-        this.botTurnActive
+        this.botTurnActive ||
+        isDartBotTurn(this.session) ||
+        this.showModal
       ) {
         return;
       }
       const validation = validateVisitScore(this.score);
       if (!validation.valid) return;
+      const visitScore = validation.value;
+      const previewSession = applyVisit(this.session, visitScore);
+      const previewVisit = previewSession.visitHistory.at(-1);
+      if (!previewVisit) return;
 
-      const botRngBefore = this.session.botState?.rngState;
-      this.session = applyVisit(this.session, validation.value, { botRngBefore });
+      const resolvedModal = resolve501CheckoutModal(
+        previewVisit.remainingBefore,
+        visitScore,
+        {
+          bust: previewVisit.bust,
+          checkout: previewVisit.checkout,
+          remainingAfter: previewVisit.remainingAfter,
+        },
+      );
+
+      this.botRngBefore = this.session.botState?.rngState ?? null;
+      if (resolvedModal) {
+        this.showModal = true;
+        this.modalKind = resolvedModal.kind;
+        this.modalQuestions = resolvedModal.questions;
+        this.pendingVisitScore = visitScore;
+        this.dartsOnDouble = null;
+        this.dartsForFinish = null;
+        this.applyAutoValues();
+        this.score = null;
+        return;
+      }
+      await this.commitVisit(visitScore);
+    },
+
+    undoVisit() {
+      if (!this.session || this.persisting || this.botTurnActive || this.showModal) return;
+      if (isDartBotSession(this.session)) {
+        if (canUndoUserCheckoutBeforeBotLegStart(this.session)) {
+          this.session = revertLastVisit(this.session);
+          return;
+        }
+        this.session = revertLastOpponentPair(this.session);
+        return;
+      }
+      this.session = revertLastVisit(this.session);
+    },
+
+    applyAutoValues() {
+      for (const question of this.modalQuestions) {
+        if (question.autoValue === undefined) continue;
+        if (question.id === "dartsOnDouble") {
+          this.dartsOnDouble = question.autoValue;
+        }
+        if (question.id === "dartsForFinish") {
+          this.dartsForFinish = question.autoValue;
+        }
+      }
+    },
+
+    closeModal() {
+      this.showModal = false;
+      this.modalKind = null;
+      this.modalQuestions = [];
+      this.dartsOnDouble = null;
+      this.dartsForFinish = null;
+      this.pendingVisitScore = null;
+    },
+
+    async commitVisit(
+      visitScore: number,
+      dartMeta?: { dartsOnDouble: number; dartsForFinish?: number },
+    ) {
+      if (!this.session || this.session.state.phase !== "play") return;
+      const botRngBefore = this.botRngBefore ?? this.session.botState?.rngState;
+      this.session = applyVisit(this.session, visitScore, {
+        botRngBefore: botRngBefore ?? undefined,
+        dartsOnDouble: dartMeta?.dartsOnDouble,
+        dartsForFinish: dartMeta?.dartsForFinish,
+      });
       this.score = null;
+      this.pendingVisitScore = null;
+      this.botRngBefore = null;
 
       if (this.session.state.status === "completed") {
         this.completeMatch();
@@ -159,17 +261,22 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       }
     },
 
-    undoVisit() {
-      if (!this.session || this.persisting || this.botTurnActive) return;
-      if (isDartBotSession(this.session)) {
-        if (canUndoUserCheckoutBeforeBotLegStart(this.session)) {
-          this.session = revertLastVisit(this.session);
-          return;
-        }
-        this.session = revertLastOpponentPair(this.session);
+    async modalSubmit() {
+      if (!this.session || this.pendingVisitScore === null || !this.modalCanSubmit) {
         return;
       }
-      this.session = revertLastVisit(this.session);
+      const visitScore = this.pendingVisitScore;
+      const dartMeta =
+        this.modalKind === "finish"
+          ? {
+              dartsOnDouble: this.dartsOnDouble as number,
+              dartsForFinish: this.dartsForFinish as number,
+            }
+          : {
+              dartsOnDouble: this.dartsOnDouble as number,
+            };
+      this.closeModal();
+      await this.commitVisit(visitScore, dartMeta);
     },
 
     completeMatch() {
@@ -258,10 +365,14 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       this.botModalDartLabels = [];
       this.botAbortController = new AbortController();
       let visitScore: number;
+      let dartMeta:
+        | ReturnType<typeof deriveBotVisitDartMetadata>
+        | undefined;
 
       try {
         const simulated = simulateDartBotVisitForSession(this.session);
         this.session = simulated.session;
+        dartMeta = deriveBotVisitDartMetadata(simulated.visit);
         const landedLabels = simulated.visit.darts.map((dart) => dart.actual.label);
 
         await animateDartBotVisit(simulated.visit, {
@@ -292,7 +403,7 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
         return;
       }
 
-      this.session = applyVisit(this.session, visitScore);
+      this.session = applyVisit(this.session, visitScore, dartMeta);
       this.botTurnActive = false;
 
       if (this.session.state.status === "completed") {
@@ -312,6 +423,7 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
         const data = (await response.json()) as ApiResponse;
         if (!data.ok) {
           this.error = t(data.code ?? MessageCode.SERVER_ERROR);
+          this.persisting = false;
           return;
         }
         const success = data as FiveOhOneCompleteSuccess;
@@ -320,6 +432,7 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
         this.persisting = false;
       } catch {
         this.error = t(MessageCode.NETWORK_ERROR);
+        this.persisting = false;
       }
     },
 

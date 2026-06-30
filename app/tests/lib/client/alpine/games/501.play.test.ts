@@ -10,6 +10,7 @@ import {
   vi,
 } from "vitest";
 import Alpine from "alpinejs";
+import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
   FIVE_OH_ONE_SESSION_KEY,
   clearPersistedFiveOhOneSession,
@@ -66,6 +67,18 @@ function buildTwoPlayerStarterSession(): FiveOhOneSession {
   });
 }
 
+function buildDartBotStarterSession(): FiveOhOneSession {
+  return buildFiveOhOneSession({
+    matchMode: "first-to",
+    targetCount: 1,
+    unit: "legs",
+    players: [
+      { id: "u1", type: "user", name: "Levi" },
+      { id: "b1", type: "dartbot", name: "DartBot", level: 8 },
+    ],
+  });
+}
+
 function buildDartBotPlaySession(): FiveOhOneSession {
   const session = buildFiveOhOneSession({
     matchMode: "first-to",
@@ -117,6 +130,37 @@ describe("fiveOhOnePlay", () => {
     expect(play.session?.state.legStartingPlayerId).toBe("g1");
   });
 
+  it("selectStarter auto-plays dartbot after delay when bot starts", async () => {
+    vi.useFakeTimers();
+    const play = fiveOhOnePlay(buildDartBotStarterSession());
+    const runSpy = vi.spyOn(play, "runDartBotTurn").mockResolvedValue();
+    play.ready = true;
+
+    play.selectStarter("b1");
+
+    expect(play.session?.state.currentPlayerId).toBe("b1");
+    expect(play.botTurnActive).toBe(true);
+    expect(runSpy).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(runSpy).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("submitVisit ignores manual input while dartbot is current player", async () => {
+    const settings = buildDartBotStarterSession().settings;
+    const play = fiveOhOnePlay(buildFiveOhOneSession(settings, "b1"));
+    vi.spyOn(play, "runDartBotTurn").mockResolvedValue();
+    play.init();
+    play.botTurnActive = false;
+    play.score = "60";
+
+    await play.submitVisit();
+
+    expect(play.session?.visitHistory).toHaveLength(0);
+  });
+
   it("submitVisit applies visit locally without fetch", () => {
     const play = fiveOhOnePlay(buildOnePlayerSession());
     play.init();
@@ -128,6 +172,33 @@ describe("fiveOhOnePlay", () => {
     expect(play.session?.visitHistory).toHaveLength(1);
     expect(play.session?.state.players[0]?.remaining).toBe(441);
     expect(play.score).toBeNull();
+  });
+
+  it("submitVisit treats empty score as zero and applies visit", async () => {
+    const play = fiveOhOnePlay(buildOnePlayerSession());
+    play.init();
+    play.score = null;
+
+    await play.submitVisit();
+
+    expect(play.session?.visitHistory).toHaveLength(1);
+    expect(play.session?.visitHistory[0]?.visitScore).toBe(0);
+    expect(play.session?.state.players[0]?.remaining).toBe(501);
+  });
+
+  it("submitVisit defers applyVisit when checkout modal is required", async () => {
+    const session = buildOnePlayerSession();
+    session.state.players[0]!.remaining = 40;
+    const play = fiveOhOnePlay(session);
+    play.init();
+    play.score = "20";
+
+    await play.submitVisit();
+
+    expect(play.session?.visitHistory).toHaveLength(0);
+    expect(play.showModal).toBe(true);
+    expect(play.modalKind).toBe("partial");
+    expect(play.pendingVisitScore).toBe(20);
   });
 
   it("undoVisit reverts user + dartbot pair in dartbot sessions", () => {
@@ -192,6 +263,32 @@ describe("fiveOhOnePlay", () => {
     expect(
       sessionStorage.getItem(Alpine.prefixed(FIVE_OH_ONE_SESSION_KEY)),
     ).toBeNull();
+  });
+
+  it("persistCompletion resets persisting when API returns error", async () => {
+    const play = fiveOhOnePlay(buildOnePlayerSession());
+    play.init();
+    play.persisting = true;
+    vi.mocked(fetch).mockResolvedValue({
+      json: async () => ({ ok: false, code: MessageCode.SERVER_ERROR }),
+    } as Response);
+
+    await play.persistCompletion();
+
+    expect(play.persisting).toBe(false);
+    expect(play.error.length).toBeGreaterThan(0);
+  });
+
+  it("persistCompletion resets persisting on network failure", async () => {
+    const play = fiveOhOnePlay(buildOnePlayerSession());
+    play.init();
+    play.persisting = true;
+    vi.mocked(fetch).mockRejectedValue(new Error("network"));
+
+    await play.persistCompletion();
+
+    expect(play.persisting).toBe(false);
+    expect(play.error.length).toBeGreaterThan(0);
   });
 
   it("blocks playAgain and back while persisting", () => {
