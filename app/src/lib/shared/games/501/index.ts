@@ -8,6 +8,7 @@ export type {
   FiveOhOnePhase,
   FiveOhOnePlayer,
   FiveOhOnePlayerState,
+  FiveOhOnePlayerSummary,
   FiveOhOneSession,
   FiveOhOneSettings,
   FiveOhOneSummary,

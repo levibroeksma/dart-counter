@@ -86,17 +86,29 @@ export type FiveOhOneSession = {
   botState?: FiveOhOneBotState;
 };
 
+export type FiveOhOnePlayerSummary = {
+  playerId: string;
+  displayName: string;
+  isBot: boolean;
+  isGuest: boolean;
+  isWinner: boolean;
+  setsWon: number;
+  legsWon: number;
+  threeDartAverage: number;
+  firstNineAverage: number | null;
+  checkoutRate: number | null;
+  checkoutsMade: number;
+  checkoutAttempts: number;
+  highestFinish: number | null;
+  highestScore: number | null;
+  bestLegDarts: number | null;
+  worstLegDarts: number | null;
+};
+
 export type FiveOhOneSummary = {
-  resultLabel: string;
-  matchFormatLabel: string;
-  legsPlayed: number;
-  userThreeDartAverage: number;
-  userDartsThrown: number;
-  checkouts: number;
-  userCheckoutPercentage: number;
-  guestThreeDartAverage?: number;
-  guestDartsThrown?: number;
-  guestCheckouts?: number;
+  winnerDisplayName: string;
+  showSetsRow: boolean;
+  players: FiveOhOnePlayerSummary[];
 };
 
 export type Player501Stats = {
