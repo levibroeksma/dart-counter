@@ -1,0 +1,41 @@
+---
+import Dartboard from "@components/games/501/Dartboard.astro";
+
+interface Props {
+  openModel?: string;
+  segmentLabelModel?: string;
+  skipAction?: string;
+  segmentLabels?: string[];
+}
+
+const {
+  openModel = "dartBotTurnModalOpen",
+  segmentLabelModel = "dartBotCurrentSegmentLabel",
+  skipAction = "skipDartBotTurnAnimation()",
+  segmentLabels = [],
+} = Astro.props;
+---
+
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+  x-show={openModel}
+  x-cloak
+  role="dialog"
+  aria-modal="true"
+  aria-label="DartBot turn"
+>
+  <div class="card-interactive w-full max-w-md rounded-md p-4 @sm:p-5" @click.stop>
+    <p class="text-xs uppercase tracking-[0.18em] text-text-muted">DartBot turn</p>
+    <p class="mt-2 text-2xl font-mono font-bold text-text-primary" x-text={segmentLabelModel}>
+      —
+    </p>
+
+    <div class="mt-4">
+      <Dartboard segmentLabels={segmentLabels} />
+    </div>
+
+    <button type="button" class="btn-secondary btn-press mt-4 w-full" @click={skipAction}>
+      Skip
+    </button>
+  </div>
+</div>
