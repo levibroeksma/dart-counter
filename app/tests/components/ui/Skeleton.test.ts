@@ -20,6 +20,7 @@ describe(".skeleton utility", () => {
     const source = readSource("src/styles/global.css");
     expect(source).toContain(".skeleton");
     expect(source).toContain("prefers-reduced-motion");
-    expect(source).toContain("bg-white/10");
+    expect(source).toContain("animate-pulse");
+    expect(source).toContain("--color-gray-900");
   });
 });
