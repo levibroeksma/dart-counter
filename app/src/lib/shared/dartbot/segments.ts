@@ -2,6 +2,14 @@ import type { Segment } from "./types";
 
 const BOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
+export const OUTSIDE_SEGMENT: Segment = {
+  label: "outside",
+  score: 0,
+  ring: "single",
+  base: 0,
+  adjacent: [],
+};
+
 export function boardNeighbors(base: number): number[] {
   return neighbors(base);
 }
