@@ -64,6 +64,21 @@ function buildTwoPlayerStarterSession(): FiveOhOneSession {
   });
 }
 
+function buildDartBotPlaySession(): FiveOhOneSession {
+  const session = buildFiveOhOneSession({
+    matchMode: "first-to",
+    targetCount: 1,
+    unit: "legs",
+    players: [
+      { id: "u1", type: "user", name: "Levi" },
+      { id: "b1", type: "dartbot", name: "DartBot", level: 8 },
+    ],
+  });
+  session.state.phase = "play";
+  session.state.currentPlayerId = "u1";
+  return session;
+}
+
 describe("fiveOhOnePlay", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
@@ -111,6 +126,23 @@ describe("fiveOhOnePlay", () => {
     expect(play.session?.visitHistory).toHaveLength(1);
     expect(play.session?.state.players[0]?.remaining).toBe(441);
     expect(play.score).toBeNull();
+  });
+
+  it("undoVisit reverts user + dartbot pair in dartbot sessions", () => {
+    const play = fiveOhOnePlay(buildDartBotPlaySession());
+    play.init();
+    if (!play.session?.botState) throw new Error("Expected bot state");
+    const rngBefore = play.session.botState.rngState;
+
+    play.session = applyVisit(play.session, 60, { botRngBefore: rngBefore });
+    play.session = applyVisit(play.session, 45);
+    if (!play.session.botState) throw new Error("Expected bot state");
+    play.session.botState.rngState = rngBefore + 99;
+
+    play.undoVisit();
+
+    expect(play.session.visitHistory).toHaveLength(0);
+    expect(play.session.botState?.rngState).toBe(rngBefore);
   });
 
   it("completeMatch builds local summary before persist and sets persisting", () => {

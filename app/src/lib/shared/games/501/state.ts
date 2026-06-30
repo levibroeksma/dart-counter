@@ -106,6 +106,10 @@ export function applyVisit(
       nextState.status = "active";
       nextState.scoreAtVisitStart = STARTING_SCORE;
     }
+
+    if (sessionBase.botState) {
+      sessionBase.botState.currentLegIndex += 1;
+    }
   } else if (isTwoPlayer) {
     nextState.currentPlayerId = getOpponentId(nextState.players, currentPlayer.playerId);
   }

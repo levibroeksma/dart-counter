@@ -29,24 +29,30 @@ const {
     />
     <SummaryStatRow label="Your darts thrown" value={`String(${summaryModel}?.userDartsThrown ?? 0)`} />
     <SummaryStatRow label="Checkouts" value={`String(${summaryModel}?.checkouts ?? 0)`} />
-    <SummaryStatRow
-      label="Guest 3-dart average"
-      value={`(${summaryModel}?.guestThreeDartAverage ?? 0).toFixed(1)`}
-      x-show={hasGuestExpr}
-      x-cloak
-    />
-    <SummaryStatRow
-      label="Guest darts thrown"
-      value={`String(${summaryModel}?.guestDartsThrown ?? 0)`}
-      x-show={hasGuestExpr}
-      x-cloak
-    />
-    <SummaryStatRow
-      label="Guest checkouts"
-      value={`String(${summaryModel}?.guestCheckouts ?? 0)`}
-      x-show={hasGuestExpr}
-      x-cloak
-    />
+    <div class="flex justify-between font-mono" x-show={hasGuestExpr} x-cloak>
+      <dt
+        class="text-text-muted"
+        x-text="`${session?.settings.players.find((player) => player.type !== 'user')?.name ?? 'Opponent'} 3-dart average`"
+      ></dt>
+      <dd
+        class="font-bold"
+        x-text={`(${summaryModel}?.guestThreeDartAverage ?? 0).toFixed(1)`}
+      ></dd>
+    </div>
+    <div class="flex justify-between font-mono" x-show={hasGuestExpr} x-cloak>
+      <dt
+        class="text-text-muted"
+        x-text="`${session?.settings.players.find((player) => player.type !== 'user')?.name ?? 'Opponent'} darts thrown`"
+      ></dt>
+      <dd class="font-bold" x-text={`String(${summaryModel}?.guestDartsThrown ?? 0)`}></dd>
+    </div>
+    <div class="flex justify-between font-mono" x-show={hasGuestExpr} x-cloak>
+      <dt
+        class="text-text-muted"
+        x-text="`${session?.settings.players.find((player) => player.type !== 'user')?.name ?? 'Opponent'} checkouts`"
+      ></dt>
+      <dd class="font-bold" x-text={`String(${summaryModel}?.guestCheckouts ?? 0)`}></dd>
+    </div>
   </dl>
 
   <div class="grid grid-cols-2 gap-3">

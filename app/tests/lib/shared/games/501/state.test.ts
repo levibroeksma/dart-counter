@@ -98,6 +98,29 @@ describe("applyVisit", () => {
     expect(next.visitHistory[0]!.botRngBefore).toBe(12345);
   });
 
+  it("increments bot leg index after checkout", () => {
+    const session = buildFiveOhOneSession(
+      {
+        matchMode: "first-to",
+        targetCount: 2,
+        unit: "legs",
+        players: [
+          { id: "u1", type: "user", name: "Levi" },
+          { id: "b1", type: "dartbot", name: "DartBot", level: 10 },
+        ],
+      },
+      "b1",
+    );
+    session.state.phase = "play";
+    session.state.currentPlayerId = "b1";
+    session.state.players[1]!.remaining = 40;
+    session.botState!.currentLegIndex = 0;
+
+    const next = applyVisit(session, 40);
+
+    expect(next.botState!.currentLegIndex).toBe(1);
+  });
+
   it("starts new set after winning deciding leg in a set", () => {
     const session = buildFiveOhOneSession({
       ...twoPlayerSettings,

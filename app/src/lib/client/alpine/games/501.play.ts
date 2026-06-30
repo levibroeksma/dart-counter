@@ -11,12 +11,27 @@ import {
   isFiveOhOneSession,
   type FiveOhOneSession,
 } from "@lib/shared/games/501/session";
+import {
+  canUndoDartBotPair,
+  isDartBotSession,
+  isDartBotTurn,
+} from "@lib/shared/games/501/bot-helpers";
 import type { FiveOhOneSummary } from "@lib/shared/games/501/summary";
 import {
   buildSummary,
   buildMatchFormatLabel,
 } from "@lib/shared/games/501/summary";
-import { applyVisit, revertLastVisit } from "@lib/shared/games/501/state";
+import {
+  isMatchWinningCheckoutPossible,
+  simulateDartBotVisitForSession,
+} from "@lib/shared/games/501/bot-play";
+import { validateMatchStats } from "@lib/shared/dartbot/statistics-engine";
+import { animateDartBotVisit } from "@lib/client/alpine/games/dartbot-turn-modal";
+import {
+  applyVisit,
+  revertLastOpponentPair,
+  revertLastVisit,
+} from "@lib/shared/games/501/state";
 import { validateVisitScore } from "@lib/shared/games/501/validation";
 import { t } from "@lib/shared/i18n";
 import * as scoreInput from "@lib/client/alpine/score-input";
@@ -26,6 +41,10 @@ export const FIVE_OH_ONE_SESSION_KEY = "501-session";
 /** Removes the persisted in-progress 501 session from sessionStorage. */
 export function clearPersistedFiveOhOneSession(): void {
   sessionStorage.removeItem(Alpine.prefixed(FIVE_OH_ONE_SESSION_KEY));
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function getPlayerVisits(session: FiveOhOneSession, playerId: string) {
@@ -47,9 +66,22 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
     showSummary: false,
     summary: null as FiveOhOneSummary | null,
     persisting: false,
+    botTurnActive: false,
+    botModalOpen: false,
+    botModalSegmentLabel: "—",
+    botModalDartLabels: [] as string[],
+    botAbortController: null as AbortController | null,
 
     get controlsDisabled() {
-      return !this.ready || this.showSummary || this.persisting;
+      return !this.ready || this.showSummary || this.persisting || this.botTurnActive;
+    },
+
+    get canUndo() {
+      if (!this.session) return false;
+      if (isDartBotSession(this.session)) {
+        return canUndoDartBotPair(this.session);
+      }
+      return this.session.visitHistory.length > 0;
     },
 
     appendScoreDigit(digit: string, event?: Event) {
@@ -77,6 +109,7 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
         return;
       }
       this.ready = true;
+      void this.maybePlayBotTurn();
     },
 
     leave() {
@@ -104,30 +137,165 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       this.session.state.phase = "play";
     },
 
-    submitVisit() {
-      if (!this.session || this.session.state.phase !== "play") return;
+    async submitVisit() {
+      if (
+        !this.session ||
+        this.session.state.phase !== "play" ||
+        this.botTurnActive
+      ) {
+        return;
+      }
       const validation = validateVisitScore(this.score);
       if (!validation.valid) return;
 
-      this.session = applyVisit(this.session, validation.value);
+      const botRngBefore = this.session.botState?.rngState;
+      this.session = applyVisit(this.session, validation.value, { botRngBefore });
       this.score = null;
 
       if (this.session.state.status === "completed") {
         this.completeMatch();
+        return;
+      }
+
+      if (isDartBotTurn(this.session)) {
+        this.botTurnActive = true;
+        await this.runDartBotTurn();
       }
     },
 
     undoVisit() {
-      if (!this.session || this.persisting) return;
+      if (!this.session || this.persisting || this.botTurnActive) return;
+      if (isDartBotSession(this.session)) {
+        this.session = revertLastOpponentPair(this.session);
+        return;
+      }
       this.session = revertLastVisit(this.session);
     },
 
     completeMatch() {
       if (!this.session) return;
+      if (this.session.botState) {
+        const dartBot = this.session.settings.players.find(
+          (player) => player.type === "dartbot",
+        );
+        if (dartBot?.type === "dartbot") {
+          const botVisits = this.session.visitHistory.filter(
+            (visit) => visit.playerId === dartBot.id,
+          );
+          const checkouts = botVisits.filter((visit) => visit.checkout);
+          const pointsScored = botVisits.reduce((total, visit) => {
+            const scored = visit.remainingBefore - visit.remainingAfter;
+            return total + (scored > 0 ? scored : 0);
+          }, 0);
+          const matchStats = {
+            threeDartAverage: botVisits.length === 0 ? 0 : pointsScored / botVisits.length,
+            scoringAverage: botVisits.length === 0 ? 0 : pointsScored / botVisits.length,
+            checkoutAverage:
+              checkouts.length === 0
+                ? 0
+                : checkouts.reduce((sum, visit) => sum + visit.remainingBefore, 0) /
+                  checkouts.length,
+            checkoutRate: botVisits.length === 0 ? 0 : checkouts.length / botVisits.length,
+          };
+          const validation = validateMatchStats(
+            matchStats,
+            this.session.botState.matchPlan.skill,
+          );
+          if (validation.withinTolerance) {
+            console.debug("DartBot match stats validation", validation);
+          } else {
+            console.log("DartBot match stats outside tolerance", validation);
+          }
+        }
+      }
       this.summary = buildSummary(this.session);
       this.showSummary = true;
       this.persisting = true;
       void this.persistCompletion();
+    },
+
+    async maybePlayBotTurn() {
+      if (
+        !this.session ||
+        this.session.state.phase !== "play" ||
+        !isDartBotTurn(this.session) ||
+        this.botTurnActive
+      ) {
+        return;
+      }
+      this.botTurnActive = true;
+      const delayMs = isMatchWinningCheckoutPossible(this.session) ? 300 : 500;
+      await wait(delayMs);
+
+      if (
+        !this.session ||
+        this.session.state.phase !== "play" ||
+        !isDartBotTurn(this.session)
+      ) {
+        this.botTurnActive = false;
+        return;
+      }
+
+      await this.runDartBotTurn();
+    },
+
+    skipDartBotTurnAnimation() {
+      this.botAbortController?.abort();
+    },
+
+    async runDartBotTurn() {
+      if (
+        !this.session ||
+        this.session.state.phase !== "play" ||
+        !isDartBotTurn(this.session)
+      ) {
+        this.botTurnActive = false;
+        return;
+      }
+
+      this.botModalOpen = true;
+      this.botModalSegmentLabel = "Thinking...";
+      this.botModalDartLabels = [];
+      this.botAbortController = new AbortController();
+      let visitScore = 0;
+
+      try {
+        const simulated = simulateDartBotVisitForSession(this.session);
+        this.session = simulated.session;
+        const landedLabels = simulated.visit.darts.map((dart) => dart.actual.label);
+
+        await animateDartBotVisit(simulated.visit, {
+          signal: this.botAbortController.signal,
+          onDart: (segmentLabel, index) => {
+            this.botModalSegmentLabel = segmentLabel;
+            this.botModalDartLabels = landedLabels.slice(0, index + 1);
+          },
+          onComplete: () => {
+            this.botModalDartLabels = landedLabels;
+          },
+        });
+
+        visitScore = simulated.visit.visitScore;
+      } catch (error) {
+        console.debug("DartBot simulation failed; applying fallback visit", error);
+        visitScore = 0;
+      } finally {
+        this.botAbortController = null;
+        this.botModalOpen = false;
+        this.botModalSegmentLabel = "—";
+      }
+
+      if (!this.session) {
+        this.botTurnActive = false;
+        return;
+      }
+
+      this.session = applyVisit(this.session, visitScore);
+      this.botTurnActive = false;
+
+      if (this.session.state.status === "completed") {
+        this.completeMatch();
+      }
     },
 
     async persistCompletion() {
