@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { createRng, getSkillProfile } from "@lib/shared/dartbot";
+import { getSkillProfile } from "@lib/shared/dartbot";
 import { chooseIntent } from "@lib/shared/dartbot/strategy-engine";
-import { chooseScoringTarget } from "@lib/shared/dartbot/route-engine";
 
 describe("strategy-engine", () => {
   it("chooses checkout when remaining <= 170 and finishable", () => {
@@ -49,12 +48,3 @@ describe("strategy-engine", () => {
   });
 });
 
-describe("route-engine", () => {
-  it("defaults to T20 for scoring", () => {
-    const rng = createRng(1);
-    expect(
-      chooseScoringTarget({ skill: getSkillProfile(15), legTarget: 72, rng })
-        .label,
-    ).toBe("T20");
-  });
-});

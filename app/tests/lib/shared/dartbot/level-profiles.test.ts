@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ANCHOR_PROFILES,
   LEVEL_STAT_RANGES,
-} from "@lib/shared/dartbot/level-profiles";
+} from "../../../../src/lib/shared/dartbot/level-profiles";
 
 function sumWeights(record: Record<string, number>): number {
   return Object.values(record).reduce((a, b) => a + b, 0);

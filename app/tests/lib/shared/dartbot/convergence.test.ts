@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeConvergenceBias, getSkillProfile } from "@lib/shared/dartbot";
-import { isWithinStatBand } from "@lib/shared/dartbot/stat-validation";
+import { isWithinStatBand } from "../../../../src/lib/shared/dartbot/stat-validation";
 import type { SetRunningStats } from "@lib/shared/dartbot";
 
 function baselineSetStats(level = 10): SetRunningStats {

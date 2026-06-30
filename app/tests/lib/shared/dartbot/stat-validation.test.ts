@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isWithinStatBand } from "@lib/shared/dartbot/stat-validation";
+import { isWithinStatBand } from "../../../../src/lib/shared/dartbot/stat-validation";
 import { getSkillProfile } from "@lib/shared/dartbot";
 
 describe("isWithinStatBand", () => {

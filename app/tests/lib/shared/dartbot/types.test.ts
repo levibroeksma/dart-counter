@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type {
-  DeviationBand,
   DoubleOutcomes,
-  LevelProfile,
   StatRange,
-} from "@lib/shared/dartbot/types";
+} from "../../../../src/lib/shared/dartbot/types";
 
 describe("dartbot distribution types", () => {
   it("StatRange includes leg and set deviation bands", () => {

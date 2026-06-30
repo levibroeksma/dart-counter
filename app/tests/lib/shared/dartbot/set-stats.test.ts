@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeSetRunningStats,
   type BotVisitForStats,
-} from "@lib/shared/dartbot/set-stats";
+} from "../../../../src/lib/shared/dartbot/set-stats";
 
 describe("computeSetRunningStats", () => {
   it("computes set running stats from bot visits", () => {

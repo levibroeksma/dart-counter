@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRng, getSkillProfile } from "@lib/shared/dartbot";
-import { checkoutHitRateForDart } from "@lib/shared/dartbot/checkout-hit-rate";
+import { checkoutHitRateForDart } from "../../../../src/lib/shared/dartbot/checkout-hit-rate";
 
 describe("checkoutHitRateForDart", () => {
   it("returns rates within the checkout range", () => {

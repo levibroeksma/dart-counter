@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLevelProfile } from "@lib/shared/dartbot/interpolate-levels";
+import { buildLevelProfile } from "../../../../src/lib/shared/dartbot/interpolate-levels";
 
 function sumWeights(record: Record<string, number>): number {
   return Object.values(record).reduce((a, b) => a + b, 0);

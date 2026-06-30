@@ -10,6 +10,9 @@ export class CheckoutPlanner {
   ) {}
 
   route(remaining: number, skill: SkillProfile): BotCheckoutRoute {
+    if (remaining < 131 || remaining > 170) {
+      throw new Error("CheckoutPlanner supports setup-zone scores (131-170) only");
+    }
     const routes = this.knowledge.routes(remaining);
     if (routes.length === 0) throw new Error(`No route for ${remaining}`);
     return this.policy.select(routes, skill);

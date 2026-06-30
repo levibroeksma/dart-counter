@@ -240,7 +240,6 @@ export const LEVEL_STAT_RANGES: Array<{
 
 export const ANCHOR_PROFILES: LevelProfile[] = [
   {
-    level: 1,
     ...LEVEL_STAT_RANGES[0]!,
     scoring: { aim: "S20", outcomes: L1_SCORING_OUTCOMES },
     setup: {
@@ -253,7 +252,6 @@ export const ANCHOR_PROFILES: LevelProfile[] = [
     convergence: L1_CONVERGENCE,
   },
   {
-    level: 5,
     ...LEVEL_STAT_RANGES[4]!,
     scoring: { aim: "T20", outcomes: L5_SCORING_OUTCOMES },
     setup: {
@@ -266,7 +264,6 @@ export const ANCHOR_PROFILES: LevelProfile[] = [
     convergence: L5_CONVERGENCE,
   },
   {
-    level: 10,
     ...LEVEL_STAT_RANGES[9]!,
     scoring: { aim: "T20", outcomes: L10_SCORING_OUTCOMES },
     setup: {

@@ -6,7 +6,7 @@ import {
   type ConvergenceBias,
   type Rng,
 } from "@lib/shared/dartbot";
-import { throwScoringDart } from "@lib/shared/dartbot/scoring-throw";
+import { throwScoringDart } from "../../../../src/lib/shared/dartbot/scoring-throw";
 
 const zeroBias: ConvergenceBias = {
   scoringHitShift: 0,

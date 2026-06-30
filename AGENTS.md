@@ -163,6 +163,14 @@ Do **not** export: sibling-only helpers, subsystem internals (e.g. `dartbot/chec
 
 Shared infra: `lib/shared/games/types.ts` (`SEED_GAMES`), `paths.ts`, `codes.ts`, `components.ts`.
 
+### Dartbot simulation guardrails
+
+| Topic | Rule |
+| ----- | ---- |
+| Level cap | Dartbot levels are `1-10` only; clamp/validate all external level input to this range. |
+| Throw model | Use weighted outcome distributions (`scoring-throw.ts`, `setup-throw.ts`, `double-throw.ts`) with convergence hit-shift adjustments; do not reintroduce route/miss engines. |
+| File layout | Keep orchestration in `dart-bot.ts`/`throw-engine.ts`, profile math in `level-profiles.ts` + `interpolate-levels.ts`, and checkout routing in `checkout/*` (setup-zone planning only for `131-170`). |
+
 ### Client session pattern
 
 All released games use client-authoritative play:

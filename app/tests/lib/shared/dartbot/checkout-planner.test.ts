@@ -6,23 +6,31 @@ import { evaluateSetupRoute } from "@lib/shared/dartbot/checkout/CheckoutEvaluat
 import { getSkillProfile } from "@lib/shared/dartbot/levels";
 
 describe("CheckoutPlanner", () => {
+  const knowledge = createCheckoutKnowledge();
   const planner = new CheckoutPlanner(
-    createCheckoutKnowledge(),
+    knowledge,
     new SkillCheckoutPolicy(),
   );
 
-  it("selects best route at level 10", () => {
-    const route = planner.route(81, getSkillProfile(10));
-    expect(route.darts[0]!.label).toBe("T19");
-    expect(route.quality).toBe(95);
+  it("selects the highest-quality setup-zone route at level 10", () => {
+    const remaining = 170;
+    const route = planner.route(remaining, getSkillProfile(10));
+    const bestQuality = Math.max(...knowledge.routes(remaining).map((r) => r.quality));
+    expect(route.quality).toBe(bestQuality);
   });
 
-  it("may select suboptimal route at level 1", () => {
+  it("can select non-optimal route at lower levels", () => {
     const routes = Array.from({ length: 20 }, () =>
-      planner.route(81, getSkillProfile(1)),
+      planner.route(170, getSkillProfile(1)),
     );
     const qualities = new Set(routes.map((r) => r.quality));
     expect(qualities.size).toBeGreaterThanOrEqual(1);
+  });
+
+  it("throws outside setup zone", () => {
+    expect(() => planner.route(130, getSkillProfile(10))).toThrow(
+      "CheckoutPlanner supports setup-zone scores (131-170) only",
+    );
   });
 });
 

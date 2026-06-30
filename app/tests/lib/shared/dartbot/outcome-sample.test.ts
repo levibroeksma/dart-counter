@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyHitShift, sampleWeightedBucket } from "@lib/shared/dartbot/outcome-sample";
+import { applyHitShift, sampleWeightedBucket } from "../../../../src/lib/shared/dartbot/outcome-sample";
 import { createRng } from "@lib/shared/dartbot";
 
 describe("outcome-sample", () => {
