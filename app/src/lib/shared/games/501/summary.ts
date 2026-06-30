@@ -1,3 +1,4 @@
+import { getOpponentPlayer } from "@lib/shared/games/501/bot-helpers";
 import { DARTS_PER_VISIT } from "@lib/shared/games/501/constants";
 import type { FiveOhOneSettings } from "@lib/shared/games/501/settings";
 import type {
@@ -78,9 +79,9 @@ export function buildSummary(session: FiveOhOneSession): FiveOhOneSummary {
   const userPlayer = session.settings.players.find(
     (player) => player.type === "user",
   );
-  const guestPlayer = session.settings.players.find(
-    (player) => player.type === "guest",
-  );
+  const opponentPlayer = userPlayer
+    ? getOpponentPlayer(session, userPlayer.id)
+    : undefined;
   const userStats = userPlayer
     ? getPlayerSummaryStats(session.visitHistory, userPlayer.id)
     : { threeDartAverage: 0, dartsThrown: 0, checkouts: 0 };
@@ -94,14 +95,14 @@ export function buildSummary(session: FiveOhOneSession): FiveOhOneSummary {
     checkouts: userStats.checkouts,
   };
 
-  if (session.settings.players.length === 2 && guestPlayer) {
-    const guestStats = getPlayerSummaryStats(
+  if (session.settings.players.length === 2 && opponentPlayer) {
+    const opponentStats = getPlayerSummaryStats(
       session.visitHistory,
-      guestPlayer.id,
+      opponentPlayer.id,
     );
-    summary.guestThreeDartAverage = guestStats.threeDartAverage;
-    summary.guestDartsThrown = guestStats.dartsThrown;
-    summary.guestCheckouts = guestStats.checkouts;
+    summary.guestThreeDartAverage = opponentStats.threeDartAverage;
+    summary.guestDartsThrown = opponentStats.dartsThrown;
+    summary.guestCheckouts = opponentStats.checkouts;
   }
 
   return summary;

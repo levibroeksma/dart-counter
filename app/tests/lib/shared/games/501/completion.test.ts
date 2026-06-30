@@ -4,6 +4,28 @@ import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
 import { applyVisit } from "@lib/shared/games/501/state";
 import { validateCompletedFiveOhOneSession } from "@lib/shared/games/501/completion";
 
+function buildCompletedDartBotSession() {
+  let session = buildFiveOhOneSession(
+    {
+      matchMode: "first-to",
+      targetCount: 1,
+      unit: "legs",
+      players: [
+        { id: "u1", type: "user", name: "Levi" },
+        { id: "b1", type: "dartbot", name: "DartBot", level: 10 },
+      ],
+    },
+    "u1",
+  );
+
+  for (const score of [180, 180, 180, 180, 141]) {
+    session = applyVisit(session, score);
+  }
+
+  session.botState!.rngState = 999999;
+  return session;
+}
+
 function buildCompletedSession() {
   let session = buildFiveOhOneSession({
     matchMode: "first-to",
@@ -48,6 +70,16 @@ describe("validateCompletedFiveOhOneSession", () => {
 
     const result = validateCompletedFiveOhOneSession(session);
     expect(result).toEqual({ valid: false, code: MessageCode.INVALID_SCORE });
+  });
+
+  it("replays completed dartbot session ignoring botState", () => {
+    const session = buildCompletedDartBotSession();
+    const result = validateCompletedFiveOhOneSession(session);
+
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.state.status).toBe("completed");
+    }
   });
 
   it("rejects invalid shape", () => {

@@ -162,4 +162,67 @@ describe("buildSummary", () => {
       guestCheckouts: 1,
     });
   });
+
+  it("includes opponent stats for dartbot", () => {
+    const session = buildFiveOhOneSession(
+      {
+        matchMode: "first-to",
+        targetCount: 3,
+        unit: "legs",
+        players: [
+          { id: "u1", type: "user", name: "Levi" },
+          { id: "b1", type: "dartbot", name: "DartBot", level: 10 },
+        ],
+      },
+      "u1",
+    );
+
+    session.state.status = "completed";
+    session.state.phase = "summary";
+    session.visitHistory = [
+      {
+        visitNumber: 1,
+        playerId: "u1",
+        visitScore: 100,
+        remainingBefore: 501,
+        remainingAfter: 401,
+        bust: false,
+        checkout: false,
+        legNumber: 1,
+        setNumber: 1,
+        stateSnapshot: structuredClone(session.state),
+      },
+      {
+        visitNumber: 2,
+        playerId: "b1",
+        visitScore: 120,
+        remainingBefore: 501,
+        remainingAfter: 381,
+        bust: false,
+        checkout: false,
+        legNumber: 1,
+        setNumber: 1,
+        stateSnapshot: structuredClone(session.state),
+      },
+      {
+        visitNumber: 3,
+        playerId: "b1",
+        visitScore: 381,
+        remainingBefore: 381,
+        remainingAfter: 0,
+        bust: false,
+        checkout: true,
+        legNumber: 1,
+        setNumber: 1,
+        stateSnapshot: structuredClone(session.state),
+      },
+    ];
+
+    const summary = buildSummary(session);
+
+    expect(summary.guestThreeDartAverage).toBeDefined();
+    expect(summary.guestDartsThrown).toBe(6);
+    expect(summary.guestCheckouts).toBe(1);
+    expect(summary.resultLabel).toContain("DartBot");
+  });
 });

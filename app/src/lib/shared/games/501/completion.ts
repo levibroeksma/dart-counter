@@ -63,6 +63,7 @@ export function validateCompletedFiveOhOneSession(
   }
 
   let replayed = buildFiveOhOneSession(settingsCheck.value, startingPlayerId);
+  delete replayed.botState;
 
   for (let index = 0; index < session.visitHistory.length; index += 1) {
     const submittedVisit = session.visitHistory[index]!;
