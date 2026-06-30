@@ -1,0 +1,17 @@
+---
+interface Props {
+  label: string;
+  leftExpr: string;
+  rightExpr: string;
+}
+
+const { label, leftExpr, rightExpr } = Astro.props;
+---
+
+<div class="w-full font-mono text-sm grid grid-cols-5">
+  <dd class="text-left font-bold" x-text={leftExpr}></dd>
+  <dt class="text-center text-text-muted font-bold lowercase col-span-3">
+    {label}
+  </dt>
+  <dd class="text-right font-bold" x-text={rightExpr}></dd>
+</div>
