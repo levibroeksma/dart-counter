@@ -12,51 +12,121 @@
 
 Current DartBot simulation does not match desired play feel or stat targets:
 
-| Issue | Current behavior |
-| ----- | ---------------- |
-| Level cap | 1–15 with anchor at L15 |
-| Checkout % | `checkout.successRate` is display/validation only — not used in throws |
-| Throw model | Single `hitAccuracy` + uniform geometric `adjacent` misses for trebles and doubles alike |
-| Scoring aim | T20-first; beginners should aim **S20** with realistic scatter |
-| Checkout routing | Multi-route JSON selection; does not match player `getCheckoutHint()` |
-| Setup throws | No per-level accuracy when aiming singles/trebles/bull for checkout setup |
-| Checkout rates | L10 configured ~55%; should be 30–50% range; L1 should be 8–30% |
+
+| Issue            | Current behavior                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| Level cap        | 1–15 with anchor at L15                                                                  |
+| Checkout %       | `checkout.successRate` is display/validation only — not used in throws                   |
+| Throw model      | Single `hitAccuracy` + uniform geometric `adjacent` misses for trebles and doubles alike |
+| Scoring aim      | T20-first; beginners should aim **S20** with realistic scatter                           |
+| Checkout routing | Multi-route JSON selection; does not match player `getCheckoutHint()`                    |
+| Setup throws     | No per-level accuracy when aiming singles/trebles/bull for checkout setup                |
+| Checkout rates   | L10 configured ~55%; should be 30–50% range; L1 should be 8–30%                          |
+
 
 **Goal:** Per-level fixed outcome distributions for scoring, setup, and doubles; checkout replanning via player hints; stat ranges as indications (not guarantees); cap at level 10.
 
 ---
 
+
+
 ## 2. Stat definitions
 
-| Stat | Meaning |
-| ---- | ------- |
-| **3-dart average** | Expected scoring level over time from current configuration. Indicates strength; actual results vary with checkout situations, target preference, and normal game variance. |
-| **Scoring average** | Expected average points per scoring visit. Indication only — true scores deviate during play. |
+
+| Stat                    | Meaning                                                                                                                                                                                                                                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **3-dart average**      | Expected scoring level over time from current configuration. Indicates strength; actual results vary with checkout situations, target preference, and normal game variance.                                                                                                                          |
+| **Scoring average**     | Expected average points per scoring visit. Indication only — true scores deviate during play.                                                                                                                                                                                                        |
 | **Checkout percentage** | How often DartBot successfully finishes when throwing at a double. Formula: `checkouts / dartsOnDouble` (matches 501 summary `checkoutPercentage`). Displayed and validated as a **min–max range** per level. Per double attempt, a dedicated function picks a hit rate within that range (see §11). |
-| **Max deviation** | Per-level slack (points) allowed beyond the scoring / 3-dart average target range during Monte Carlo and match validation. See §3. |
+| **Deviation** | Independent **below** / **above** (points) per stat at **leg** and **set** scope. Leg bands wider than set. Low levels balanced; high levels skewed upward. See §3. |
+
 
 ---
+
+
 
 ## 3. Level stat ranges (all levels)
 
-Each stat uses `{ min, max, maxDeviation }`. **Target band** shown in UI: `min–max`. **Validation band** for tests: `[min - maxDeviation, max + maxDeviation]`.
+### Target bands
 
-| Lvl | 3-dart avg | 3DA ± | Scoring avg | Scoring ± | Checkout % |
-| --- | ---------- | ----- | ----------- | --------- | ---------- |
-| 1 | 30–40 | 5 | 37–47 | 6 | 8–30 |
-| 2 | 33–43 | 5 | 40–50 | 6 | 10–30 |
-| 3 | 37–47 | 5 | 43–53 | 6 | 10–35 |
-| 4 | 41–51 | 5 | 45–55 | 6 | 15–35 |
-| 5 | 45–55 | 6 | 48–58 | 7 | 15–40 |
-| 6 | 48–58 | 6 | 53–63 | 7 | 20–40 |
-| 7 | 52–62 | 6 | 57–67 | 7 | 20–45 |
-| 8 | 56–66 | 7 | 60–70 | 8 | 25–45 |
-| 9 | 64–74 | 7 | 68–78 | 8 | 30–50 |
-| 10 | 67–77 | 7 | 75–85 | 8 | 30–50 |
+| Lvl | 3-dart avg | Scoring avg | Checkout % |
+| --- | ---------- | ----------- | ---------- |
+| 1 | 30–40 | 37–47 | 8–30 |
+| 2 | 33–43 | 40–50 | 10–30 |
+| 3 | 37–47 | 43–53 | 10–35 |
+| 4 | 41–51 | 45–55 | 15–35 |
+| 5 | 45–55 | 48–58 | 15–40 |
+| 6 | 48–58 | 53–63 | 20–40 |
+| 7 | 52–62 | 57–67 | 20–45 |
+| 8 | 56–66 | 60–70 | 25–45 |
+| 9 | 64–74 | 68–78 | 30–50 |
+| 10 | 67–77 | 75–85 | 30–50 |
 
-`maxDeviation` values are initial targets; tune during Monte Carlo calibration.
+UI shows target bands only (`min–max`). Checkout % has no deviation bands (per-dart hit rate handles variance).
+
+### Deviation bands
+
+Each of **scoring average** and **3-dart average** has independent `below` / `above` (points) at **leg** and **set** scope.
+
+**Validation:**
+
+```text
+leg pass:  min - deviation.leg.below  ≤ actual  ≤  max + deviation.leg.above
+set pass:  min - deviation.set.below  ≤ actual  ≤  max + deviation.set.above
+```
+
+**Rules:**
+
+1. `leg.below` ≥ `set.below` and `leg.above` ≥ `set.above` (leg may swing wider than set).
+2. Low levels: `below ≈ above` (balanced).
+3. High levels: `above > below` (more upside than downside).
+4. Anchors at L1, L5, L10; interpolate L2–4 and L6–9 (lerp per field).
+
+#### Anchor deviation — scoring average (points)
+
+| Lvl | leg below | leg above | set below | set above |
+| --- | --------- | --------- | --------- | --------- |
+| 1 | 6 | 6 | 4 | 4 |
+| 5 | 6 | 8 | 4 | 5 |
+| 10 | 6 | 12 | 4 | 8 |
+
+#### Anchor deviation — 3-dart average (points)
+
+| Lvl | leg below | leg above | set below | set above |
+| --- | --------- | --------- | --------- | --------- |
+| 1 | 5 | 5 | 3 | 3 |
+| 5 | 5 | 7 | 3 | 4 |
+| 10 | 5 | 10 | 3 | 6 |
+
+#### Draft interpolated deviation — scoring average
+
+| Lvl | leg − | leg + | set − | set + |
+| --- | ----- | ----- | ----- | ----- |
+| 2 | 6 | 6 | 4 | 4 |
+| 3 | 6 | 7 | 4 | 4 |
+| 4 | 6 | 7 | 4 | 5 |
+| 6 | 6 | 9 | 4 | 6 |
+| 7 | 6 | 10 | 4 | 6 |
+| 8 | 6 | 11 | 4 | 7 |
+| 9 | 6 | 12 | 4 | 8 |
+
+#### Draft interpolated deviation — 3-dart average
+
+| Lvl | leg − | leg + | set − | set + |
+| --- | ----- | ----- | ----- | ----- |
+| 2 | 5 | 5 | 3 | 3 |
+| 3 | 5 | 6 | 3 | 3 |
+| 4 | 5 | 6 | 3 | 4 |
+| 6 | 5 | 8 | 3 | 4 |
+| 7 | 5 | 8 | 3 | 5 |
+| 8 | 5 | 9 | 3 | 5 |
+| 9 | 5 | 10 | 3 | 6 |
+
+**Match planner:** `generateMatchPlan` leg targets use `threeDartAverage.deviation.leg` (asymmetric offset: sample below/above separately) instead of legacy `execution.variance`.
 
 ---
+
+
 
 ## 4. Data model
 
@@ -92,17 +162,25 @@ type DoubleOutcomes = {
   other: number;
 };
 
+type DeviationBand = {
+  below: number; // max points under min (positive magnitude)
+  above: number; // max points over max (positive magnitude)
+};
+
 type StatRange = {
   min: number;
   max: number;
-  maxDeviation: number; // points; validation slack beyond [min, max]
+  deviation: {
+    leg: DeviationBand;
+    set: DeviationBand;
+  };
 };
 
 type LevelProfile = {
   level: number;
   threeDartAverage: StatRange;
   scoringAverage: StatRange;
-  checkoutPercentage: { min: number; max: number }; // percent 0–100; no maxDeviation (see per-dart function)
+  checkoutPercentage: { min: number; max: number };
   scoring: {
     aim: "S20" | "T20";
     outcomes: ScoringOutcomes;
@@ -129,6 +207,8 @@ type SkillProfile = LevelProfile;
 
 ---
 
+
+
 ## 5. File layout (split data + engines)
 
 ```text
@@ -140,6 +220,7 @@ lib/shared/dartbot/
 ├── setup-throw.ts          # setup singles/trebles/bull distribution sampling
 ├── double-throw.ts         # double-finish distribution sampling
 ├── checkout-hit-rate.ts    # per-dart double hit rate within checkout % range
+├── stat-validation.ts      # isWithinStatBand(actual, range, scope: 'leg' | 'set')
 ├── throw-engine.ts         # dispatch by intent + target ring
 ├── checkout-target.ts      # getCheckoutHint(remaining) → next aim segment
 ├── dart-bot.ts             # simulateVisit with per-dart replanning
@@ -150,57 +231,71 @@ lib/shared/dartbot/
 
 ---
 
+
+
 ## 6. Anchor scoring distributions (authoritative)
 
 Weights are **landing** percentages per dart during a scoring visit. Sum = 100.
 
 ### Level 1 — aim `S20`
 
-| Segment | % |
-| ------- | - |
-| S20 | 35 |
-| T20 | 3 |
-| D20 | 4 |
-| S5 | 15 |
-| S1 | 15 |
-| T5 | 3 |
-| D5 | 4 |
-| T1 | 3 |
-| D1 | 4 |
-| outside | 6 |
-| other | 8 |
+
+| Segment | %   |
+| ------- | --- |
+| S20     | 35  |
+| T20     | 3   |
+| D20     | 4   |
+| S5      | 15  |
+| S1      | 15  |
+| T5      | 3   |
+| D5      | 4   |
+| T1      | 3   |
+| D1      | 4   |
+| outside | 6   |
+| other   | 8   |
+
+
+
 
 ### Level 5 — aim `S20`
 
-| Segment | % |
-| ------- | - |
-| S20 | 50 |
-| T20 | 8 |
-| D20 | 2 |
-| S5 | 7 |
-| S1 | 7 |
-| T5 | 5 |
-| D5 | 2 |
-| T1 | 5 |
-| D1 | 2 |
-| outside | 6 |
-| other | 6 |
+
+| Segment | %   |
+| ------- | --- |
+| S20     | 50  |
+| T20     | 8   |
+| D20     | 2   |
+| S5      | 7   |
+| S1      | 7   |
+| T5      | 5   |
+| D5      | 2   |
+| T1      | 5   |
+| D1      | 2   |
+| outside | 6   |
+| other   | 6   |
+
+
+
 
 ### Level 10 — aim `T20`
 
-| Segment | % |
-| ------- | - |
-| S20 | 40 |
-| T20 | 15 |
-| D20 | 9 |
-| S5 | 5 |
-| S1 | 5 |
-| T5 | 10 |
-| D5 | 1 |
-| T1 | 10 |
-| D1 | 1 |
-| outside | 2 |
-| other | 2 |
+
+| Segment | %   |
+| ------- | --- |
+| S20     | 40  |
+| T20     | 15  |
+| D20     | 9   |
+| S5      | 5   |
+| S1      | 5   |
+| T5      | 10  |
+| D5      | 1   |
+| T1      | 10  |
+| D1      | 1   |
+| outside | 2   |
+| other   | 2   |
+
+
+
 
 ### `other` (scoring)
 
@@ -212,75 +307,97 @@ Score 0.
 
 ---
 
+
+
 ## 7. Anchor setup distributions (authoritative)
 
 Used when `intent === "setup"` or `intent === "checkout"` on a **non-double** target. Sum = 100 per table.
 
 ### Setup singles (e.g. aim S12 — neighbors S5, S14)
 
-| Bucket | L1 | L5 | L10 |
-| ------ | -- | -- | --- |
-| hit | 16 | 38 | 58 |
-| neighborSingle | 26 | 22 | 16 |
-| wrongRing | 24 | 18 | 12 |
-| neighborWrongRing | 22 | 14 | 8 |
-| outside | 8 | 5 | 4 |
-| other | 4 | 3 | 2 |
+
+| Bucket            | L1  | L5  | L10 |
+| ----------------- | --- | --- | --- |
+| hit               | 16  | 38  | 58  |
+| neighborSingle    | 26  | 22  | 16  |
+| wrongRing         | 24  | 18  | 12  |
+| neighborWrongRing | 22  | 14  | 8   |
+| outside           | 8   | 5   | 4   |
+| other             | 4   | 3   | 2   |
+
 
 **Resolution (aim S12):**
 
-| Bucket | Lands on |
-| ------ | -------- |
-| hit | S12 |
-| neighborSingle | S5, S14 (uniform) |
-| wrongRing | T12, D12 (uniform) |
+
+| Bucket            | Lands on                   |
+| ----------------- | -------------------------- |
+| hit               | S12                        |
+| neighborSingle    | S5, S14 (uniform)          |
+| wrongRing         | T12, D12 (uniform)         |
 | neighborWrongRing | D5, T5, D14, T14 (uniform) |
-| outside | score 0 |
-| other | off-bed pool |
+| outside           | score 0                    |
+| other             | off-bed pool               |
+
+
+
 
 ### Setup trebles (e.g. aim T14 — neighbor trebles T11, T9)
 
-| Bucket | L1 | L5 | L10 |
-| ------ | -- | -- | --- |
-| hit | 12 | 28 | 48 |
-| neighborTreble | 22 | 20 | 18 |
-| wrongRing | 32 | 22 | 14 |
-| neighborWrongRing | 20 | 16 | 10 |
-| outside | 10 | 8 | 6 |
-| other | 4 | 6 | 4 |
+
+| Bucket            | L1  | L5  | L10 |
+| ----------------- | --- | --- | --- |
+| hit               | 12  | 28  | 48  |
+| neighborTreble    | 22  | 20  | 18  |
+| wrongRing         | 32  | 22  | 14  |
+| neighborWrongRing | 20  | 16  | 10  |
+| outside           | 10  | 8   | 6   |
+| other             | 4   | 6   | 4   |
+
 
 **Resolution (aim T14):**
 
-| Bucket | Lands on |
-| ------ | -------- |
-| hit | T14 |
-| neighborTreble | T11, T9 (uniform) |
-| wrongRing | S14, D14 (uniform) |
+
+| Bucket            | Lands on                   |
+| ----------------- | -------------------------- |
+| hit               | T14                        |
+| neighborTreble    | T11, T9 (uniform)          |
+| wrongRing         | S14, D14 (uniform)         |
 | neighborWrongRing | D11, S11, D9, S9 (uniform) |
-| outside | score 0 |
-| other | off-bed pool |
+| outside           | score 0                    |
+| other             | off-bed pool               |
+
+
+
 
 ### Outer bull (aim 25)
 
-Low levels rarely miss the board entirely on bull attempts — **`other`** (near-miss on board) is far more common than **`outside`**.
+Low levels rarely miss the board entirely on bull attempts — `other` (near-miss on board) is far more common than `outside`.
 
-| Bucket | L1 | L5 | L10 |
-| ------ | -- | -- | --- |
-| hit | 14 | 28 | 45 |
-| wrongRing (→ 50) | 8 | 12 | 15 |
-| outside | 6 | 8 | 8 |
-| other | 72 | 52 | 32 |
+
+| Bucket           | L1  | L5  | L10 |
+| ---------------- | --- | --- | --- |
+| hit              | 14  | 28  | 45  |
+| wrongRing (→ 50) | 8   | 12  | 15  |
+| outside          | 6   | 8   | 8   |
+| other            | 72  | 52  | 32  |
+
+
+
 
 ### Bull (aim 50)
 
-| Bucket | L1 | L5 | L10 |
-| ------ | -- | -- | --- |
-| hit | 14 | 26 | 40 |
-| wrongRing (→ 25) | 36 | 28 | 26 |
-| outside | 8 | 8 | 6 |
-| other | 42 | 38 | 28 |
+
+| Bucket           | L1  | L5  | L10 |
+| ---------------- | --- | --- | --- |
+| hit              | 14  | 26  | 40  |
+| wrongRing (→ 25) | 36  | 28  | 26  |
+| outside          | 8   | 8   | 6   |
+| other            | 42  | 38  | 28  |
+
 
 ---
+
+
 
 ## 8. Anchor double distributions (authoritative)
 
@@ -288,51 +405,67 @@ Resolved relative to aimed double from checkout hint. Sum = 100.
 
 ### Level 1
 
-| Bucket | % |
-| ------ | - |
-| hit | 14 |
-| inside | 36 |
-| neighborSingle | 24 |
-| neighborDouble | 7 |
-| outside | 14 |
-| other | 5 |
+
+| Bucket         | %   |
+| -------------- | --- |
+| hit            | 14  |
+| inside         | 36  |
+| neighborSingle | 24  |
+| neighborDouble | 7   |
+| outside        | 14  |
+| other          | 5   |
+
+
+
 
 ### Level 5
 
-| Bucket | % |
-| ------ | - |
-| hit | 24 |
-| inside | 30 |
-| neighborSingle | 20 |
-| neighborDouble | 10 |
-| outside | 9 |
-| other | 7 |
+
+| Bucket         | %   |
+| -------------- | --- |
+| hit            | 24  |
+| inside         | 30  |
+| neighborSingle | 20  |
+| neighborDouble | 10  |
+| outside        | 9   |
+| other          | 7   |
+
+
+
 
 ### Level 10
 
-| Bucket | % |
-| ------ | - |
-| hit | 38 |
-| inside | 26 |
-| neighborSingle | 14 |
-| neighborDouble | 10 |
-| outside | 7 |
-| other | 5 |
+
+| Bucket         | %   |
+| -------------- | --- |
+| hit            | 38  |
+| inside         | 26  |
+| neighborSingle | 14  |
+| neighborDouble | 10  |
+| outside        | 7   |
+| other          | 5   |
+
+
+
 
 ### Double resolution rules
 
 Given target double (e.g. `D20`, base 20):
 
-| Bucket | Resolution |
-| ------ | ---------- |
-| hit | target double |
-| inside | single same number |
-| neighborSingle | uniform among board neighbors |
+
+| Bucket         | Resolution                     |
+| -------------- | ------------------------------ |
+| hit            | target double                  |
+| inside         | single same number             |
+| neighborSingle | uniform among board neighbors  |
 | neighborDouble | uniform among neighbor doubles |
-| outside | score 0 |
-| other | off-route pool |
+| outside        | score 0                        |
+| other          | off-route pool                 |
+
 
 ---
+
+
 
 ## 9. Interpolation (levels 2–4, 6–9)
 
@@ -343,10 +476,14 @@ Given target double (e.g. `D20`, base 20):
 3. `aim`: L1–5 → `S20`; L6–10 → `T20`.
 4. Stat ranges: explicit per level from §3 — not interpolated.
 
-| Levels | Interpolate between |
-| ------ | ------------------- |
-| 2, 3, 4 | L1 ↔ L5 (`t = (level - 1) / 4`) |
+
+| Levels     | Interpolate between              |
+| ---------- | -------------------------------- |
+| 2, 3, 4    | L1 ↔ L5 (`t = (level - 1) / 4`)  |
 | 6, 7, 8, 9 | L5 ↔ L10 (`t = (level - 5) / 5`) |
+
+
+
 
 ### Draft interpolated scoring tables
 
@@ -382,21 +519,27 @@ Given target double (e.g. `D20`, base 20):
 
 ---
 
+
+
 ## 10. Checkout routing & replanning
+
+
 
 ### Source of truth: `getCheckoutHint(remaining)`
 
-In checkout range (≤170, finishable), DartBot uses **`getCheckoutHint(remaining)`** from `@lib/shared/darts` — the same route shown to the player. No multi-route JSON selection via `CheckoutPolicy` in checkout range.
+In checkout range (≤170, finishable), DartBot uses `getCheckoutHint(remaining)` from `@lib/shared/darts` — the same route shown to the player. No multi-route JSON selection via `CheckoutPolicy` in checkout range.
 
 **Per-dart replanning:** After every dart, recalculate `remaining` and call `getCheckoutHint(remaining)` again. First segment of the returned route is the next aim.
 
 ### Example: 74 with misses
 
-| Dart | Remaining | Hint | Aim | Rationale |
-| ---- | --------- | ---- | --- | --------- |
-| 1 | 74 | T14 → D16 | T14 | Standard hint |
-| Miss S14 | 60 | 20 → D20 | S20 | Replan: leave D20 |
-| Miss S5 | 55 | **S15 → D20** | **S15** | Safer than T15; bigger target; miss inside 20 still leaves D20 |
+
+| Dart     | Remaining | Hint          | Aim     | Rationale                                                      |
+| -------- | --------- | ------------- | ------- | -------------------------------------------------------------- |
+| 1        | 74        | T14 → D16     | T14     | Standard hint                                                  |
+| Miss S14 | 60        | 20 → D20      | S20     | Replan: leave D20                                              |
+| Miss S5  | 55        | **S15 → D20** | **S15** | Safer than T15; bigger target; miss inside 20 still leaves D20 |
+
 
 **Hint data update required:** Change `checkout-hints.data.ts` entry for **55** from `["T15", "D5"]` to `["15", "D20"]`. Audit other hints for similar safer-single preference where a wide single leaves a standard double (implementation task).
 
@@ -414,13 +557,19 @@ function nextCheckoutTarget(remaining: number): Segment | null {
 - If segment is a double/bull and bot is on finish dart → `intent === "checkout"` → `double-throw`.
 - If segment is single/treble → `intent === "setup"` → `setup-throw` by ring type.
 
+
+
 ### 131–170 setup zone
 
 `strategy-engine.ts` unchanged: below level 10 may prefer `setup` over `checkout` in 131–170. Setup targets still from `getCheckoutHint` when finishable, or best setup route evaluator for high leaves (existing `evaluateSetupRoute`).
 
 ---
 
+
+
 ## 11. Throw engines
+
+
 
 ### Scoring (`scoring-throw.ts`)
 
@@ -430,12 +579,14 @@ function nextCheckoutTarget(remaining: number): Segment | null {
 
 `throwSetupDart(target, profile, rng)` — pick table by target ring:
 
-| Target ring | Table |
-| ----------- | ----- |
-| single | `profile.setup.singles` |
-| triple | `profile.setup.trebles` |
+
+| Target ring  | Table                     |
+| ------------ | ------------------------- |
+| single       | `profile.setup.singles`   |
+| triple       | `profile.setup.trebles`   |
 | outer (`25`) | `profile.setup.outerBull` |
-| bull (`50`) | `profile.setup.bull` |
+| bull (`50`)  | `profile.setup.bull`      |
+
 
 Resolve buckets relative to `target` using §7 rules and `segments.ts` neighbors.
 
@@ -462,7 +613,7 @@ function checkoutHitRateForDart(
 2. `rate = min + rng.next() * (max - min)` — uniform in range.
 3. Optional: `dartIndexInVisit` may seed a sub-range or stratified slice so darts 1–3 spread across the band (implementation choice; must stay within [min, max]).
 
-**Wiring into `throwDoubleDart`:**
+**Wiring into** `throwDoubleDart`**:**
 
 1. `hitRate = checkoutHitRateForDart(profile, dartIndex, rng)`.
 2. Scale base `profile.doubles.outcomes` miss buckets proportionally so `hit = hitRate * 100` (percent) and all buckets sum to 100.
@@ -485,11 +636,15 @@ function throwDart(
 ): Segment;
 ```
 
-| Intent | Engine |
-| ------ | ------ |
-| `score` | `throwScoringDart` |
-| `setup` | `throwSetupDart(target, ...)` |
+
+| Intent     | Engine                                           |
+| ---------- | ------------------------------------------------ |
+| `score`    | `throwScoringDart`                               |
+| `setup`    | `throwSetupDart(target, ...)`                    |
 | `checkout` | `throwDoubleDart(target, dartIndexInVisit, ...)` |
+
+
+
 
 ### `simulateVisit` changes
 
@@ -500,17 +655,37 @@ function throwDart(
 
 ---
 
+
+
 ## 12. Validation & testing
+
+
 
 ### Monte Carlo
 
-Per level 1–10: ≥500 scoring visits, ≥500 setup throws (singles + trebles), ≥500 double attempts.
+Per level 1–10: ≥500 scoring visits, ≥500 setup throws, ≥500 double attempts. Simulate multi-leg sets.
 
-| Assert | Pass condition |
-| ------ | -------------- |
-| Scoring average | `scoringAverage.min - maxDeviation ≤ actual ≤ scoringAverage.max + maxDeviation` |
-| 3-dart average | `threeDartAverage.min - maxDeviation ≤ actual ≤ threeDartAverage.max + maxDeviation` |
-| Checkout % | within `checkoutPercentage` range (no extra deviation) |
+| Assert | Scope | Pass condition |
+| ------ | ----- | -------------- |
+| Scoring average | leg | `isWithinStatBand(actual, scoringAverage, 'leg')` |
+| Scoring average | set | `isWithinStatBand(actual, scoringAverage, 'set')` |
+| 3-dart average | leg | `isWithinStatBand(actual, threeDartAverage, 'leg')` |
+| 3-dart average | set | `isWithinStatBand(actual, threeDartAverage, 'set')` |
+| Checkout % | match | within `checkoutPercentage` range |
+
+```ts
+function isWithinStatBand(
+  actual: number,
+  range: StatRange,
+  scope: "leg" | "set",
+): boolean {
+  const d = range.deviation[scope];
+  return actual >= range.min - d.below && actual <= range.max + d.above;
+}
+```
+
+
+
 
 ### Unit tests
 
@@ -521,6 +696,8 @@ Per level 1–10: ≥500 scoring visits, ≥500 setup throws (singles + trebles)
 - Update `dart-bot.test.ts` — replanning visit on 74 with seeded misses
 - `checkouts.test.ts` — `getCheckoutHint(55)` → `["15", "D20"]`
 
+
+
 ### Settings preview
 
 ```ts
@@ -529,17 +706,24 @@ checkoutSuccessRate: `${min}–${max}%`;
 
 ---
 
+
+
 ## 13. Consumer updates
 
-| File | Change |
-| ---- | ------ |
-| `darts/checkout-hints.data.ts` | 55 → `["15", "D20"]`; audit safer singles |
-| `games/501/validation.ts` | `level <= 10` |
-| Settings UI | Slider max 10 |
-| `statistics-engine.ts` | Range-based checkout validation; scoring/3DA use `maxDeviation` |
-| `AGENTS.md` | Level cap 10, new dartbot file layout |
+
+| File                           | Change                                                          |
+| ------------------------------ | --------------------------------------------------------------- |
+| `darts/checkout-hints.data.ts` | 55 → `["15", "D20"]`; audit safer singles                       |
+| `games/501/validation.ts`      | `level <= 10`                                                   |
+| Settings UI                    | Slider max 10                                                   |
+| `statistics-engine.ts` | Range-based checkout validation; `isWithinStatBand` for scoring/3DA at leg and set scope |
+| `match-planner.ts` | Asymmetric leg targets from `threeDartAverage.deviation.leg` |
+| `AGENTS.md`                    | Level cap 10, new dartbot file layout                           |
+
 
 ---
+
+
 
 ## 14. Out of scope
 
@@ -550,6 +734,8 @@ checkoutSuccessRate: `${min}–${max}%`;
 
 ---
 
+
+
 ## 15. Success criteria
 
 1. Levels 1–10 only; L1/L5/L10 scoring, setup, and double tables match §6–8.
@@ -558,5 +744,6 @@ checkoutSuccessRate: `${min}–${max}%`;
 4. Checkout range uses `getCheckoutHint` with per-dart replanning (player parity).
 5. `getCheckoutHint(55)` is `S15 → D20`; 74 miss example routes correctly.
 6. Bull setup: `other` >> `outside` at low levels.
-7. Monte Carlo passes for all 10 levels within validation bands (§3 `maxDeviation`).
+7. Monte Carlo passes at leg and set scope using asymmetric deviation bands (§3).
 8. `checkoutHitRateForDart` returns independent rates per double attempt, each within checkout % range.
+
