@@ -1,3 +1,4 @@
+import type { MatchPlan } from "@lib/shared/dartbot/types";
 import type { FiveOhOneSettings } from "@lib/shared/games/501/settings";
 
 export type FiveOhOneGameStatus = "active" | "completed";
@@ -24,6 +25,12 @@ export type FiveOhOneGameState = {
   legStartingPlayerId: string;
 };
 
+export type FiveOhOneBotState = {
+  matchPlan: MatchPlan;
+  rngState: number;
+  currentLegIndex: number;
+};
+
 export type FiveOhOneVisitRecord = {
   visitNumber: number;
   playerId: string;
@@ -35,6 +42,7 @@ export type FiveOhOneVisitRecord = {
   legNumber: number;
   setNumber: number;
   stateSnapshot: FiveOhOneGameState;
+  botRngBefore?: number;
 };
 
 export type FiveOhOneSession = {
@@ -44,6 +52,7 @@ export type FiveOhOneSession = {
   visitHistory: FiveOhOneVisitRecord[];
   createdAt: string;
   updatedAt: string;
+  botState?: FiveOhOneBotState;
 };
 
 export function isFiveOhOneSession(value: unknown): value is FiveOhOneSession {
