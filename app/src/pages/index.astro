@@ -3,95 +3,33 @@
 import AppLayout from '@layouts/AppLayout.astro';
 
 // Components
-import Card from '@components/ui/Card.astro';
-import GameCard from '@components/games/GameCard.astro';
-import { getQuickStartGames } from '@lib/server/data/games';
-import type { GameType } from '@lib/shared/games/types';
+import ProfileStatsSection from '@components/stats/ProfileStatsSection.astro';
+import { getPreferences } from '@lib/server/data/preferences';
+import { getProfileDashboardData } from '@lib/server/data/player-stat-completions';
+import type { ProfileDashboardData } from '@lib/server/data/player-stat-completions';
 
 const session = Astro.locals.session!;
-let quickStartGames: GameType[] = [];
+let displayName = 'You';
+let dashboard: ProfileDashboardData = {
+  metrics: { threeDartAverage: null, scoringAverage: null, checkoutPercentage: null },
+  sparklines: [],
+  gamesPlayed: 0,
+  gamesWon: 0,
+};
 
 if (session.userId) {
   try {
-    quickStartGames = await getQuickStartGames(session.userId, 2);
+    const preferences = await getPreferences(session.userId);
+    displayName = preferences.displayName?.trim() || displayName;
+    dashboard = await getProfileDashboardData(session.userId);
   } catch {
-    quickStartGames = [];
+    /* graceful fallback — spec §9 */
   }
 }
 ---
 
 <AppLayout>
   <main class="mx-auto w-full max-w-2xl space-y-6 p-4 @sm:p-6">
-    <section class="grid grid-cols-2 gap-x-4 gap-y-6">
-      <article class="col-span-2 space-y-2">
-        <div class="col-span-2 flex items-center justify-between gap-4">
-          <h2 class="font-display shrink-0 text-2xl uppercase tracking-wide text-muted-foreground">
-            Statistics
-          </h2>
-          <div class="bg-border/40 w-full pt-px"></div>
-        </div>
-        <p class="text-muted-foreground text-xs">
-          Your personal statistics will be displayed here.
-        </p>
-      </article>
-      <article class="col-span-2 flex w-full flex-col gap-y-4">
-        <div>
-          <span
-            class="text-muted-foreground shrink-0 text-xs tracking-wider uppercase"
-          >
-            Nickname
-          </span>
-          <h3 class="text-foreground font-bold">Mr. Levitate</h3>
-        </div>
-        <div class="flex w-full flex-wrap gap-y-4 font-mono">
-          <div class="flex w-1/2 flex-col items-start justify-center">
-            <span class="text-foreground font-bold">100</span>
-            <span
-              class="text-muted-foreground shrink-0 text-xs tracking-wider uppercase"
-            >
-              Games Played
-            </span>
-          </div>
-          <div class="flex w-1/2 flex-col items-start justify-center">
-            <span class="text-foreground font-bold">60</span>
-            <span
-              class="text-muted-foreground shrink-0 text-xs tracking-wider uppercase"
-            >
-              Games won
-            </span>
-          </div>
-          <div class="flex w-1/2 flex-col items-start justify-center">
-            <span class="text-foreground font-bold">45.12</span>
-            <span
-              class="text-muted-foreground shrink-0 text-xs tracking-wider uppercase"
-            >
-              3 dart avg.
-            </span>
-          </div>
-          <div class="flex w-1/2 flex-col items-start justify-center">
-            <span class="text-foreground font-bold">14.2%</span>
-            <span
-              class="text-muted-foreground shrink-0 text-xs tracking-wider uppercase"
-            >
-              Checkout rate
-            </span>
-          </div>
-        </div>
-      </article>
-    </section>
-    <!-- <section class="flex flex-col gap-x-4 gap-y-6">
-      <article class="space-y-2">
-        <div class="flex justify-between items-center gap-4">
-          <h2 class="text-muted-foreground text-2xl font-semibold shrink-0">
-            Quick Start
-          </h2>
-          <div class="bg-border/40 pt-px w-full"></div>
-        </div>
-        <p class="text-muted-foreground text-sm">
-          Select one of your favorite games to get started.
-        </p>
-      </article>
-      {quickStartGames.map((game) => <GameCard game={game} />)}
-    </section> -->
+    <ProfileStatsSection displayName={displayName} dashboard={dashboard} />
   </main>
 </AppLayout>
