@@ -20,6 +20,15 @@ export {
 // Visit milestones
 export { countVisitMilestones } from "./milestones";
 
+// Completion snapshots
+export {
+  build501CompletionSnapshot,
+  buildScoreTrainingCompletionSnapshot,
+  buildTenUpOneDownCompletionSnapshot,
+  buildSinglesTrainingCompletionSnapshot,
+  type CompletionSnapshotInsert,
+} from "./completion-snapshot";
+
 // Profile metrics
 export {
   computeProfileMetrics,
