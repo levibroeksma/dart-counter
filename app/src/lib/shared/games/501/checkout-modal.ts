@@ -40,6 +40,6 @@ export function resolve501CheckoutModal(
 
   return {
     kind: "partial",
-    questions: [buildPartialDoubleModalQuestion(visitScore)],
+    questions: [buildPartialDoubleModalQuestion(visitScore, remainingAfter)],
   };
 }

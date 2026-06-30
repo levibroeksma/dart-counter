@@ -88,6 +88,8 @@ export function simulateVisit(
         target = setupRoute?.darts[0] ?? hintTarget ?? target;
       } else if (hintTarget) {
         target = hintTarget;
+      } else if (intent === "setup" && remaining > 1 && remaining < 40) {
+        target = parseSegment("1");
       }
     }
 

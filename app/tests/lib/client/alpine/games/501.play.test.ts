@@ -218,6 +218,38 @@ describe("fiveOhOnePlay", () => {
     expect(play.session?.visitHistory[0]?.dartsOnDouble).toBe(1);
   });
 
+  it("selectDartsForFinish auto-sets dartsOnDouble for 1-dart double-out finish", async () => {
+    const session = buildOnePlayerSession();
+    session.state.players[0]!.remaining = 20;
+    const play = fiveOhOnePlay(session);
+    play.init();
+    play.score = "20";
+    await play.submitVisit();
+
+    expect(play.modalKind).toBe("finish");
+    play.selectDartsForFinish(1);
+    expect(play.dartsOnDouble).toBe(1);
+    expect(play.modalCanSubmit).toBe(true);
+  });
+
+  it("modalSubmit triggers dartbot turn after partial checkout modal", async () => {
+    const session = buildDartBotPlaySession();
+    session.state.players[0]!.remaining = 60;
+    const play = fiveOhOnePlay(session);
+    play.init();
+    const runSpy = vi.spyOn(play, "runDartBotTurn").mockResolvedValue();
+    play.score = "40";
+    await play.submitVisit();
+
+    expect(play.modalKind).toBe("partial");
+    play.dartsOnDouble = 0;
+    await play.modalSubmit();
+
+    expect(play.session?.visitHistory).toHaveLength(1);
+    expect(play.session?.state.currentPlayerId).toBe("b1");
+    expect(runSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("undoVisit reverts user + dartbot pair in dartbot sessions", () => {
     const play = fiveOhOnePlay(buildDartBotPlaySession());
     play.init();

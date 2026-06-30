@@ -54,6 +54,7 @@ Several gaps and bugs block a correct 501 play experience:
 | ----- | ----- | --- | ------ |
 | 60 | 13 | 47 | Yes — partial (`dartsOnDouble` 0–1) |
 | 54 | 14 | 40 | Yes — partial (`dartsOnDouble` 0–2) |
+| 60 | 40 | 20 | Yes — partial (`dartsOnDouble` 0–2; capped when leaving single-dart finish) |
 | 60 | 9 | 51 | No |
 | 32 | 32 | 0 | Yes — finish |
 | 40 | 0 | 40 (bust) | Yes — partial (`dartsOnDouble` 0–3) |
@@ -64,6 +65,7 @@ New `maxDartsOnDoubleForPartialVisit(visitScore)` in `@lib/shared/darts`:
 
 - `visitScore === 0` → `3`
 - else → `min(3, ceil(visitScore / 13))`
+- when `remainingAfter` is single-dart finishable → cap at `2` (at least one setup dart required)
 
 Locked by unit tests for 60→47 (max 1) and 54→40 (max 2).
 

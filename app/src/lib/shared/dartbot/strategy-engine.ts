@@ -18,5 +18,6 @@ export function chooseIntent(input: {
   }
   if (finishable) return "checkout";
   if (inSetupZone) return "setup";
+  if (!finishable && remaining > 1 && remaining < 40) return "setup";
   return "score";
 }

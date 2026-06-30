@@ -46,5 +46,16 @@ describe("strategy-engine", () => {
       }),
     ).toBe("score");
   });
+
+  it("chooses setup on unfinishable odd leaves below 40", () => {
+    expect(
+      chooseIntent({
+        remaining: 3,
+        dartsLeft: 3,
+        skill: getSkillProfile(10),
+        legTarget: 72,
+      }),
+    ).toBe("setup");
+  });
 });
 

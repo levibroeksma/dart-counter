@@ -18,6 +18,12 @@ describe("checkout-partial", () => {
     expect(maxDartsOnDoubleForPartialVisit(0)).toBe(3);
   });
 
+  it("caps at 2 when remainingAfter is single-dart finishable", () => {
+    expect(maxDartsOnDoubleForPartialVisit(40, 20)).toBe(2);
+    expect(maxDartsOnDoubleForPartialVisit(40, 47)).toBe(3);
+    expect(maxDartsOnDoubleForPartialVisit(0, 20)).toBe(3);
+  });
+
   it("buildPartialDoubleModalQuestion returns 0..max options", () => {
     expect(buildPartialDoubleModalQuestion(13)).toEqual({
       id: "dartsOnDouble",

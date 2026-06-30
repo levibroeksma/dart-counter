@@ -24,4 +24,11 @@ describe("resolve501CheckoutModal", () => {
     const outcome = classifyVisit(60, 9);
     expect(resolve501CheckoutModal(60, 9, outcome)).toBeNull();
   });
+
+  it("returns partial modal for 60→40 with max 2 darts on double", () => {
+    const outcome = classifyVisit(60, 40);
+    const result = resolve501CheckoutModal(60, 40, outcome);
+    expect(result?.kind).toBe("partial");
+    expect(result?.questions[0]?.options).toEqual([0, 1, 2]);
+  });
 });

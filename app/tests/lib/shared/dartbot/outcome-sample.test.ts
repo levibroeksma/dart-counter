@@ -14,4 +14,10 @@ describe("outcome-sample", () => {
     expect(shifted.hit).toBe(25);
     expect(shifted.hit + shifted.miss).toBe(100);
   });
+
+  it("applyHitShift decreases hit weight when shift is negative", () => {
+    const shifted = applyHitShift({ hit: 20, miss: 80 }, "hit", -5);
+    expect(shifted.hit).toBe(15);
+    expect(shifted.hit + shifted.miss).toBe(100);
+  });
 });
