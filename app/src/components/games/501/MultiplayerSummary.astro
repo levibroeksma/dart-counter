@@ -1,0 +1,71 @@
+---
+import SummaryComparisonStatRow from "../SummaryComparisonStatRow.astro";
+import SummaryMatchHeader from "../SummaryMatchHeader.astro";
+
+interface Props {
+  summaryModel?: string;
+}
+
+const { summaryModel = "summary" } = Astro.props;
+
+const p0 = `${summaryModel}?.players[0]`;
+const p1 = `${summaryModel}?.players[1]`;
+---
+
+<div class="flex flex-col gap-3">
+  <SummaryMatchHeader summaryModel={summaryModel} />
+  <dl class="flex flex-col gap-1">
+    <div x-show={`${summaryModel}?.showSetsRow`} x-cloak>
+      <SummaryComparisonStatRow
+        label="Sets"
+        leftExpr={`formatSummaryInteger(${p0}?.setsWon)`}
+        rightExpr={`formatSummaryInteger(${p1}?.setsWon)`}
+      />
+    </div>
+    <SummaryComparisonStatRow
+      label="Legs"
+      leftExpr={`formatSummaryInteger(${p0}?.legsWon)`}
+      rightExpr={`formatSummaryInteger(${p1}?.legsWon)`}
+    />
+    <SummaryComparisonStatRow
+      label="3-dart avg."
+      leftExpr={`formatSummaryAverage(${p0}?.threeDartAverage)`}
+      rightExpr={`formatSummaryAverage(${p1}?.threeDartAverage)`}
+    />
+    <SummaryComparisonStatRow
+      label="first 9 avg."
+      leftExpr={`formatSummaryAverage(${p0}?.firstNineAverage)`}
+      rightExpr={`formatSummaryAverage(${p1}?.firstNineAverage)`}
+    />
+    <SummaryComparisonStatRow
+      label="checkout rate"
+      leftExpr={`formatSummaryCheckoutRate(${p0}?.checkoutRate)`}
+      rightExpr={`formatSummaryCheckoutRate(${p1}?.checkoutRate)`}
+    />
+    <SummaryComparisonStatRow
+      label="checkouts"
+      leftExpr={`formatSummaryCheckouts(${p0}?.checkoutsMade, ${p0}?.checkoutAttempts)`}
+      rightExpr={`formatSummaryCheckouts(${p1}?.checkoutsMade, ${p1}?.checkoutAttempts)`}
+    />
+    <SummaryComparisonStatRow
+      label="Highest finish"
+      leftExpr={`formatSummaryInteger(${p0}?.highestFinish)`}
+      rightExpr={`formatSummaryInteger(${p1}?.highestFinish)`}
+    />
+    <SummaryComparisonStatRow
+      label="Highest score"
+      leftExpr={`formatSummaryInteger(${p0}?.highestScore)`}
+      rightExpr={`formatSummaryInteger(${p1}?.highestScore)`}
+    />
+    <SummaryComparisonStatRow
+      label="Best leg"
+      leftExpr={`formatSummaryInteger(${p0}?.bestLegDarts)`}
+      rightExpr={`formatSummaryInteger(${p1}?.bestLegDarts)`}
+    />
+    <SummaryComparisonStatRow
+      label="worst leg"
+      leftExpr={`formatSummaryInteger(${p0}?.worstLegDarts)`}
+      rightExpr={`formatSummaryInteger(${p1}?.worstLegDarts)`}
+    />
+  </dl>
+</div>
