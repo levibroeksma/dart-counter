@@ -117,7 +117,7 @@ const playerName = (playerId: string) =>
                 <button
                   type="button"
                   class="card-interactive btn-press justify-center text-sm text-center"
-                  @click="question.id === 'dartsOnDouble' ? dartsOnDouble = n : dartsForFinish = n"
+                  @click="question.id === 'dartsOnDouble' ? dartsOnDouble = n : selectDartsForFinish(n)"
                   :class="(question.id === 'dartsOnDouble' ? dartsOnDouble : dartsForFinish) === n ? 'bg-accent text-accent-foreground' : ''"
                   x-text="n"
                 ></button>
@@ -135,6 +135,6 @@ const playerName = (playerId: string) =>
     dartLabelsModel="botModalDartLabels"
     skipAction="skipDartBotTurnAnimation()"
   />
-  <Summary showSummaryModel="showSummary && summary" persistingModel="persisting" />
+  <Summary showSummaryModel="showSummary && summary" />
   <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
 </section>
