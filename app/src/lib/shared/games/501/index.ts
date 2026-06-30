@@ -72,3 +72,7 @@ export { buildMatchFormatLabel, buildSummary } from "./summary";
 
 // Stats
 export { applyGameCompletionToStats, createEmpty501Stats } from "./stats";
+export {
+  apply501VisitToDartStats,
+  applyGameCompletionToDartStats,
+} from "./dart-stats";
