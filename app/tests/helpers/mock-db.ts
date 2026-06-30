@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { randomUUID } from "node:crypto";
 import { ENTRY_ENV } from "@lib/shared/constants/entry-env";
 import {
   userPreferences,
@@ -9,6 +10,7 @@ import {
   player501Stats,
   playerScoreTrainingStats,
   playerSinglesTrainingStats,
+  playerStatCompletions,
 } from "@db/schema";
 
 type UserPreferencesRow = typeof userPreferences.$inferSelect;
@@ -19,6 +21,7 @@ type PlayerDartStatsRow = typeof playerDartStats.$inferSelect;
 type Player501StatsRow = typeof player501Stats.$inferSelect;
 type PlayerScoreTrainingStatsRow = typeof playerScoreTrainingStats.$inferSelect;
 type PlayerSinglesTrainingStatsRow = typeof playerSinglesTrainingStats.$inferSelect;
+type PlayerStatCompletionsRow = typeof playerStatCompletions.$inferSelect;
 
 const tables = {
   userPreferences: new Map<string, UserPreferencesRow>(),
@@ -29,6 +32,7 @@ const tables = {
   player501Stats: new Map<string, Player501StatsRow>(),
   playerScoreTrainingStats: new Map<string, PlayerScoreTrainingStatsRow>(),
   playerSinglesTrainingStats: new Map<string, PlayerSinglesTrainingStatsRow>(),
+  playerStatCompletions: new Map<string, PlayerStatCompletionsRow[]>(),
 };
 
 export const TEST_ENTRY_ENV = ENTRY_ENV.DEV;
@@ -56,6 +60,7 @@ export const mockDb = {
     tables.player501Stats.clear();
     tables.playerScoreTrainingStats.clear();
     tables.playerSinglesTrainingStats.clear();
+    tables.playerStatCompletions.clear();
   },
 };
 
@@ -109,6 +114,9 @@ function getTableRows(table: unknown): unknown[] {
   }
   if (table === playerSinglesTrainingStats) {
     return [...tables.playerSinglesTrainingStats.values()];
+  }
+  if (table === playerStatCompletions) {
+    return [...tables.playerStatCompletions.values()].flat();
   }
   return [];
 }
@@ -173,6 +181,12 @@ function filterRowsByEq(table: unknown, filter: unknown): unknown[] {
     return row ? [row] : [];
   }
 
+  if (table === playerStatCompletions) {
+    const [entryEnv, userId] = eqValues;
+    if (!entryEnv || !userId) return getTableRows(table);
+    return [...(tables.playerStatCompletions.get(scopedKey(userId, entryEnv)) ?? [])];
+  }
+
   return getTableRows(table);
 }
 
@@ -230,6 +244,34 @@ function insertRows(table: unknown, rows: unknown | unknown[]): void {
         scopedKey(row.userId, row.entryEnv ?? ENTRY_ENV.DEV),
         row,
       );
+    }
+  } else if (table === playerStatCompletions) {
+    for (const row of list as Partial<PlayerStatCompletionsRow>[]) {
+      const entryEnv = row.entryEnv ?? ENTRY_ENV.DEV;
+      const userId = row.userId;
+      if (!userId) continue;
+      const key = scopedKey(userId, entryEnv);
+      const existingRows = tables.playerStatCompletions.get(key) ?? [];
+      existingRows.push({
+        id: row.id ?? randomUUID(),
+        userId,
+        entryEnv,
+        gameSlug: row.gameSlug ?? "",
+        completedAt: row.completedAt ?? new Date(),
+        pointsScored: row.pointsScored ?? 0,
+        dartsThrown: row.dartsThrown ?? 0,
+        scoringPoints: row.scoringPoints ?? 0,
+        scoringVisits: row.scoringVisits ?? 0,
+        doubleAttempts: row.doubleAttempts ?? 0,
+        doubleHits: row.doubleHits ?? 0,
+        visits100Plus: row.visits100Plus ?? 0,
+        visits120Plus: row.visits120Plus ?? 0,
+        visits140Plus: row.visits140Plus ?? 0,
+        visits180: row.visits180 ?? 0,
+        segmentHits: row.segmentHits ?? 0,
+        segmentAttempts: row.segmentAttempts ?? 0,
+      });
+      tables.playerStatCompletions.set(key, existingRows);
     }
   }
 }
@@ -344,6 +386,26 @@ vi.mock("@db/index", () => ({
 
             return {
               limit: vi.fn(filteredRows),
+              orderBy: vi.fn(() => {
+                const sortedRows = async () => {
+                  const rows = filterRowsByEq(table, filter);
+                  if (table === playerStatCompletions) {
+                    return [...(rows as PlayerStatCompletionsRow[])].sort(
+                      (a, b) =>
+                        a.completedAt.getTime() - b.completedAt.getTime(),
+                    );
+                  }
+                  return rows;
+                };
+                return {
+                  then(
+                    onFulfilled?: (value: unknown) => unknown,
+                    onRejected?: (reason: unknown) => unknown,
+                  ) {
+                    return sortedRows().then(onFulfilled, onRejected);
+                  },
+                };
+              }),
               then(
                 onFulfilled?: (value: unknown) => unknown,
                 onRejected?: (reason: unknown) => unknown,
@@ -399,4 +461,5 @@ vi.mock("@db/index", () => ({
   player501Stats,
   playerScoreTrainingStats,
   playerSinglesTrainingStats,
+  playerStatCompletions,
 }));
