@@ -45,6 +45,11 @@ export { validateFiveOhOneSettings, validateVisitScore } from "./validation";
 
 // Gameplay
 export { applyVisit, revertLastOpponentPair, revertLastVisit } from "./state";
+export {
+  resolve501CheckoutModal,
+  type CheckoutModalKind,
+  type Resolved501CheckoutModal,
+} from "./checkout-modal";
 
 // DartBot glue
 export {
