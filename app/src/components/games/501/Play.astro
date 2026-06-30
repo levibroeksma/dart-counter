@@ -30,7 +30,7 @@ const playerName = (playerId: string) =>
 >
   <div class="flex justify-between py-2">
     <button type="button" class="btn-press" @click="leave()">
-      <LeaveIcon class="size-6 text-text-muted rotate-180" />
+      <LeaveIcon class="size-6 text-muted-foreground rotate-180" />
     </button>
   <h2
     class="text-lg font-mono font-semibold uppercase"
@@ -118,7 +118,7 @@ const playerName = (playerId: string) =>
                   type="button"
                   class="card-interactive btn-press justify-center text-sm text-center"
                   @click="question.id === 'dartsOnDouble' ? dartsOnDouble = n : selectDartsForFinish(n)"
-                  :class="(question.id === 'dartsOnDouble' ? dartsOnDouble : dartsForFinish) === n ? 'bg-accent text-accent-foreground' : ''"
+                  :class="(question.id === 'dartsOnDouble' ? dartsOnDouble : dartsForFinish) === n ? 'bg-primary text-primary-foreground' : ''"
                   x-text="n"
                 ></button>
               </template>
