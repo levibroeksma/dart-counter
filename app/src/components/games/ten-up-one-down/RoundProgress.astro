@@ -19,14 +19,14 @@ const {
 <article class="game-panel py-2 px-4 h-fit">
   <div class="flex items-center justify-between gap-3">
     <span
-      class="text-sm text-text-muted font-mono uppercase tracking-wider"
+      class="text-sm text-muted-foreground font-mono uppercase tracking-wider"
       x-show={`${endModeModel} === 'rounds'`}
       x-text={`'Round ' + ${currentRoundModel} + ' of ' + ${roundCountModel}`}
     >
     </span>
 
     <span
-      class="text-sm text-text-muted font-mono uppercase tracking-wider"
+      class="text-sm text-muted-foreground font-mono uppercase tracking-wider"
       x-show={`${endModeModel} === 'timed'`}
     >
       Round <span x-text={currentRoundModel}></span> ·
