@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseSinglesTrainingSettingsFormData } from "@lib/shared/games/singles-training/form-data";
+import { parseSinglesTrainingSettingsFormData } from "@lib/shared/games/singles-training";
 
 describe("parseSinglesTrainingSettingsFormData", () => {
   it("maps direction, mode, and scoring from form fields", () => {

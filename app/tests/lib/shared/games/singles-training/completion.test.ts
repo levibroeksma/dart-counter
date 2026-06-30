@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { validateCompletedSinglesTrainingSession } from "@lib/shared/games/singles-training/completion";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
-import { applyDartToSession } from "@lib/shared/games/singles-training/state";
+import {
+  applyDartToSession,
+  buildSinglesTrainingSession,
+  validateCompletedSinglesTrainingSession,
+} from "@lib/shared/games/singles-training";
 import { ALL_TARGETS } from "@lib/shared/games/singles-training/target-sequence";
 
 function buildDeadSession() {

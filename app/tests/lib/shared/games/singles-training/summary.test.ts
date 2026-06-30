@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildSummary } from "@lib/shared/games/singles-training/summary";
+import { buildSummary, type SinglesTrainingSession } from "@lib/shared/games/singles-training";
 import { createInitialGameState } from "@lib/shared/games/singles-training/state";
-import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
 
 describe("buildSummary", () => {
   it("computes hit ratio and dart position rates", () => {

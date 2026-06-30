@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
-  createEmptyPlayerDartStats,
   applyRoundToStats,
+  createEmptyPlayerDartStats,
   revertRoundFromStats,
-} from "@lib/shared/stats/double-stats";
-import type { TenUpOneDownRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
+} from "@lib/shared/stats";
+import type { TenUpOneDownRoundRecord } from "@lib/shared/games/ten-up-one-down";
 
 const successRound: TenUpOneDownRoundRecord = {
   roundNumber: 1,

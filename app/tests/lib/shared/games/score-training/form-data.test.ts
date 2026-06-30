@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseScoreTrainingSettingsFormData } from "@lib/shared/games/score-training/form-data";
+import { parseScoreTrainingSettingsFormData } from "@lib/shared/games/score-training";
 
 describe("parseScoreTrainingSettingsFormData", () => {
   it("maps roundCount as number for rounds mode", () => {

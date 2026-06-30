@@ -1,4 +1,4 @@
-import { isBogey } from "@lib/shared/darts/bogeys";
+import { isBogey } from "./bogeys";
 
 export type CheckoutConstraint = { minFinish: number; maxFinish: number };
 

@@ -1,4 +1,4 @@
-import { isFinishableCheckout } from "@lib/shared/darts/checkout-solver";
+import { isFinishableCheckout } from "@lib/shared/darts";
 import type { SkillProfile } from "./types";
 
 export type ThrowIntent = "score" | "setup" | "checkout";

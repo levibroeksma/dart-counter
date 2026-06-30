@@ -1,10 +1,12 @@
 import type { MessageCode } from "@lib/shared/constants/errors.constants";
 import type { GameConfig, GameType } from "@lib/shared/games/types";
 import type { FiveOhOneSummary } from "@lib/shared/games/501";
-import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
-import type { ScoreTrainingSummary } from "@lib/shared/games/score-training/summary";
-import type { SinglesTrainingSummary } from "@lib/shared/games/singles-training/summary";
-import type { TenUpOneDownSummary } from "@lib/shared/games/ten-up-one-down/summary";
+import type {
+  ScoreTrainingSession,
+  ScoreTrainingSummary,
+} from "@lib/shared/games/score-training";
+import type { SinglesTrainingSummary } from "@lib/shared/games/singles-training";
+import type { TenUpOneDownSummary } from "@lib/shared/games/ten-up-one-down";
 
 export type PreferencesSuccess = { ok: true; displayName?: string };
 export type GamesCatalogSuccess = { ok: true; games: GameType[] };

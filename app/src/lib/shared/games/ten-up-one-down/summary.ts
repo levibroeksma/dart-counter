@@ -1,16 +1,5 @@
-import { MAX_TARGET } from "@lib/shared/games/ten-up-one-down/constants";
-import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
-
-export type TenUpOneDownCompletionReason = "checkout170" | "rounds" | "timed";
-
-export type TenUpOneDownSummary = {
-  completionReason: TenUpOneDownCompletionReason;
-  roundsPlayed: number;
-  checkouts: number;
-  doubleHitPercentage: number;
-  finalTarget: number;
-  peakTarget: number;
-};
+import { MAX_TARGET } from "./constants";
+import type { TenUpOneDownCompletionReason, TenUpOneDownSession, TenUpOneDownSummary } from "./types";
 
 /**
  * Builds end-of-game summary stats from a completed session.

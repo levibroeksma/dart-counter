@@ -1,24 +1,10 @@
-import type { ScoreTrainingSettings } from "@lib/shared/games/score-training/settings";
-import type { ScoreTrainingRoundRecord } from "@lib/shared/games/score-training/round";
+import type { ScoreTrainingGameState, ScoreTrainingSession } from "./types";
 
-export type ScoreTrainingGameStatus = "active" | "paused" | "completed";
-
-export type ScoreTrainingGameState = {
-  currentRound: number;
-  currentScore: number;
-  status: ScoreTrainingGameStatus;
-  lastScore: number | null;
-};
-
-export type ScoreTrainingSession = {
-  slug: "score-training";
-  settings: ScoreTrainingSettings;
-  state: ScoreTrainingGameState;
-  roundHistory: ScoreTrainingRoundRecord[];
-  timeRemainingSeconds: number | null;
-  createdAt: string;
-  updatedAt: string;
-};
+export type {
+  ScoreTrainingGameState,
+  ScoreTrainingGameStatus,
+  ScoreTrainingSession,
+} from "./types";
 
 /**
  * Runtime guard for persisted session documents (rejects legacy config-only shapes).

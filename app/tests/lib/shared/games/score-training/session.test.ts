@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isScoreTrainingSession } from "@lib/shared/games/score-training/session";
+import { isScoreTrainingSession } from "@lib/shared/games/score-training";
 
 const validSession = {
   slug: "score-training",

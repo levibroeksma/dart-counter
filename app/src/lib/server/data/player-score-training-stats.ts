@@ -5,7 +5,7 @@ import { withEntryEnv } from "@lib/server/data/entry-env";
 import {
   createEmptyScoreTrainingStats,
   type PlayerScoreTrainingStats,
-} from "@lib/shared/games/score-training/stats";
+} from "@lib/shared/games/score-training";
 
 function mapStatsToColumns(stats: PlayerScoreTrainingStats) {
   return {

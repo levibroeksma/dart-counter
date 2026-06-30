@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
+import { isTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down";
 
 const validSession = {
   slug: "ten-up-one-down" as const,

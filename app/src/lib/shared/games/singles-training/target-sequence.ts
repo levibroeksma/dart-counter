@@ -1,5 +1,4 @@
-import type { SinglesTrainingDirection } from "@lib/shared/games/singles-training/settings";
-import type { SinglesTrainingTarget } from "@lib/shared/games/singles-training/session";
+import type { SinglesTrainingDirection, SinglesTrainingTarget } from "./types";
 
 export const ALL_TARGETS: SinglesTrainingTarget[] = [
   ...Array.from({ length: 20 }, (_, i) => i + 1),

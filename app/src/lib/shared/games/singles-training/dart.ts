@@ -1,15 +1,11 @@
-import type { SinglesTrainingScoring } from "@lib/shared/games/singles-training/settings";
-import type { SinglesTrainingTarget } from "@lib/shared/games/singles-training/session";
+import type {
+  DartOutcome,
+  DartRecord,
+  SinglesTrainingScoring,
+  SinglesTrainingTarget,
+} from "./types";
 
-export type DartOutcomeType = "miss" | "single" | "double" | "triple";
-export type DartOutcome = { type: DartOutcomeType };
-
-export type DartRecord = {
-  targetIndex: number;
-  dartInVisit: 0 | 1 | 2;
-  outcome: DartOutcome;
-  points: number;
-};
+export type { DartOutcome, DartOutcomeType, DartRecord } from "./types";
 
 export function calculateDartPoints(
   outcome: DartOutcome,

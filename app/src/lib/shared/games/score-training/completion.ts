@@ -1,13 +1,11 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import {
-  isScoreTrainingSession,
-  type ScoreTrainingSession,
-} from "@lib/shared/games/score-training/session";
-import { validateRoundRecord } from "@lib/shared/games/score-training/round";
-import { validateScoreTrainingSettings } from "@lib/shared/games/score-training/validation";
-import { STARTING_SCORE } from "@lib/shared/games/score-training/constants";
+import { STARTING_SCORE } from "./constants";
+import { validateRoundRecord } from "./round";
+import { isScoreTrainingSession } from "./session";
+import type { ScoreTrainingSession } from "./types";
+import { validateScoreTrainingSettings } from "./validation";
 
-export type ValidateCompletedResult =
+export type ValidateCompletedScoreTrainingResult =
   | { valid: true; value: ScoreTrainingSession }
   | {
       valid: false;
@@ -22,7 +20,7 @@ export type ValidateCompletedResult =
  */
 export function validateCompletedScoreTrainingSession(
   raw: unknown,
-): ValidateCompletedResult {
+): ValidateCompletedScoreTrainingResult {
   if (!isScoreTrainingSession(raw)) {
     return { valid: false, code: MessageCode.INVALID_GAME_SETTINGS };
   }

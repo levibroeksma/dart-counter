@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
-import { STARTING_TARGET } from "@lib/shared/games/ten-up-one-down/constants";
+import { buildTenUpOneDownSession, STARTING_TARGET } from "@lib/shared/games/ten-up-one-down";
 
 describe("buildTenUpOneDownSession", () => {
   it("creates an active rounds session", () => {

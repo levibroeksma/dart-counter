@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "@api/games/score-training/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { createEmptyScoreTrainingStats } from "@lib/shared/games/score-training/stats";
-import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
-import { applyRoundToState } from "@lib/shared/games/score-training/state";
-import { buildRoundRecord } from "@lib/shared/games/score-training/round";
+import {
+  applyRoundToState,
+  buildRoundRecord,
+  buildScoreTrainingSession,
+  createEmptyScoreTrainingStats,
+} from "@lib/shared/games/score-training";
 
 const mockGetSession = vi.fn();
 const mockGetPlayerScoreTrainingStats = vi.fn();

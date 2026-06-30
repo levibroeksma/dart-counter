@@ -1,10 +1,13 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
-  MIN_ROUND_COUNT, MAX_ROUND_COUNT,
-  MIN_PLAYTIME_SECONDS, MAX_PLAYTIME_SECONDS,
-  MIN_VISIT_SCORE, MAX_VISIT_SCORE,
-} from "@lib/shared/games/score-training/constants";
-import type { ScoreTrainingSettings } from "@lib/shared/games/score-training/settings";
+  MIN_ROUND_COUNT,
+  MAX_ROUND_COUNT,
+  MIN_PLAYTIME_SECONDS,
+  MAX_PLAYTIME_SECONDS,
+  MIN_VISIT_SCORE,
+  MAX_VISIT_SCORE,
+} from "./constants";
+import type { ScoreTrainingSettings } from "./types";
 
 export type ValidateSettingsResult =
   | { valid: true; value: ScoreTrainingSettings }

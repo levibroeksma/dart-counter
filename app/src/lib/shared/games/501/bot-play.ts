@@ -4,7 +4,7 @@ import {
   simulateVisit,
   type SimulatedVisit,
 } from "@lib/shared/dartbot";
-import { isFinishableCheckout } from "@lib/shared/darts/checkout-solver";
+import { isFinishableCheckout } from "@lib/shared/darts";
 import { isDartBotTurn } from "./bot-helpers";
 import { DARTS_PER_VISIT } from "./constants";
 import { hasPlayerWonMatch, hasPlayerWonSet } from "./match";

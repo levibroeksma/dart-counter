@@ -1,14 +1,14 @@
 import { describe, it, expect } from "vitest";
 import {
-  DEFAULT_ROUND_COUNT,
-  DEFAULT_PLAYTIME_SECONDS,
-  MIN_PLAYTIME_SECONDS,
-  MAX_PLAYTIME_SECONDS,
   DARTS_PER_VISIT,
-  STARTING_SCORE,
-  MIN_VISIT_SCORE,
+  DEFAULT_PLAYTIME_SECONDS,
+  DEFAULT_ROUND_COUNT,
+  MAX_PLAYTIME_SECONDS,
   MAX_VISIT_SCORE,
-} from "@lib/shared/games/score-training/constants";
+  MIN_PLAYTIME_SECONDS,
+  MIN_VISIT_SCORE,
+  STARTING_SCORE,
+} from "@lib/shared/games/score-training";
 
 describe("score-training constants", () => {
   it("exports expected defaults and bounds", () => {

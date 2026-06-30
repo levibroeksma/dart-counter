@@ -1,5 +1,5 @@
-import type { PlayerDartStats } from "@lib/shared/stats/types";
-import type { TenUpOneDownRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
+import type { PlayerDartStats } from "./types";
+import type { TenUpOneDownRoundRecord } from "@lib/shared/games/ten-up-one-down";
 
 export function createEmptyPlayerDartStats(): PlayerDartStats {
   return {

@@ -6,22 +6,16 @@ import type {
 } from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
-  formatDartOutcomeLabel,
-  isValidOutcomeForTarget,
-  type DartOutcome,
-} from "@lib/shared/games/singles-training/dart";
-import {
-  isSinglesTrainingSession,
-  type SinglesTrainingSession,
-} from "@lib/shared/games/singles-training/session";
-import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
-import {
-  type SinglesTrainingSummary,
-} from "@lib/shared/games/singles-training/summary";
-import {
   applyDartToSession,
+  buildSinglesTrainingSession,
+  formatDartOutcomeLabel,
+  isSinglesTrainingSession,
+  isValidOutcomeForTarget,
   revertLastDart,
-} from "@lib/shared/games/singles-training/state";
+  type DartOutcome,
+  type SinglesTrainingSession,
+  type SinglesTrainingSummary,
+} from "@lib/shared/games/singles-training";
 import { t } from "@lib/shared/i18n";
 
 export const SINGLES_TRAINING_SESSION_KEY = "singles-training-session";

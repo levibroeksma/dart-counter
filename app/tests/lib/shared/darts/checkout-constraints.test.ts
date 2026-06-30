@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
-  getCheckoutConstraints,
   buildSuccessModalQuestions,
-} from "@lib/shared/darts/checkout-constraints";
+  getCheckoutConstraints,
+} from "@lib/shared/darts";
 
 describe("getCheckoutConstraints", () => {
   it("returns table entries for known targets", () => {

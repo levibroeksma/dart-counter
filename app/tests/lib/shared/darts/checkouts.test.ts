@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getCheckoutHint } from "@lib/shared/darts/checkouts";
+import { getCheckoutHint } from "@lib/shared/darts";
 
 describe("getCheckoutHint", () => {
   it("returns route for target 41", () => {

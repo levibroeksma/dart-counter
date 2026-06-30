@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "@api/games/ten-up-one-down/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { createEmptyPlayerDartStats } from "@lib/shared/stats/double-stats";
-import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
-import { applyRoundToState } from "@lib/shared/games/ten-up-one-down/state";
-import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
+import { createEmptyPlayerDartStats } from "@lib/shared/stats";
+import {
+  applyRoundToState,
+  buildRoundRecord,
+  buildTenUpOneDownSession,
+} from "@lib/shared/games/ten-up-one-down";
 
 const mockGetSession = vi.fn();
 const mockGetPlayerDartStats = vi.fn();

@@ -1,5 +1,5 @@
-import { CHECKOUT_CONSTRAINTS } from "@lib/shared/darts/checkout-constraints.data";
-import type { CheckoutConstraint } from "@lib/shared/darts/checkout-solver";
+import { CHECKOUT_CONSTRAINTS } from "./checkout-constraints.data";
+import type { CheckoutConstraint } from "./checkout-solver";
 
 export type ModalQuestion = {
   id: "dartsOnDouble" | "dartsForFinish" | "dartsUsed";

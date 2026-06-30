@@ -7,7 +7,7 @@ import {
   TEN_UP_ONE_DOWN_SESSION_KEY,
   clearPersistedTenUpOneDownSession,
 } from "@lib/client/alpine/games/ten-up-one-down.play";
-import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
+import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down";
 
 /**
  * Mock Alpine.$persist to return the initial value directly so unit tests

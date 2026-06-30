@@ -1,6 +1,5 @@
-import { isFinishableCheckout } from "@lib/shared/darts/checkout-solver";
+import { isFinishableCheckout } from "@lib/shared/darts";
 import type { VisitClassification } from "./types";
-
 export type { VisitClassification } from "./types";
 
 /**

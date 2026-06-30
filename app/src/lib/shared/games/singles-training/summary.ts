@@ -1,16 +1,8 @@
-import { DARTS_PER_VISIT } from "@lib/shared/games/singles-training/constants";
-import { isHit } from "@lib/shared/games/singles-training/dart";
-import type { SegmentCounts, SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
+import { DARTS_PER_VISIT } from "./constants";
+import { isHit } from "./dart";
+import type { SinglesTrainingSession, SinglesTrainingSummary } from "./types";
 
-export type SinglesTrainingSummary = {
-  status: "completed" | "dead";
-  score: number;
-  segmentCounts: SegmentCounts;
-  hitRatio: number;
-  dartPositionSuccessRates: [number, number, number];
-  targetsCompleted: number;
-  dartsThrown: number;
-};
+export type { SinglesTrainingSummary } from "./types";
 
 export function buildSummary(session: SinglesTrainingSession): SinglesTrainingSummary {
   const dartsThrown = session.dartHistory.length;

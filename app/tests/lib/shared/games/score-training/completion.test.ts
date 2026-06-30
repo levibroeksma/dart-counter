@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { validateCompletedScoreTrainingSession } from "@lib/shared/games/score-training/completion";
+import {
+  applyRoundToState,
+  buildRoundRecord,
+  buildScoreTrainingSession,
+  validateCompletedScoreTrainingSession,
+} from "@lib/shared/games/score-training";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
-import { applyRoundToState } from "@lib/shared/games/score-training/state";
-import { buildRoundRecord } from "@lib/shared/games/score-training/round";
 
 describe("validateCompletedScoreTrainingSession", () => {
   it("accepts a legitimately completed rounds session", () => {

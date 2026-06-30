@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
-import { STARTING_SCORE } from "@lib/shared/games/score-training/constants";
+import { buildScoreTrainingSession, STARTING_SCORE } from "@lib/shared/games/score-training";
 
 describe("buildScoreTrainingSession", () => {
   it("creates an active rounds session with empty history", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildRoundRecord, validateRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
+import { buildRoundRecord, validateRoundRecord } from "@lib/shared/games/ten-up-one-down";
 
 describe("buildRoundRecord", () => {
   it("builds success record with derived dartsUsed", () => {

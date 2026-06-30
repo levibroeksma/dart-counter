@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildSummary } from "@lib/shared/games/score-training/summary";
-import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
+import { buildSummary, type ScoreTrainingSession } from "@lib/shared/games/score-training";
 
 const baseSession: ScoreTrainingSession = {
   slug: "score-training",

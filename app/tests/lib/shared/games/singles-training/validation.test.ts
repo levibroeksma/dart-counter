@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { validateSinglesTrainingSettings } from "@lib/shared/games/singles-training/validation";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
   DEFAULT_DIRECTION,
   DEFAULT_MODE,
   DEFAULT_SCORING,
-} from "@lib/shared/games/singles-training/constants";
+  validateSinglesTrainingSettings,
+} from "@lib/shared/games/singles-training";
 
 describe("validateSinglesTrainingSettings", () => {
   it("accepts valid settings", () => {

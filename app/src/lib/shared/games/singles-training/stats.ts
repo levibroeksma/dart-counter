@@ -1,6 +1,6 @@
-import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
-import { isHit } from "@lib/shared/games/singles-training/dart";
-import { buildSummary } from "@lib/shared/games/singles-training/summary";
+import type { SinglesTrainingSession } from "./types";
+import { isHit } from "./dart";
+import { buildSummary } from "./summary";
 
 export type PlayerSinglesTrainingStats = {
   gamesCompleted: number;

@@ -1,5 +1,5 @@
-import { nearestNonBogey } from "@lib/shared/darts/bogeys";
-import { MAX_TARGET, MIN_TARGET, SUCCESS_DELTA, FAILURE_DELTA } from "@lib/shared/games/ten-up-one-down/constants";
+import { nearestNonBogey } from "@lib/shared/darts";
+import { MAX_TARGET, MIN_TARGET, SUCCESS_DELTA, FAILURE_DELTA } from "./constants";
 
 export type TargetResolution = { target: number; completedOn170: boolean };
 

@@ -4,7 +4,7 @@ import type {
   ApiResponse,
   FiveOhOneCompleteSuccess,
 } from "@lib/shared/api/types";
-import { getCheckoutHint } from "@lib/shared/darts/checkouts";
+import { getCheckoutHint } from "@lib/shared/darts";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
   applyVisit,

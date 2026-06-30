@@ -1,15 +1,7 @@
-import { DARTS_PER_VISIT, TARGET_COUNT } from "@lib/shared/games/singles-training/constants";
-import {
-  buildDartRecord,
-  isHit,
-  type DartOutcome,
-} from "@lib/shared/games/singles-training/dart";
-import type { SinglesTrainingMode } from "@lib/shared/games/singles-training/settings";
-import {
-  createEmptySegmentCounts,
-  type SinglesTrainingGameState,
-  type SinglesTrainingSession,
-} from "@lib/shared/games/singles-training/session";
+import { DARTS_PER_VISIT, TARGET_COUNT } from "./constants";
+import { buildDartRecord, isHit, type DartOutcome } from "./dart";
+import type { SinglesTrainingGameState, SinglesTrainingMode, SinglesTrainingSession } from "./types";
+import { createEmptySegmentCounts } from "./session";
 
 export function getMinimumHitsForMode(mode: SinglesTrainingMode): number {
   if (mode === "hard") return 1;

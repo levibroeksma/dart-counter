@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
-  createEmptyScoreTrainingStats,
   applyGameCompletionToStats,
-} from "@lib/shared/games/score-training/stats";
-import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
+  createEmptyScoreTrainingStats,
+  type ScoreTrainingSession,
+} from "@lib/shared/games/score-training";
 
 const session: ScoreTrainingSession = {
   slug: "score-training",

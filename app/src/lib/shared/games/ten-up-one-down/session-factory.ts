@@ -1,6 +1,5 @@
-import { createInitialGameState } from "@lib/shared/games/ten-up-one-down/state";
-import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
-import type { TenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/settings";
+import { createInitialGameState } from "./state";
+import type { TenUpOneDownSession, TenUpOneDownSettings } from "./types";
 
 export function buildTenUpOneDownSession(settings: TenUpOneDownSettings): TenUpOneDownSession {
   const now = new Date().toISOString();

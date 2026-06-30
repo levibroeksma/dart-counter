@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { validateCompletedTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/completion";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
-import { applyRoundToState } from "@lib/shared/games/ten-up-one-down/state";
-import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
+import {
+  applyRoundToState,
+  buildRoundRecord,
+  buildTenUpOneDownSession,
+  validateCompletedTenUpOneDownSession,
+} from "@lib/shared/games/ten-up-one-down";
 
 function buildCompletedRoundsSession(roundCount = 2) {
   const session = buildTenUpOneDownSession({ endMode: "rounds", roundCount });
