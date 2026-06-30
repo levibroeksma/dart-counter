@@ -12,9 +12,9 @@ const p0 = `${summaryModel}?.players[0]`;
 
 <div class="flex flex-col gap-6">
   <div class="flex flex-col gap-2 justify-center items-center">
-    <h3 class="text-lg font-semibold uppercase text-text-muted">Winner!</h3>
+    <h3 class="font-display text-2xl uppercase tracking-wide text-muted-foreground">Winner!</h3>
     <h2
-      class="text-2xl font-bold font-mono text-accent"
+      class="text-2xl font-bold font-mono text-primary"
       x-text={`${summaryModel}?.winnerDisplayName ?? 'Match Complete'`}
     ></h2>
   </div>
