@@ -14,7 +14,7 @@ export function chooseIntent(input: {
   const inSetupZone = remaining >= 131 && remaining <= 170;
 
   if (finishable && inSetupZone) {
-    return skill.level >= 10 ? "checkout" : "setup";
+    return skill.level >= 8 ? "checkout" : "setup";
   }
   if (finishable) return "checkout";
   if (inSetupZone) return "setup";

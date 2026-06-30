@@ -37,7 +37,7 @@ function isValidDartbotPlayer(raw: unknown): raw is FiveOhOnePlayer {
     p.name === "DartBot" &&
     Number.isInteger(p.level) &&
     p.level >= 1 &&
-    p.level <= 15
+    p.level <= 10
   );
 }
 

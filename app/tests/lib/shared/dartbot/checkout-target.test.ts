@@ -9,4 +9,8 @@ describe("nextCheckoutTarget", () => {
   it("returns null for non-finishable target without hint", () => {
     expect(nextCheckoutTarget(169)).toBeNull();
   });
+
+  it("returns S15 first target for 55", () => {
+    expect(nextCheckoutTarget(55)?.label).toBe("15");
+  });
 });

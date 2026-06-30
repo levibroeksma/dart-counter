@@ -11,8 +11,8 @@ describe("CheckoutPlanner", () => {
     new SkillCheckoutPolicy(),
   );
 
-  it("selects best route at level 15", () => {
-    const route = planner.route(81, getSkillProfile(15));
+  it("selects best route at level 10", () => {
+    const route = planner.route(81, getSkillProfile(10));
     expect(route.darts[0]!.label).toBe("T19");
     expect(route.quality).toBe(95);
   });

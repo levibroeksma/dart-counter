@@ -80,6 +80,22 @@ describe("validateFiveOhOneSettings", () => {
       code: MessageCode.INVALID_GAME_SETTINGS,
     });
   });
+
+  it("rejects dartbot player with level 11", () => {
+    const result = validateFiveOhOneSettings({
+      matchMode: "first-to",
+      targetCount: 3,
+      unit: "legs",
+      players: [
+        userPlayer,
+        { id: "db1", type: "dartbot", name: "DartBot", level: 11 },
+      ],
+    });
+    expect(result).toEqual({
+      valid: false,
+      code: MessageCode.INVALID_GAME_SETTINGS,
+    });
+  });
 });
 
 describe("validateVisitScore", () => {
