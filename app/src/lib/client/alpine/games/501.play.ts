@@ -243,12 +243,17 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
 
     async commitVisit(
       visitScore: number,
-      dartMeta?: { dartsOnDouble: number; dartsForFinish?: number },
+      dartMeta?: {
+        dartsThrown?: number;
+        dartsOnDouble?: number;
+        dartsForFinish?: number;
+      },
     ) {
       if (!this.session || this.session.state.phase !== "play") return;
       const botRngBefore = this.botRngBefore ?? this.session.botState?.rngState;
       this.session = applyVisit(this.session, visitScore, {
         botRngBefore: botRngBefore ?? undefined,
+        dartsThrown: dartMeta?.dartsThrown,
         dartsOnDouble: dartMeta?.dartsOnDouble,
         dartsForFinish: dartMeta?.dartsForFinish,
       });
@@ -275,10 +280,12 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       const dartMeta =
         this.modalKind === "finish"
           ? {
+              dartsThrown: this.dartsForFinish as number,
               dartsOnDouble: this.dartsOnDouble as number,
               dartsForFinish: this.dartsForFinish as number,
             }
           : {
+              dartsThrown: 3,
               dartsOnDouble: this.dartsOnDouble as number,
             };
       this.closeModal();

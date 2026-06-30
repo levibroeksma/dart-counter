@@ -201,6 +201,23 @@ describe("fiveOhOnePlay", () => {
     expect(play.pendingVisitScore).toBe(20);
   });
 
+  it("modalSubmit records dartsThrown from dartsForFinish on checkout", async () => {
+    const session = buildOnePlayerSession();
+    session.state.players[0]!.remaining = 40;
+    const play = fiveOhOnePlay(session);
+    play.init();
+    play.score = "40";
+    await play.submitVisit();
+
+    play.dartsForFinish = 2;
+    play.dartsOnDouble = 1;
+    await play.modalSubmit();
+
+    expect(play.session?.visitHistory[0]?.dartsThrown).toBe(2);
+    expect(play.session?.visitHistory[0]?.dartsForFinish).toBe(2);
+    expect(play.session?.visitHistory[0]?.dartsOnDouble).toBe(1);
+  });
+
   it("undoVisit reverts user + dartbot pair in dartbot sessions", () => {
     const play = fiveOhOnePlay(buildDartBotPlaySession());
     play.init();
