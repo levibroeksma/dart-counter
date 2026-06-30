@@ -1,5 +1,14 @@
 // Domain types
-export type { PlayerDartStats } from "./types";
+export type {
+  MetricKind,
+  PlayerDartStats,
+  ProfileMetricValue,
+  ProfileMetrics,
+  SparklinePoint,
+  SparklineSeries,
+  StatCompletionRecord,
+  VisitMilestoneCounts,
+} from "./types";
 
 // Double stats
 export {
@@ -7,3 +16,6 @@ export {
   createEmptyPlayerDartStats,
   revertRoundFromStats,
 } from "./double-stats";
+
+// Visit milestones
+export { countVisitMilestones } from "./milestones";
