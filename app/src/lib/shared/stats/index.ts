@@ -36,3 +36,10 @@ export {
   computeMonthDelta,
   type MonthDelta,
 } from "./profile-metrics";
+
+// Profile display formatting
+export {
+  formatCheckoutPercentage,
+  formatScoringAverage,
+  formatThreeDartAverage,
+} from "./format-profile";
