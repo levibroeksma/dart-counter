@@ -1,6 +1,7 @@
 ---
 import PrimaryBtn from "@components/ui/PrimaryBtn.astro";
 import GuestNameModal from "@components/games/501/GuestNameModal.astro";
+import OpponentPickerModal from "@components/games/501/OpponentPickerModal.astro";
 import { playPath } from "@lib/shared/games/paths";
 import type { GameType } from "@lib/shared/games/types";
 
@@ -43,5 +44,6 @@ const alpineUserId = JSON.stringify(userId);
     <PrimaryBtn type="submit" label="Play" />
   </form>
 
+  <OpponentPickerModal />
   <GuestNameModal />
 </main>

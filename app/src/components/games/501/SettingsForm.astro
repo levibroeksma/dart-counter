@@ -1,14 +1,15 @@
 ---
-import Input from "@components/ui/Input.astro";
 import RadioCard from "@components/ui/RadioCard.astro";
 import PlayerPicker from "@components/games/501/PlayerPicker.astro";
 import CustomNumSelect from "@components/games/501/CustomNumSelect.astro";
+import DartBotLevelSlider from "@components/games/501/DartBotLevelSlider.astro";
 ---
 
 <fieldset class="space-y-3">
   <legend class="section-label">Players</legend>
-  <p class="text-xs text-text-muted">Play solo or add one guest player.</p>
+  <p class="text-xs text-text-muted">Play solo or add an opponent.</p>
   <PlayerPicker />
+  <DartBotLevelSlider />
 </fieldset>
 
 <fieldset class="space-y-3">

@@ -1,0 +1,28 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+  x-show="opponentPickerOpen"
+  x-cloak
+  @keydown.escape.window="cancelOpponentPicker()"
+>
+  <div class="card-interactive w-full max-w-sm rounded-md p-4" @click.stop>
+    <h2 class="text-lg font-semibold text-text-primary">Add opponent</h2>
+    <p class="mt-1 text-sm text-text-muted">Choose who you want to play against.</p>
+
+    <div class="mt-4 grid grid-cols-1 gap-3 @xs:grid-cols-2">
+      <button type="button" class="btn-secondary btn-press w-full" @click="pickGuestOpponent()">
+        Guest
+      </button>
+      <button type="button" class="btn-primary btn-press w-full" @click="confirmDartBot()">
+        DartBot (Lv <span x-text="dartbotLevel"></span>)
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="btn-secondary btn-press mt-3 w-full"
+      @click="cancelOpponentPicker()"
+    >
+      Cancel
+    </button>
+  </div>
+</div>

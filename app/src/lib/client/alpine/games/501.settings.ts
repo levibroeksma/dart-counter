@@ -23,8 +23,10 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
     matchMode: "best-of" as "best-of" | "first-to",
     unit: "legs" as "legs" | "sets",
     players: [userPlayer] as FiveOhOnePlayer[],
+    opponentPickerOpen: false,
     guestModalOpen: false,
     guestNameDraft: "",
+    dartbotLevel: 10,
     inProgressSession: false,
     targetCount: 3,
 
@@ -40,7 +42,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
         : MAX_TARGET_COUNT_SETS;
     },
 
-    get hasGuest() {
+    get hasOpponent() {
       return this.players.length > 1;
     },
 
@@ -60,7 +62,18 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
       this.targetCount = Math.max(this.targetCountMin, this.targetCount - 1);
     },
 
-    openGuestModal() {
+    openOpponentPicker() {
+      if (this.hasOpponent) return;
+      this.opponentPickerOpen = true;
+    },
+
+    cancelOpponentPicker() {
+      this.opponentPickerOpen = false;
+    },
+
+    pickGuestOpponent() {
+      if (this.hasOpponent) return;
+      this.opponentPickerOpen = false;
       this.guestModalOpen = true;
       this.guestNameDraft = "";
     },
@@ -71,7 +84,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
 
     confirmGuest() {
       const guestName = this.guestNameDraft.trim();
-      if (!guestName || this.hasGuest) return;
+      if (!guestName || this.hasOpponent) return;
 
       const guest: FiveOhOnePlayer = {
         id: createId(),
@@ -83,13 +96,41 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
       this.guestNameDraft = "";
     },
 
-    removeGuest() {
-      if (!this.hasGuest) return;
-      this.players = this.players.filter((player) => player.type !== "guest");
+    confirmDartBot() {
+      if (this.hasOpponent) return;
+      const level = Math.min(
+        15,
+        Math.max(1, Math.round(Number(this.dartbotLevel) || 1)),
+      );
+      this.dartbotLevel = level;
+
+      const dartbot: FiveOhOnePlayer = {
+        id: createId(),
+        type: "dartbot",
+        name: "DartBot",
+        level,
+      };
+      this.players = [...this.players, dartbot];
+      this.opponentPickerOpen = false;
+    },
+
+    removeOpponent() {
+      if (!this.hasOpponent) return;
+      this.players = this.players.filter((player) => player.type === "user");
+      this.opponentPickerOpen = false;
+      this.guestModalOpen = false;
+      this.guestNameDraft = "";
     },
 
     serializePlayers(): string {
-      return JSON.stringify(this.players);
+      const level = Math.min(
+        15,
+        Math.max(1, Math.round(Number(this.dartbotLevel) || 1)),
+      );
+      const players = this.players.map((player) =>
+        player.type === "dartbot" ? { ...player, level } : player,
+      );
+      return JSON.stringify(players);
     },
 
     checkInProgressSession() {

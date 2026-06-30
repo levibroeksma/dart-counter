@@ -1,0 +1,15 @@
+<div class="space-y-2" x-show="players.some((player) => player.type === 'dartbot')" x-cloak>
+  <label for="dartbot-level" class="section-label">DartBot level</label>
+  <div class="space-y-1">
+    <input
+      id="dartbot-level"
+      type="range"
+      min="1"
+      max="15"
+      step="1"
+      x-model.number="dartbotLevel"
+      class="w-full accent-text-primary"
+    />
+    <p class="text-xs text-text-muted">Current level: <span x-text="dartbotLevel"></span>/15</p>
+  </div>
+</div>
