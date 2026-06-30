@@ -43,6 +43,43 @@ describe("validateFiveOhOneSettings", () => {
       code: MessageCode.INVALID_GAME_SETTINGS,
     });
   });
+
+  it("accepts dartbot player with level 10", () => {
+    const result = validateFiveOhOneSettings({
+      matchMode: "first-to",
+      targetCount: 3,
+      unit: "legs",
+      players: [
+        userPlayer,
+        { id: "db1", type: "dartbot", name: "DartBot", level: 10 },
+      ],
+    });
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.players[1]).toEqual({
+        id: "db1",
+        type: "dartbot",
+        name: "DartBot",
+        level: 10,
+      });
+    }
+  });
+
+  it("rejects dartbot player with level 0", () => {
+    const result = validateFiveOhOneSettings({
+      matchMode: "first-to",
+      targetCount: 3,
+      unit: "legs",
+      players: [
+        userPlayer,
+        { id: "db1", type: "dartbot", name: "DartBot", level: 0 },
+      ],
+    });
+    expect(result).toEqual({
+      valid: false,
+      code: MessageCode.INVALID_GAME_SETTINGS,
+    });
+  });
 });
 
 describe("validateVisitScore", () => {
