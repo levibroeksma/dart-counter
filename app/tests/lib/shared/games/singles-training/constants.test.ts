@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   DARTS_PER_VISIT,
-  TARGET_COUNT,
   DEFAULT_DIRECTION,
   DEFAULT_MODE,
   DEFAULT_SCORING,
-} from "@lib/shared/games/singles-training/constants";
+  TARGET_COUNT,
+} from "@lib/shared/games/singles-training";
 
 describe("singles-training constants", () => {
   it("exports expected defaults", () => {

@@ -1,5 +1,5 @@
-import { isBogey } from "@lib/shared/darts/bogeys";
-import { CHECKOUT_HINTS } from "@lib/shared/darts/checkout-hints.data";
+import { isBogey } from "./bogeys";
+import { CHECKOUT_HINTS } from "./checkout-hints.data";
 
 export type CheckoutRoute = { segments: string[] };
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { BOGEY_NUMBERS, isBogey, nearestNonBogey } from "@lib/shared/darts/bogeys";
+import { BOGEY_NUMBERS, isBogey, nearestNonBogey } from "@lib/shared/darts";
 
 describe("bogeys", () => {
   it("identifies bogey numbers", () => {

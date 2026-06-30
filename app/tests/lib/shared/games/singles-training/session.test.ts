@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isSinglesTrainingSession } from "@lib/shared/games/singles-training/session";
+import { isSinglesTrainingSession } from "@lib/shared/games/singles-training";
 
 describe("isSinglesTrainingSession", () => {
   it("returns true for valid session shape", () => {

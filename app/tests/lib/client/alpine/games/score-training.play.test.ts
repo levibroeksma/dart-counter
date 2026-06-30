@@ -7,7 +7,7 @@ import {
   SCORE_TRAINING_SESSION_KEY,
   clearPersistedScoreTrainingSession,
 } from "@lib/client/alpine/games/score-training.play";
-import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
+import { buildScoreTrainingSession } from "@lib/shared/games/score-training";
 
 /**
  * Mock Alpine.$persist to return the initial value directly so unit tests

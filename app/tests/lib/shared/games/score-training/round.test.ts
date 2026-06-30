@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildRoundRecord, validateRoundRecord } from "@lib/shared/games/score-training/round";
+import { buildRoundRecord, validateRoundRecord } from "@lib/shared/games/score-training";
 
 describe("buildRoundRecord", () => {
   it("builds record with running total", () => {

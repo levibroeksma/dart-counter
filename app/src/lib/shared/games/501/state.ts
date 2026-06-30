@@ -1,20 +1,27 @@
-import { DARTS_PER_VISIT, STARTING_SCORE } from "@lib/shared/games/501/constants";
-import { hasPlayerWonMatch, hasPlayerWonSet } from "@lib/shared/games/501/match";
+import { DARTS_PER_VISIT, STARTING_SCORE } from "./constants";
+import { hasPlayerWonMatch, hasPlayerWonSet } from "./match";
+import { lastTwoVisitsAreUserThenDartBot } from "./bot-helpers";
+import { createEmptySetRunningStats } from "@lib/shared/dartbot";
 import type {
   FiveOhOneGameState,
   FiveOhOnePlayerState,
   FiveOhOneSession,
   FiveOhOneVisitRecord,
-} from "@lib/shared/games/501/session";
-import { classifyVisit } from "@lib/shared/games/501/visit";
+} from "./types";
+import { classifyVisit } from "./visit";
 import { deepClone } from "@lib/shared/utils/deep-clone";
 
 function cloneGameState(state: FiveOhOneGameState): FiveOhOneGameState {
   return deepClone(state);
 }
 
-function getOpponentId(players: FiveOhOnePlayerState[], playerId: string): string {
-  return players.find((player) => player.playerId !== playerId)?.playerId ?? playerId;
+function getOpponentId(
+  players: FiveOhOnePlayerState[],
+  playerId: string,
+): string {
+  return (
+    players.find((player) => player.playerId !== playerId)?.playerId ?? playerId
+  );
 }
 
 function nextLegStarterId(state: FiveOhOneGameState): string {
@@ -39,6 +46,12 @@ function resetPlayersForNewLeg(players: FiveOhOnePlayerState[]): void {
 export function applyVisit(
   session: FiveOhOneSession,
   visitScore: number,
+  options?: {
+    botRngBefore?: number;
+    dartsThrown?: number;
+    dartsOnDouble?: number;
+    dartsForFinish?: number;
+  },
 ): FiveOhOneSession {
   const sessionBase = deepClone(session);
   const now = new Date().toISOString();
@@ -54,6 +67,7 @@ export function applyVisit(
 
   const outcome = classifyVisit(currentPlayer.remaining, visitScore);
   nextState.scoreAtVisitStart = currentPlayer.remaining;
+  const dartsThrown = options?.dartsThrown ?? DARTS_PER_VISIT;
 
   const visitRecord: FiveOhOneVisitRecord = {
     visitNumber: sessionBase.visitHistory.length + 1,
@@ -66,6 +80,10 @@ export function applyVisit(
     legNumber: nextState.currentLeg,
     setNumber: nextState.currentSet,
     stateSnapshot: stateBeforeVisit,
+    botRngBefore: options?.botRngBefore,
+    dartsThrown,
+    dartsOnDouble: options?.dartsOnDouble,
+    dartsForFinish: outcome.checkout ? options?.dartsForFinish : undefined,
   };
 
   const nextHistory = [...sessionBase.visitHistory, visitRecord];
@@ -73,9 +91,10 @@ export function applyVisit(
 
   if (!outcome.bust) {
     currentPlayer.remaining = outcome.remainingAfter;
-    currentPlayer.dartsThisLeg += DARTS_PER_VISIT;
     currentPlayer.lastVisitScore = visitScore;
   }
+
+  currentPlayer.dartsThisLeg += dartsThrown;
 
   if (outcome.checkout) {
     currentPlayer.legsWonInSet += 1;
@@ -88,6 +107,10 @@ export function applyVisit(
         player.legsWonInSet = 0;
       }
       nextState.currentSet += 1;
+      if (sessionBase.botState) {
+        sessionBase.botState.setRunningStats = createEmptySetRunningStats();
+        sessionBase.botState.setNumber = nextState.currentSet;
+      }
     }
 
     if (hasPlayerWonMatch(sessionBase.settings, currentPlayer)) {
@@ -103,8 +126,15 @@ export function applyVisit(
       nextState.status = "active";
       nextState.scoreAtVisitStart = STARTING_SCORE;
     }
+
+    if (sessionBase.botState) {
+      sessionBase.botState.currentLegIndex += 1;
+    }
   } else if (isTwoPlayer) {
-    nextState.currentPlayerId = getOpponentId(nextState.players, currentPlayer.playerId);
+    nextState.currentPlayerId = getOpponentId(
+      nextState.players,
+      currentPlayer.playerId,
+    );
   }
 
   if (!isTwoPlayer) {
@@ -143,4 +173,38 @@ export function revertLastVisit(session: FiveOhOneSession): FiveOhOneSession {
     visitHistory: nextHistory,
     updatedAt: now,
   };
+}
+
+/**
+ * Reverts the latest user + dartbot visit pair and rewinds bot RNG state.
+ */
+export function revertLastOpponentPair(
+  session: FiveOhOneSession,
+): FiveOhOneSession {
+  const sessionBase = deepClone(session);
+  if (!lastTwoVisitsAreUserThenDartBot(sessionBase)) {
+    return sessionBase;
+  }
+
+  const now = new Date().toISOString();
+  const nextHistory = [...sessionBase.visitHistory];
+  nextHistory.pop();
+  const userVisit = nextHistory.pop();
+
+  if (!userVisit) {
+    return sessionBase;
+  }
+
+  const nextSession: FiveOhOneSession = {
+    ...sessionBase,
+    state: cloneGameState(userVisit.stateSnapshot),
+    visitHistory: nextHistory,
+    updatedAt: now,
+  };
+
+  if (typeof userVisit.botRngBefore === "number" && nextSession.botState) {
+    nextSession.botState.rngState = userVisit.botRngBefore;
+  }
+
+  return nextSession;
 }

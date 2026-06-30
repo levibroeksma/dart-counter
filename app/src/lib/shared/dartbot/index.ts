@@ -1,0 +1,46 @@
+export type {
+  BotCheckoutRoute,
+  BullSetupOutcomes,
+  ConvergenceBias,
+  ConvergenceConfig,
+  DeviationBand,
+  DoubleOutcomes,
+  LevelProfile,
+  MatchPlan,
+  MatchStats,
+  Rng,
+  ScoringOutcomes,
+  Segment,
+  SegmentLabel,
+  SetRunningStats,
+  SetupOutcomes,
+  SimulatedDart,
+  SimulatedVisit,
+  SimulateVisitContext,
+  SkillProfile,
+  StatRange,
+  StatsValidation,
+  ThrowIntent,
+} from "./types";
+export type { BotVisitForStats } from "./set-stats";
+
+export { createEmptySetRunningStats } from "./types";
+
+export { simulateVisit } from "./dart-bot";
+export { computeSetRunningStats } from "./set-stats";
+export { computeConvergenceBias } from "./convergence";
+export { nextCheckoutTarget } from "./checkout-target";
+export {
+  ANCHOR_PROFILES,
+  LEVEL_STAT_RANGES,
+  getSkillProfile,
+} from "./levels";
+export {
+  formatDartbotLevelPreview,
+  type DartbotLevelPreview,
+} from "./preview";
+export { generateMatchPlan } from "./match-planner";
+export { createRng, hashSeed } from "./rng";
+export { validateMatchStats } from "./statistics-engine";
+export { isWithinStatBand } from "./stat-validation";
+export { boardNeighbors, parseSegment, scoreForSegment } from "./segments";

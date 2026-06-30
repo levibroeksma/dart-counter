@@ -1,14 +1,12 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { MAX_TARGET } from "@lib/shared/games/ten-up-one-down/constants";
-import { validateRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
-import {
-  isTenUpOneDownSession,
-  type TenUpOneDownSession,
-} from "@lib/shared/games/ten-up-one-down/session";
-import { createInitialGameState, applyRoundToState } from "@lib/shared/games/ten-up-one-down/state";
-import { validateTenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/validation";
+import { MAX_TARGET } from "./constants";
+import { validateRoundRecord } from "./round";
+import { isTenUpOneDownSession } from "./session";
+import { createInitialGameState, applyRoundToState } from "./state";
+import type { TenUpOneDownSession } from "./types";
+import { validateTenUpOneDownSettings } from "./validation";
 
-export type ValidateCompletedResult =
+export type ValidateCompletedTenUpOneDownResult =
   | { valid: true; value: TenUpOneDownSession }
   | {
       valid: false;
@@ -23,7 +21,7 @@ export type ValidateCompletedResult =
  */
 export function validateCompletedTenUpOneDownSession(
   raw: unknown,
-): ValidateCompletedResult {
+): ValidateCompletedTenUpOneDownResult {
   if (!isTenUpOneDownSession(raw)) {
     return { valid: false, code: MessageCode.INVALID_GAME_SETTINGS };
   }

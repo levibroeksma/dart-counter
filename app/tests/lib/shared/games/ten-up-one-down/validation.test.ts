@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateTenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/validation";
+import { validateTenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 
 describe("validateTenUpOneDownSettings", () => {

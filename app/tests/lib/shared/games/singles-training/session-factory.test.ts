@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
+import {
+  buildSinglesTrainingSession,
+  TARGET_COUNT,
+} from "@lib/shared/games/singles-training";
 import { ALL_TARGETS } from "@lib/shared/games/singles-training/target-sequence";
-import { TARGET_COUNT } from "@lib/shared/games/singles-training/constants";
 
 describe("buildSinglesTrainingSession", () => {
   it("creates an active session with low-to-high target sequence", () => {

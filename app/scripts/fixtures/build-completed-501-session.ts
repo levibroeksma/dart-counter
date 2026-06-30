@@ -1,5 +1,4 @@
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import { applyVisit } from "@lib/shared/games/501/state";
+import { applyVisit, buildFiveOhOneSession } from "@lib/shared/games/501";
 
 const settings = {
   matchMode: "first-to" as const,

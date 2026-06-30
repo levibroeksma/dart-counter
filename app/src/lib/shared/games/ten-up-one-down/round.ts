@@ -1,13 +1,5 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-
-export type TenUpOneDownRoundRecord = {
-  roundNumber: number;
-  targetAtStart: number;
-  targetAfter: number;
-  finished: boolean;
-  dartsUsed: 1 | 2 | 3;
-  dartsOnDouble: 0 | 1 | 2 | 3;
-};
+import type { TenUpOneDownRoundRecord } from "./types";
 
 export type RoundInput =
   | { outcome: "success"; dartsForFinish: 1 | 2 | 3; dartsOnDouble: 1 | 2 | 3 }

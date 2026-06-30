@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  validateScoreTrainingSettings,
-  validateVisitScore,
-} from "@lib/shared/games/score-training/validation";
+import { validateScoreTrainingSettings } from "@lib/shared/games/score-training";
+import { validateVisitScore } from "@lib/shared/games/score-training/validation";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
 
 describe("validateScoreTrainingSettings", () => {

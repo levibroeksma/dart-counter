@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getCheckoutHint } from "@lib/shared/darts/checkouts";
+import { getCheckoutHint } from "@lib/shared/darts";
 
 describe("getCheckoutHint", () => {
   it("returns route for target 41", () => {
@@ -12,6 +12,11 @@ describe("getCheckoutHint", () => {
 
   it("returns route for target 170", () => {
     expect(getCheckoutHint(170)).toEqual({ segments: ["T20", "T20", "Bull"] });
+  });
+
+  // Safer singles audit: 55 changed from T15 D5 to S15 D20.
+  it("returns S15 D20 for 55", () => {
+    expect(getCheckoutHint(55)).toEqual({ segments: ["15", "D20"] });
   });
 
   it("returns null for bogey targets", () => {

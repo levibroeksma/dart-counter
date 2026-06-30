@@ -7,9 +7,11 @@ import {
   singlesTrainingPlay,
   SINGLES_TRAINING_SESSION_KEY,
 } from "@lib/client/alpine/games/singles-training.play";
-import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
-import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
-import { applyDartToSession } from "@lib/shared/games/singles-training/state";
+import {
+  applyDartToSession,
+  buildSinglesTrainingSession,
+  type SinglesTrainingSession,
+} from "@lib/shared/games/singles-training";
 
 beforeAll(() => {
   (Alpine as unknown as Record<string, unknown>).$persist = (value: unknown) => ({

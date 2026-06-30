@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { createInitialGameState, applyRoundToState } from "@lib/shared/games/ten-up-one-down/state";
-import type { TenUpOneDownRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
+import { applyRoundToState } from "@lib/shared/games/ten-up-one-down";
+import { createInitialGameState } from "@lib/shared/games/ten-up-one-down/state";
+import type { TenUpOneDownRoundRecord } from "@lib/shared/games/ten-up-one-down";
 
 const successRound: TenUpOneDownRoundRecord = {
   roundNumber: 1, targetAtStart: 41, targetAfter: 51,

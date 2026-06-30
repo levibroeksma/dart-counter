@@ -7,22 +7,20 @@ import type {
 import {
   buildFailureModalQuestions,
   buildSuccessModalQuestions,
+  getCheckoutHint,
   type ModalQuestion,
-} from "@lib/shared/darts/checkout-constraints";
-import { getCheckoutHint } from "@lib/shared/darts/checkouts";
+} from "@lib/shared/darts";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { resolveRoundOutcome } from "@lib/shared/games/ten-up-one-down/outcome";
-import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
-import {
-  isTenUpOneDownSession,
-  type TenUpOneDownSession,
-} from "@lib/shared/games/ten-up-one-down/session";
-import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
-import type { TenUpOneDownSummary } from "@lib/shared/games/ten-up-one-down/summary";
 import {
   applyRoundToState,
+  buildRoundRecord,
+  buildTenUpOneDownSession,
+  isTenUpOneDownSession,
+  resolveRoundOutcome,
   revertRoundFromState,
-} from "@lib/shared/games/ten-up-one-down/state";
+  type TenUpOneDownSession,
+  type TenUpOneDownSummary,
+} from "@lib/shared/games/ten-up-one-down";
 import { t } from "@lib/shared/i18n";
 import * as scoreInput from "@lib/client/alpine/score-input";
 

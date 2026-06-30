@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseTenUpOneDownSettingsFormData } from "@lib/shared/games/ten-up-one-down/form-data";
+import { parseTenUpOneDownSettingsFormData } from "@lib/shared/games/ten-up-one-down";
 
 describe("parseTenUpOneDownSettingsFormData", () => {
   it("maps endMode and roundCount from form fields", () => {

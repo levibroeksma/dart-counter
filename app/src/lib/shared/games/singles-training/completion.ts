@@ -1,17 +1,11 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import {
-  isSinglesTrainingSession,
-  type SinglesTrainingSession,
-} from "@lib/shared/games/singles-training/session";
-import { applyDartToSession } from "@lib/shared/games/singles-training/state";
-import { validateSinglesTrainingSettings } from "@lib/shared/games/singles-training/validation";
-import {
-  ALL_TARGETS,
-  buildTargetSequence,
-} from "@lib/shared/games/singles-training/target-sequence";
-import { createInitialGameState } from "@lib/shared/games/singles-training/state";
+import { isSinglesTrainingSession } from "./session";
+import type { SinglesTrainingSession } from "./types";
+import { applyDartToSession, createInitialGameState } from "./state";
+import { validateSinglesTrainingSettings } from "./validation";
+import { ALL_TARGETS, buildTargetSequence } from "./target-sequence";
 
-export type ValidateCompletedSinglesResult =
+export type ValidateCompletedSinglesTrainingResult =
   | { valid: true; value: SinglesTrainingSession }
   | {
       valid: false;
@@ -69,7 +63,7 @@ function statesMatch(
  */
 export function validateCompletedSinglesTrainingSession(
   raw: unknown,
-): ValidateCompletedSinglesResult {
+): ValidateCompletedSinglesTrainingResult {
   if (!isSinglesTrainingSession(raw)) {
     return { valid: false, code: MessageCode.INVALID_GAME_SETTINGS };
   }

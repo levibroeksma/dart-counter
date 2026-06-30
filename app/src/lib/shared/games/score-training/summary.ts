@@ -1,12 +1,5 @@
-import { DARTS_PER_VISIT } from "@lib/shared/games/score-training/constants";
-import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
-
-export type ScoreTrainingSummary = {
-  totalScore: number;
-  threeDartAverage: number;
-  roundsPlayed: number;
-  dartsThrown: number;
-};
+import { DARTS_PER_VISIT } from "./constants";
+import type { ScoreTrainingSession, ScoreTrainingSummary } from "./types";
 
 export function buildSummary(session: ScoreTrainingSession): ScoreTrainingSummary {
   const roundsPlayed = session.roundHistory.length;

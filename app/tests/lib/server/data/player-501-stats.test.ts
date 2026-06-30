@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import "@tests/helpers/mock-db";
 import { mockDb, TEST_ENTRY_ENV, userScopedKey } from "@tests/helpers/mock-db";
 import { TEST_USER_ID } from "@tests/helpers/constants";
-import { createEmpty501Stats } from "@lib/shared/games/501/stats";
+import { createEmpty501Stats } from "@lib/shared/games/501";
 import {
   getPlayer501Stats,
   savePlayer501Stats,

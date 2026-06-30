@@ -2,8 +2,8 @@ import { MessageCode } from "@lib/shared/constants/errors.constants";
 import {
   MIN_ROUND_COUNT, MAX_ROUND_COUNT,
   MIN_PLAYTIME_SECONDS, MAX_PLAYTIME_SECONDS,
-} from "@lib/shared/games/ten-up-one-down/constants";
-import type { TenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/settings";
+} from "./constants";
+import type { TenUpOneDownSettings } from "./types";
 
 export type ValidateSettingsResult =
   | { valid: true; value: TenUpOneDownSettings }

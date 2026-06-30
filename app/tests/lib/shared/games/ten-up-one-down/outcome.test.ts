@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveRoundOutcome } from "@lib/shared/games/ten-up-one-down/outcome";
+import { resolveRoundOutcome } from "@lib/shared/games/ten-up-one-down";
 
 describe("resolveRoundOutcome", () => {
   it("empty score is failure", () => {

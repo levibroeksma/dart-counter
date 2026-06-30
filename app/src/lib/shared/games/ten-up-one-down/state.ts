@@ -1,8 +1,6 @@
-import { STARTING_TARGET } from "@lib/shared/games/ten-up-one-down/constants";
-import type { TenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/settings";
-import type { TenUpOneDownGameState } from "@lib/shared/games/ten-up-one-down/session";
-import type { TenUpOneDownRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
-import { resolveTargetAfterRound } from "@lib/shared/games/ten-up-one-down/target";
+import { STARTING_TARGET } from "./constants";
+import { resolveTargetAfterRound } from "./target";
+import type { TenUpOneDownGameState, TenUpOneDownRoundRecord, TenUpOneDownSettings } from "./types";
 
 export function createInitialGameState(_settings: TenUpOneDownSettings): TenUpOneDownGameState {
   return {
@@ -22,7 +20,7 @@ export function applyRoundToState(
   round.targetAfter = target;
 
   let status = state.status;
-  let currentRound = state.currentRound + 1;
+  const currentRound = state.currentRound + 1;
 
   if (completedOn170) {
     status = "completed";

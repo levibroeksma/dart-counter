@@ -87,4 +87,10 @@ describe("singles-training play page assembly", () => {
     expect(source).not.toContain('Alpine.data("singlesTrainingSettings"');
     expect(source).toContain('Alpine.data("singlesTrainingPlay", singlesTrainingPlay);');
   });
+
+  it("Summary.astro uses shared SummaryActions", () => {
+    const source = readSource("src/components/games/singles-training/Summary.astro");
+    expect(source).toContain("SummaryActions");
+    expect(source).toContain('variant="yes-no"');
+  });
 });

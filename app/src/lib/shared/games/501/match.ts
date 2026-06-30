@@ -1,6 +1,5 @@
-import { LEGS_PER_SET } from "@lib/shared/games/501/constants";
-import type { FiveOhOneSettings } from "@lib/shared/games/501/settings";
-import type { FiveOhOnePlayerState } from "@lib/shared/games/501/session";
+import { LEGS_PER_SET } from "./constants";
+import type { FiveOhOnePlayerState, FiveOhOneSettings } from "./types";
 
 type MatchFormat = Pick<
   FiveOhOneSettings,

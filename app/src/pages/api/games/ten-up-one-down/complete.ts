@@ -1,9 +1,11 @@
 import type { APIRoute } from "astro";
 import type { ApiResponse } from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { validateCompletedTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/completion";
-import { buildSummary } from "@lib/shared/games/ten-up-one-down/summary";
-import { applyGameCompletionToStats } from "@lib/shared/games/ten-up-one-down/stats";
+import {
+  applyGameCompletionToStats,
+  buildSummary,
+  validateCompletedTenUpOneDownSession,
+} from "@lib/shared/games/ten-up-one-down";
 import { getSession } from "@lib/server/auth/session";
 import { incrementPlayCount } from "@lib/server/data/games";
 import {

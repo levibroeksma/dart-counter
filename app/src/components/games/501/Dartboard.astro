@@ -1,0 +1,82 @@
+---
+interface Props {
+  segmentLabels: string[];
+}
+
+const { segmentLabels = [] } = Astro.props;
+const boardOrder = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+
+type ParsedSegment = {
+  ring: "single" | "double" | "triple" | "outer" | "bull";
+  base: number;
+};
+
+function parseSegmentLabel(label: string): ParsedSegment | null {
+  if (label === "50") return { ring: "bull", base: 50 };
+  if (label === "25") return { ring: "outer", base: 25 };
+  const normalized = label.startsWith("S") ? label.slice(1) : label;
+  const match = normalized.match(/^(T|D)?(\d{1,2})$/);
+  if (!match) return null;
+  const prefix = match[1] ?? "";
+  const base = Number(match[2]);
+  if (!Number.isFinite(base) || base < 1 || base > 20) return null;
+  if (prefix === "T") return { ring: "triple", base };
+  if (prefix === "D") return { ring: "double", base };
+  return { ring: "single", base };
+}
+
+function radiusForRing(ring: ParsedSegment["ring"]): number {
+  if (ring === "bull") return 0;
+  if (ring === "outer") return 16;
+  if (ring === "triple") return 58;
+  if (ring === "double") return 92;
+  return 42;
+}
+
+function markerForSegment(label: string, index: number) {
+  const parsed = parseSegmentLabel(label);
+  if (!parsed) return null;
+  if (parsed.ring === "bull" || parsed.ring === "outer") {
+    return {
+      label,
+      x: 0,
+      y: 0,
+      markerClass: index === segmentLabels.length - 1 ? "fill-accent" : "fill-accent/70",
+    };
+  }
+  const wedgeIndex = boardOrder.indexOf(parsed.base);
+  if (wedgeIndex === -1) return null;
+  const angle = -90 + wedgeIndex * (360 / boardOrder.length);
+  const radius = radiusForRing(parsed.ring);
+  const radians = (angle * Math.PI) / 180;
+  return {
+    label,
+    x: Number((Math.cos(radians) * radius).toFixed(2)),
+    y: Number((Math.sin(radians) * radius).toFixed(2)),
+    markerClass: index === segmentLabels.length - 1 ? "fill-accent" : "fill-accent/70",
+  };
+}
+
+const markers = segmentLabels
+  .map((segmentLabel, index) => markerForSegment(segmentLabel, index))
+  .filter((value): value is NonNullable<typeof value> => value !== null);
+---
+
+<figure class="relative mx-auto w-full max-w-[16rem]" aria-label="Dartboard">
+  <svg viewBox="-105 -105 210 210" class="w-full h-auto" role="img" aria-hidden="true">
+    <circle cx="0" cy="0" r="100" class="fill-slate-900 stroke-slate-600 stroke-[2]" />
+    <circle cx="0" cy="0" r="92" class="fill-transparent stroke-amber-100/70 stroke-[8]" />
+    <circle cx="0" cy="0" r="58" class="fill-transparent stroke-amber-100/70 stroke-[8]" />
+    <circle cx="0" cy="0" r="18" class="fill-green-700/80" />
+    <circle cx="0" cy="0" r="8" class="fill-red-600/90" />
+
+    {
+      markers.map((marker) => (
+        <>
+          <circle cx={marker.x} cy={marker.y} r="6" class={marker.markerClass} />
+          <circle cx={marker.x} cy={marker.y} r="2.5" class="fill-white" />
+        </>
+      ))
+    }
+  </svg>
+</figure>

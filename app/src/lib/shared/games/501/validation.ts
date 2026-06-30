@@ -6,11 +6,8 @@ import {
   MIN_TARGET_COUNT_LEGS,
   MIN_TARGET_COUNT_SETS,
   MIN_VISIT_SCORE,
-} from "@lib/shared/games/501/constants";
-import type {
-  FiveOhOnePlayer,
-  FiveOhOneSettings,
-} from "@lib/shared/games/501/settings";
+} from "./constants";
+import type { FiveOhOnePlayer, FiveOhOneSettings } from "./types";
 
 export type ValidateSettingsResult =
   | { valid: true; value: FiveOhOneSettings }
@@ -20,7 +17,7 @@ export type ValidateVisitScoreResult =
   | { valid: true; value: number }
   | { valid: false; code: typeof MessageCode.INVALID_SCORE };
 
-function isValidPlayer(raw: unknown): raw is FiveOhOnePlayer {
+function isValidUserOrGuestPlayer(raw: unknown): raw is FiveOhOnePlayer {
   if (!raw || typeof raw !== "object") return false;
   const p = raw as FiveOhOnePlayer;
   return (
@@ -29,6 +26,23 @@ function isValidPlayer(raw: unknown): raw is FiveOhOnePlayer {
     typeof p.name === "string" &&
     p.name.trim().length > 0
   );
+}
+
+function isValidDartbotPlayer(raw: unknown): raw is FiveOhOnePlayer {
+  if (!raw || typeof raw !== "object") return false;
+  const p = raw as FiveOhOnePlayer;
+  return (
+    typeof p.id === "string" &&
+    p.type === "dartbot" &&
+    p.name === "DartBot" &&
+    Number.isInteger(p.level) &&
+    p.level >= 1 &&
+    p.level <= 10
+  );
+}
+
+function isValidPlayer(raw: unknown): raw is FiveOhOnePlayer {
+  return isValidUserOrGuestPlayer(raw) || isValidDartbotPlayer(raw);
 }
 
 export function validateFiveOhOneSettings(
@@ -72,7 +86,11 @@ export function validateFiveOhOneSettings(
     if (!isValidPlayer(p)) {
       return { valid: false, code: MessageCode.INVALID_GAME_SETTINGS };
     }
-    players.push({ ...p, name: p.name.trim() });
+    if (p.type === "dartbot") {
+      players.push(p);
+    } else {
+      players.push({ ...p, name: p.name.trim() });
+    }
   }
 
   if (!players.some((p) => p.type === "user")) {

@@ -18,6 +18,39 @@ describe("501 play page assembly", () => {
     expect(source).toContain('x-show="session?.state.phase === \'play\'"');
     expect(source).toContain('showSummaryModel="showSummary && summary"');
     expect(source).toContain("NumberInputPad");
+    expect(source).toContain("<OptionModal");
+    expect(source).toContain("formatPlayerName(");
+    expect(source).toContain('submitAction="modalSubmit()"');
+  });
+
+  it("Summary.astro uses backToGames button", () => {
+    const source = readSource("src/components/games/501/Summary.astro");
+    expect(source).toContain("SummaryActions");
+    expect(source).toContain('variant="back-play"');
+  });
+
+  it("Summary.astro delegates to 1P/2P subcomponents", () => {
+    const source = readSource("src/components/games/501/Summary.astro");
+    expect(source).toContain("MultiplayerSummary");
+    expect(source).toContain("SinglePlayerSummary");
+    expect(source).toContain("SummaryActions");
+    expect(source).toContain("players?.length === 2");
+    expect(source).toContain("players?.length === 1");
+  });
+
+  it("MultiplayerSummary uses head-to-head components", () => {
+    const source = readSource("src/components/games/501/MultiplayerSummary.astro");
+    expect(source).toContain("SummaryMatchHeader");
+    expect(source).toContain("SummaryComparisonStatRow");
+    expect(source).toContain("formatSummaryAverage");
+  });
+
+  it("SinglePlayerSummary uses stat rows without legacy fields", () => {
+    const source = readSource("src/components/games/501/SinglePlayerSummary.astro");
+    expect(source).toContain("SummaryStatRow");
+    expect(source).toContain("formatSummaryAverage");
+    expect(source).not.toContain("resultLabel");
+    expect(source).not.toContain("userThreeDartAverage");
   });
 
   it("starts 501 via POST form validation", () => {

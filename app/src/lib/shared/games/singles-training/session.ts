@@ -1,33 +1,12 @@
-import type { SinglesTrainingSettings } from "@lib/shared/games/singles-training/settings";
-import type { DartRecord } from "@lib/shared/games/singles-training/dart";
+import type { SegmentCounts, SinglesTrainingSession } from "./types";
 
-export type SinglesTrainingTarget = number | "bull";
-export type SinglesTrainingGameStatus = "active" | "dead" | "completed";
-
-export type SegmentCounts = {
-  miss: number;
-  single: number;
-  double: number;
-  triple: number;
-};
-
-export type SinglesTrainingGameState = {
-  status: SinglesTrainingGameStatus;
-  currentTargetIndex: number;
-  currentDartInVisit: 0 | 1 | 2;
-  score: number;
-  segmentCounts: SegmentCounts;
-};
-
-export type SinglesTrainingSession = {
-  slug: "singles-training";
-  settings: SinglesTrainingSettings;
-  targetSequence: SinglesTrainingTarget[];
-  state: SinglesTrainingGameState;
-  dartHistory: DartRecord[];
-  createdAt: string;
-  updatedAt: string;
-};
+export type {
+  SegmentCounts,
+  SinglesTrainingGameState,
+  SinglesTrainingGameStatus,
+  SinglesTrainingSession,
+  SinglesTrainingTarget,
+} from "./types";
 
 export function createEmptySegmentCounts(): SegmentCounts {
   return { miss: 0, single: 0, double: 0, triple: 0 };

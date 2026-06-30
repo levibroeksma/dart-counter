@@ -1,5 +1,5 @@
-import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
-import { buildSummary } from "@lib/shared/games/score-training/summary";
+import { buildSummary } from "./summary";
+import type { ScoreTrainingSession } from "./types";
 
 export type PlayerScoreTrainingStats = {
   gamesCompleted: number;

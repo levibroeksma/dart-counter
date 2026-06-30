@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
+import type { SinglesTrainingSession } from "@lib/shared/games/singles-training";
 import {
-  createInitialGameState,
   applyDartToSession,
   revertLastDart,
+} from "@lib/shared/games/singles-training";
+import {
+  createInitialGameState,
   getMinimumHitsForMode,
 } from "@lib/shared/games/singles-training/state";
-import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
 
 function baseSession(mode: "normal" | "hard" | "extreme"): SinglesTrainingSession {
   return {

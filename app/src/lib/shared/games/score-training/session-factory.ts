@@ -1,6 +1,5 @@
-import { createInitialGameState } from "@lib/shared/games/score-training/state";
-import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
-import type { ScoreTrainingSettings } from "@lib/shared/games/score-training/settings";
+import { createInitialGameState } from "./state";
+import type { ScoreTrainingSession, ScoreTrainingSettings } from "./types";
 
 /**
  * Builds an in-memory score-training session from validated settings.

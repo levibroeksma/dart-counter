@@ -2,8 +2,7 @@ import { eq } from "drizzle-orm";
 import { db, playerDartStats } from "@db/index";
 import { getEntryEnv } from "@lib/shared/constants/entry-env";
 import { withEntryEnv } from "@lib/server/data/entry-env";
-import { createEmptyPlayerDartStats } from "@lib/shared/stats/double-stats";
-import type { PlayerDartStats } from "@lib/shared/stats/types";
+import { createEmptyPlayerDartStats, type PlayerDartStats } from "@lib/shared/stats";
 
 function mapStatsToColumns(stats: PlayerDartStats) {
   return {

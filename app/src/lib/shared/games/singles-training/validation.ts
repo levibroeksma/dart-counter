@@ -4,12 +4,8 @@ import type {
   SinglesTrainingMode,
   SinglesTrainingScoring,
   SinglesTrainingSettings,
-} from "@lib/shared/games/singles-training/settings";
-import {
-  DEFAULT_DIRECTION,
-  DEFAULT_MODE,
-  DEFAULT_SCORING,
-} from "@lib/shared/games/singles-training/constants";
+} from "./types";
+import { DEFAULT_DIRECTION, DEFAULT_MODE, DEFAULT_SCORING } from "./constants";
 
 const DIRECTIONS: SinglesTrainingDirection[] = ["low-to-high", "high-to-low", "random"];
 const MODES: SinglesTrainingMode[] = ["normal", "hard", "extreme"];

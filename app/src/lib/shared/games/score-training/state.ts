@@ -1,7 +1,9 @@
-import { STARTING_SCORE } from "@lib/shared/games/score-training/constants";
-import type { ScoreTrainingSettings } from "@lib/shared/games/score-training/settings";
-import type { ScoreTrainingGameState } from "@lib/shared/games/score-training/session";
-import type { ScoreTrainingRoundRecord } from "@lib/shared/games/score-training/round";
+import { STARTING_SCORE } from "./constants";
+import type {
+  ScoreTrainingGameState,
+  ScoreTrainingRoundRecord,
+  ScoreTrainingSettings,
+} from "./types";
 
 export function createInitialGameState(_settings: ScoreTrainingSettings): ScoreTrainingGameState {
   return {

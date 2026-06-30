@@ -1,6 +1,13 @@
-import { STARTING_SCORE } from "@lib/shared/games/501/constants";
-import type { FiveOhOneSettings } from "@lib/shared/games/501/settings";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
+import {
+  createEmptySetRunningStats,
+  createRng,
+  generateMatchPlan,
+  getSkillProfile,
+  hashSeed,
+} from "@lib/shared/dartbot";
+import { STARTING_SCORE } from "./constants";
+import { estimateLegCount } from "./leg-estimate";
+import type { FiveOhOneSession, FiveOhOneSettings } from "./types";
 
 function createPlayerState(playerId: string) {
   return {
@@ -12,6 +19,10 @@ function createPlayerState(playerId: string) {
     setsWon: 0,
     totalLegsWon: 0,
   };
+}
+
+function findDartBot(settings: FiveOhOneSettings) {
+  return settings.players.find((p) => p.type === "dartbot");
 }
 
 /**
@@ -26,7 +37,7 @@ export function buildFiveOhOneSession(
   const starterId = startingPlayerId ?? defaultStarter;
   const now = new Date().toISOString();
 
-  return {
+  const session: FiveOhOneSession = {
     slug: "501",
     settings,
     visitHistory: [],
@@ -44,4 +55,26 @@ export function buildFiveOhOneSession(
       legStartingPlayerId: starterId,
     },
   };
+
+  const dartbot = findDartBot(settings);
+  if (dartbot && dartbot.type === "dartbot") {
+    const seed = hashSeed(now, dartbot.level);
+    const skill = getSkillProfile(Math.min(10, dartbot.level));
+    const legCount = estimateLegCount(settings);
+    const matchPlan = generateMatchPlan(skill, legCount, seed);
+    const rng = createRng(seed);
+    session.botState = {
+      matchPlan: {
+        legTargets: matchPlan.legTargets,
+        skill: matchPlan.skill,
+        seed: matchPlan.seed,
+      },
+      rngState: rng.getState(),
+      currentLegIndex: 0,
+      setRunningStats: createEmptySetRunningStats(),
+      setNumber: 1,
+    };
+  }
+
+  return session;
 }

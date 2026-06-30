@@ -1,7 +1,9 @@
 ---
 import NumberInputPad from "@components/ui/NumberInputPad.astro";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
+import OptionModal from "@components/ui/OptionModal.astro";
+import type { FiveOhOneSession } from "@lib/shared/games/501";
 import LeaveIcon from "@icons/leave.svg";
+import DartBotTurnModal from "./DartBotTurnModal.astro";
 import PlayerPanel from "./PlayerPanel.astro";
 import PlayShellSkeleton from "./PlayShellSkeleton.astro";
 import StarterScreen from "./StarterScreen.astro";
@@ -12,10 +14,12 @@ interface Props {
   gameSession?: FiveOhOneSession | null;
 }
 
-const { displayName, gameSession = null } = Astro.props;
+const { gameSession = null } = Astro.props;
 const sessionJson = JSON.stringify(gameSession ?? null).replace(/</g, "\\u003c");
 const firstPlayerId = gameSession?.settings.players[0]?.id ?? "";
 const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
+const playerName = (playerId: string) =>
+  `formatPlayerName(session?.settings.players.find((player) => player.id === '${playerId}') ?? { type: 'guest', id: '', name: '' })`;
 ---
 
 <section
@@ -47,16 +51,16 @@ const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
     <StarterScreen
       x-show="session?.settings.players.length === 2 && session?.state.phase === 'starter'"
       firstPlayerId={firstPlayerId}
-      firstNameModel={`session?.settings.players.find((player) => player.id === '${firstPlayerId}')?.name ?? ''`}
+      firstNameModel={playerName(firstPlayerId)}
       secondPlayerId={secondPlayerId}
-      secondNameModel={`session?.settings.players.find((player) => player.id === '${secondPlayerId}')?.name ?? ''`}
+      secondNameModel={playerName(secondPlayerId)}
     />
 
     <div x-show="session?.state.phase === 'play'" x-cloak class="flex flex-col gap-4 flex-1">
       <div x-show="session?.settings.players.length === 1" x-cloak>
         <PlayerPanel
           playerId={firstPlayerId}
-          nameModel={`session?.settings.players.find((player) => player.id === '${firstPlayerId}')?.name ?? ''`}
+          nameModel={playerName(firstPlayerId)}
           activeExpr="true"
           remainingModel={`String(session?.state.players.find((player) => player.playerId === '${firstPlayerId}')?.remaining ?? 0)`}
           checkoutHintModel={`checkoutHintDisplay('${firstPlayerId}')`}
@@ -69,7 +73,7 @@ const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
       <div x-show="session?.settings.players.length === 2" x-cloak class="grid grid-cols-2 gap-3">
         <PlayerPanel
           playerId={firstPlayerId}
-          nameModel={`session?.settings.players.find((player) => player.id === '${firstPlayerId}')?.name ?? ''`}
+          nameModel={playerName(firstPlayerId)}
           activeExpr={`session?.state.currentPlayerId === '${firstPlayerId}'`}
           remainingModel={`String(session?.state.players.find((player) => player.playerId === '${firstPlayerId}')?.remaining ?? 0)`}
           checkoutHintModel={`checkoutHintDisplay('${firstPlayerId}')`}
@@ -79,7 +83,7 @@ const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
         />
         <PlayerPanel
           playerId={secondPlayerId}
-          nameModel={`session?.settings.players.find((player) => player.id === '${secondPlayerId}')?.name ?? ''`}
+          nameModel={playerName(secondPlayerId)}
           activeExpr={`session?.state.currentPlayerId === '${secondPlayerId}'`}
           remainingModel={`String(session?.state.players.find((player) => player.playerId === '${secondPlayerId}')?.remaining ?? 0)`}
           checkoutHintModel={`checkoutHintDisplay('${secondPlayerId}')`}
@@ -94,13 +98,43 @@ const secondPlayerId = gameSession?.settings.players[1]?.id ?? "";
           scoreModel="score"
           submitAction="submitVisit()"
           disabledExpr="controlsDisabled"
-          canUndoExpr="session.visitHistory.length > 0"
+          canUndoExpr="canUndo"
           undoAction="undoVisit()"
         />
       </article>
+
+      <OptionModal
+        openModel="showModal"
+        submitAction="modalSubmit()"
+        submitDisabledExpr="!modalCanSubmit || persisting"
+        closeAction="closeModal()"
+      >
+        <template x-for="question in modalQuestions" :key="question.id">
+          <div x-show="question.autoValue === undefined" class="mb-4">
+            <h3 class="section-label" x-text="question.label"></h3>
+            <div class="flex items-center justify-center gap-2">
+              <template x-for="n in question.options" :key="n">
+                <button
+                  type="button"
+                  class="card-interactive btn-press justify-center text-sm text-center"
+                  @click="question.id === 'dartsOnDouble' ? dartsOnDouble = n : selectDartsForFinish(n)"
+                  :class="(question.id === 'dartsOnDouble' ? dartsOnDouble : dartsForFinish) === n ? 'bg-accent text-accent-foreground' : ''"
+                  x-text="n"
+                ></button>
+              </template>
+            </div>
+          </div>
+        </template>
+      </OptionModal>
     </div>
   </div>
 
-  <Summary showSummaryModel="showSummary && summary" persistingModel="persisting" />
+  <DartBotTurnModal
+    openModel="botModalOpen"
+    segmentLabelModel="botModalSegmentLabel"
+    dartLabelsModel="botModalDartLabels"
+    skipAction="skipDartBotTurnAnimation()"
+  />
+  <Summary showSummaryModel="showSummary && summary" />
   <p x-show="error" x-cloak x-text="error" class="text-sm text-red-400" role="alert"></p>
 </section>

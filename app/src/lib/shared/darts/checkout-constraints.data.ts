@@ -1,4 +1,4 @@
-import type { CheckoutConstraint } from "@lib/shared/darts/checkout-solver";
+import type { CheckoutConstraint } from "./checkout-solver";
 
 export const CHECKOUT_CONSTRAINTS: Record<number, CheckoutConstraint> = {
   2: { minFinish: 1, maxFinish: 3 },

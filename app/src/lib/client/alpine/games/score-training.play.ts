@@ -5,17 +5,15 @@ import type {
   ScoreTrainingCompleteSuccess,
 } from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { buildRoundRecord } from "@lib/shared/games/score-training/round";
-import type { ScoreTrainingSummary } from "@lib/shared/games/score-training/summary";
-import {
-  isScoreTrainingSession,
-  type ScoreTrainingSession,
-} from "@lib/shared/games/score-training/session";
-import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
 import {
   applyRoundToState,
+  buildRoundRecord,
+  buildScoreTrainingSession,
+  isScoreTrainingSession,
   revertRoundFromState,
-} from "@lib/shared/games/score-training/state";
+  type ScoreTrainingSession,
+  type ScoreTrainingSummary,
+} from "@lib/shared/games/score-training";
 import { t } from "@lib/shared/i18n";
 import * as scoreInput from "@lib/client/alpine/score-input";
 

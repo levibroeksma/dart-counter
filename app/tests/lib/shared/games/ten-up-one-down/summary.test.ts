@@ -1,13 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { buildSummary } from "@lib/shared/games/ten-up-one-down/summary";
-import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
-import { applyRoundToState } from "@lib/shared/games/ten-up-one-down/state";
-import { buildRoundRecord } from "@lib/shared/games/ten-up-one-down/round";
-import { MAX_TARGET } from "@lib/shared/games/ten-up-one-down/constants";
+import {
+  applyRoundToState,
+  buildRoundRecord,
+  buildSummary,
+  buildTenUpOneDownSession,
+  MAX_TARGET,
+} from "@lib/shared/games/ten-up-one-down";
 
 describe("buildSummary", () => {
   it("computes session aggregates and peak target across progression", () => {
-    let session = buildTenUpOneDownSession({ endMode: "rounds", roundCount: 10 });
+    const session = buildTenUpOneDownSession({ endMode: "rounds", roundCount: 10 });
     const round = buildRoundRecord(1, 41, {
       outcome: "success",
       dartsForFinish: 2,
@@ -26,7 +28,7 @@ describe("buildSummary", () => {
   });
 
   it("uses checkout170 completion reason when finishing at max target", () => {
-    let session = buildTenUpOneDownSession({ endMode: "rounds", roundCount: 10 });
+    const session = buildTenUpOneDownSession({ endMode: "rounds", roundCount: 10 });
     const round = buildRoundRecord(1, MAX_TARGET, {
       outcome: "success",
       dartsForFinish: 3,
@@ -41,7 +43,7 @@ describe("buildSummary", () => {
   });
 
   it("uses timed completion reason for timed sessions", () => {
-    let session = buildTenUpOneDownSession({
+    const session = buildTenUpOneDownSession({
       endMode: "timed",
       playtimeSeconds: 60,
     });

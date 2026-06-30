@@ -1,15 +1,8 @@
-import { hasPlayerWonMatch } from "@lib/shared/games/501/match";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
-import { buildSummary } from "@lib/shared/games/501/summary";
+import { hasPlayerWonMatch } from "./match";
+import type { FiveOhOneSession, Player501Stats } from "./types";
+import { buildSummary } from "./summary";
 
-export type Player501Stats = {
-  gamesCompleted: number;
-  gamesWon: number;
-  totalDartsThrown: number;
-  totalCheckouts: number;
-  bestLegAverage: number;
-  bestMatchAverage: number;
-};
+export type { Player501Stats } from "./types";
 
 /**
  * Creates a zeroed aggregate stats object for 501 player history.
@@ -87,17 +80,24 @@ export function applyGameCompletionToStats(
   const summary = buildSummary(session);
   const user = session.settings.players.find((player) => player.type === "user");
   const userId = user?.id;
+  const userSummary = summary.players[0];
 
   stats.gamesCompleted += 1;
   if (didUserWin(session)) {
     stats.gamesWon += 1;
   }
 
-  stats.totalDartsThrown += summary.userDartsThrown;
-  stats.totalCheckouts += summary.checkouts;
+  if (userId) {
+    stats.totalDartsThrown += session.visitHistory
+      .filter((visit) => visit.playerId === userId)
+      .reduce((sum, visit) => sum + visit.dartsThrown, 0);
+  }
 
-  if (summary.userThreeDartAverage > stats.bestMatchAverage) {
-    stats.bestMatchAverage = summary.userThreeDartAverage;
+  if (userSummary) {
+    stats.totalCheckouts += userSummary.checkoutsMade;
+    if (userSummary.threeDartAverage > stats.bestMatchAverage) {
+      stats.bestMatchAverage = userSummary.threeDartAverage;
+    }
   }
 
   if (userId) {

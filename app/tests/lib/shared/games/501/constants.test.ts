@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
-  STARTING_SCORE,
   LEGS_PER_SET,
-  MIN_TARGET_COUNT_LEGS,
   MAX_TARGET_COUNT_LEGS,
-} from "@lib/shared/games/501/constants";
+  MIN_TARGET_COUNT_LEGS,
+  STARTING_SCORE,
+} from "@lib/shared/games/501";
 
 describe("501 constants", () => {
   it("uses standard 501 starting score", () => {

@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
-  createEmptySinglesTrainingStats,
   applyGameCompletionToStats,
-} from "@lib/shared/games/singles-training/stats";
+  createEmptySinglesTrainingStats,
+  type SinglesTrainingSession,
+} from "@lib/shared/games/singles-training";
 import { createInitialGameState } from "@lib/shared/games/singles-training/state";
-import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
 
 describe("applyGameCompletionToStats", () => {
   it("increments gamesFailed on dead session", () => {

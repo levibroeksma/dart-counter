@@ -1,11 +1,9 @@
 import { describe, it, expect } from "vitest";
+import { applyRoundToState, buildRoundRecord, revertRoundFromState } from "@lib/shared/games/score-training";
 import {
   createInitialGameState,
-  applyRoundToState,
-  revertRoundFromState,
   isGameComplete,
 } from "@lib/shared/games/score-training/state";
-import { buildRoundRecord } from "@lib/shared/games/score-training/round";
 
 describe("createInitialGameState", () => {
   it("starts at round 1, score 0", () => {

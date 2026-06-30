@@ -1,27 +1,32 @@
 ---
 import GameLayout from "@layouts/GameLayout.astro";
 import GamePlayShell from "@components/games/GamePlayShell.astro";
-import {
-  getGameBySlug,
-  incrementPlayCount,
-} from "@lib/server/data/games";
+import { getGameBySlug } from "@lib/server/data/games";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
-import { parseFiveOhOneSettingsFormData } from "@lib/shared/games/501/form-data";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
-import { validateFiveOhOneSettings } from "@lib/shared/games/501/validation";
-import { parseScoreTrainingSettingsFormData } from "@lib/shared/games/score-training/form-data";
-import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
-import { validateScoreTrainingSettings } from "@lib/shared/games/score-training/validation";
-import type { ScoreTrainingSession } from "@lib/shared/games/score-training/session";
-import { parseSinglesTrainingSettingsFormData } from "@lib/shared/games/singles-training/form-data";
-import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
-import { validateSinglesTrainingSettings } from "@lib/shared/games/singles-training/validation";
-import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
-import { parseTenUpOneDownSettingsFormData } from "@lib/shared/games/ten-up-one-down/form-data";
-import { buildTenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session-factory";
-import { validateTenUpOneDownSettings } from "@lib/shared/games/ten-up-one-down/validation";
-import type { TenUpOneDownSession } from "@lib/shared/games/ten-up-one-down/session";
+import {
+  buildFiveOhOneSession,
+  parseFiveOhOneSettingsFormData,
+  validateFiveOhOneSettings,
+  type FiveOhOneSession,
+} from "@lib/shared/games/501";
+import {
+  buildScoreTrainingSession,
+  parseScoreTrainingSettingsFormData,
+  validateScoreTrainingSettings,
+  type ScoreTrainingSession,
+} from "@lib/shared/games/score-training";
+import {
+  buildSinglesTrainingSession,
+  parseSinglesTrainingSettingsFormData,
+  validateSinglesTrainingSettings,
+  type SinglesTrainingSession,
+} from "@lib/shared/games/singles-training";
+import {
+  buildTenUpOneDownSession,
+  parseTenUpOneDownSettingsFormData,
+  validateTenUpOneDownSettings,
+  type TenUpOneDownSession,
+} from "@lib/shared/games/ten-up-one-down";
 
 const { game: slug } = Astro.params;
 
@@ -39,20 +44,6 @@ if (!hasGameComponents(slug)) {
 }
 
 const session = Astro.locals.session!;
-
-if (
-  session.userId &&
-  slug !== "501" &&
-  slug !== "score-training" &&
-  slug !== "singles-training" &&
-  slug !== "ten-up-one-down"
-) {
-  try {
-    await incrementPlayCount(session.userId, slug);
-  } catch {
-    // Non-fatal
-  }
-}
 
 let tenUpOneDownSession: TenUpOneDownSession | null = null;
 

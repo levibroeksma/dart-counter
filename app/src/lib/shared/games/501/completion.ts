@@ -1,16 +1,13 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import {
-  isFiveOhOneSession,
-  type FiveOhOneGameState,
-  type FiveOhOneSession,
-  type FiveOhOneVisitRecord,
-} from "@lib/shared/games/501/session";
-import { applyVisit } from "@lib/shared/games/501/state";
-import {
-  validateFiveOhOneSettings,
-  validateVisitScore,
-} from "@lib/shared/games/501/validation";
+import { buildFiveOhOneSession } from "./session-factory";
+import { isFiveOhOneSession } from "./session";
+import type {
+  FiveOhOneGameState,
+  FiveOhOneSession,
+  FiveOhOneVisitRecord,
+} from "./types";
+import { applyVisit } from "./state";
+import { validateFiveOhOneSettings, validateVisitScore } from "./validation";
 
 export type ValidateCompletedFiveOhOneResult =
   | { valid: true; value: FiveOhOneSession }
@@ -26,8 +23,19 @@ function statesMatch(a: FiveOhOneGameState, b: FiveOhOneGameState): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-function visitsMatch(a: FiveOhOneVisitRecord, b: FiveOhOneVisitRecord): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+function visitGameplayFields(v: FiveOhOneVisitRecord) {
+  const { stateSnapshot: _, ...rest } = v;
+  return rest;
+}
+
+function visitsMatch(
+  a: FiveOhOneVisitRecord,
+  b: FiveOhOneVisitRecord,
+): boolean {
+  return (
+    JSON.stringify(visitGameplayFields(a)) ===
+    JSON.stringify(visitGameplayFields(b))
+  );
 }
 
 /**
@@ -63,6 +71,7 @@ export function validateCompletedFiveOhOneSession(
   }
 
   let replayed = buildFiveOhOneSession(settingsCheck.value, startingPlayerId);
+  delete replayed.botState;
 
   for (let index = 0; index < session.visitHistory.length; index += 1) {
     const submittedVisit = session.visitHistory[index]!;
@@ -75,7 +84,12 @@ export function validateCompletedFiveOhOneSession(
       return { valid: false, code: MessageCode.INVALID_SCORE };
     }
 
-    replayed = applyVisit(replayed, submittedVisit.visitScore);
+    replayed = applyVisit(replayed, submittedVisit.visitScore, {
+      botRngBefore: submittedVisit.botRngBefore,
+      dartsThrown: submittedVisit.dartsThrown,
+      dartsOnDouble: submittedVisit.dartsOnDouble,
+      dartsForFinish: submittedVisit.dartsForFinish,
+    });
     const expectedVisit = replayed.visitHistory[index];
     if (!expectedVisit || !visitsMatch(expectedVisit, submittedVisit)) {
       return { valid: false, code: MessageCode.INVALID_SCORE };

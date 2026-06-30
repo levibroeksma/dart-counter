@@ -1,0 +1,111 @@
+---
+// Layouts
+import AppLayout from "@layouts/AppLayout.astro";
+import SummaryStatRow from "@components/games/SummaryStatRow.astro";
+
+// Components
+import PlayerAvatar from "@components/games/PlayerAvatar.astro";
+import TrophyIcon from "@icons/trophy.svg";
+---
+
+<AppLayout>
+  <main class="mx-auto w-full max-w-2xl space-y-6 p-4 @sm:p-6" x-data>
+    <article class="game-panel p-6 flex flex-col gap-3" >
+      <div class="w-full grid grid-cols-3 border-b border-border pb-3">
+        <div class="col-span-1 flex justify-start">
+          <div class="flex flex-col items-center justify-start gap-6">
+          <PlayerAvatar name="Levi" isBot={false} isGuest={false} />
+          <!-- should only show if winner -->
+          <TrophyIcon class="size-6 text-text-muted" />
+        </div>
+        </div>
+        <div class="col-span-1 flex flex-col gap-2 justify-center items-center">
+          <div class="flex flex-col justify-center items-center">
+            <h3 class="text-xs font-semibold uppercase text-text-muted font-mono">Winner</h3>
+            <h2 class="text-3xl font-bold font-mono text-accent uppercase" x-text="'Levi'"></h2>
+          </div>
+          <span class="text-text-muted text-lg font-mono font-bold">vs</span>
+        </div>
+        <div class="col-span-1 flex flex-col items-end gap-6">
+          <div class="flex flex-col items-center justify-start gap-6">
+            <PlayerAvatar name="DartBot" isBot={true} isGuest={false} />
+            <!-- should only show if winner -->
+            <TrophyIcon class="size-6 text-text-muted" />
+         </div>
+        </div>
+      </div>
+      <dl class="flex flex-col gap-1">
+        <!-- Only show when sets are played -->
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">3</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">Sets</dt>
+          <dd class="text-right font-bold">1</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">Legs</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">3-dart avg.</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">first 9 avg.</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">checkout rate</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">checkouts</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">Highest finish</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">Highest score</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">Best leg</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+        <div class="w-full font-mono text-sm grid grid-cols-5">
+          <dd class="text-left font-bold">9</dd>
+          <dt class="text-center text-text-muted font-bold lowercase col-span-3">worst leg</dt>
+          <dd class="text-right font-bold">4</dd>
+        </div>
+      </dl>
+
+      <div class="grid grid-cols-2 gap-6 mt-3">
+        <button
+          type="button"
+          class="btn-secondary btn-press font-medium flex items-center justify-center"
+          @click="backToGames()"
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          class="btn-primary btn-press"
+          :disabled={false}
+          @click="playAgain()"
+        >
+          Play again
+        </button>
+      </div>
+    </article>
+
+  </main>
+</AppLayout>

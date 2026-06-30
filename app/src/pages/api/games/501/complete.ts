@@ -1,15 +1,22 @@
 import type { APIRoute } from "astro";
 import type { ApiResponse } from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { validateCompletedFiveOhOneSession } from "@lib/shared/games/501/completion";
-import { buildSummary } from "@lib/shared/games/501/summary";
-import { applyGameCompletionToStats } from "@lib/shared/games/501/stats";
+import {
+  applyGameCompletionToDartStats,
+  applyGameCompletionToStats,
+  buildSummary,
+  validateCompletedFiveOhOneSession,
+} from "@lib/shared/games/501";
 import { getSession } from "@lib/server/auth/session";
 import { incrementPlayCount } from "@lib/server/data/games";
 import {
   getPlayer501Stats,
   savePlayer501Stats,
 } from "@lib/server/data/player-501-stats";
+import {
+  getPlayerDartStats,
+  savePlayerDartStats,
+} from "@lib/server/data/player-dart-stats";
 
 function jsonResponse(body: ApiResponse, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -46,6 +53,9 @@ export const POST: APIRoute = async ({ request }) => {
     const stats = await getPlayer501Stats(auth.userId);
     applyGameCompletionToStats(stats, validated.value);
     await savePlayer501Stats(auth.userId, stats);
+    const dartStats = await getPlayerDartStats(auth.userId);
+    applyGameCompletionToDartStats(dartStats, validated.value);
+    await savePlayerDartStats(auth.userId, dartStats);
     await incrementPlayCount(auth.userId, "501");
     return jsonResponse({ ok: true, summary }, 200);
   } catch {

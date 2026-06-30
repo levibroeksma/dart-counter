@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   STARTING_TARGET, DARTS_PER_ROUND, MIN_TARGET, MAX_TARGET,
   SUCCESS_DELTA, FAILURE_DELTA, DEFAULT_ROUND_COUNT, DEFAULT_PLAYTIME_SECONDS,
-} from "@lib/shared/games/ten-up-one-down/constants";
+} from "@lib/shared/games/ten-up-one-down";
 
 describe("ten-up-one-down constants", () => {
   it("exports game rule constants", () => {

@@ -1,9 +1,11 @@
 import type { APIRoute } from "astro";
 import type { ApiResponse } from "@lib/shared/api/types";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { validateCompletedScoreTrainingSession } from "@lib/shared/games/score-training/completion";
-import { buildSummary } from "@lib/shared/games/score-training/summary";
-import { applyGameCompletionToStats } from "@lib/shared/games/score-training/stats";
+import {
+  applyGameCompletionToStats,
+  buildSummary,
+  validateCompletedScoreTrainingSession,
+} from "@lib/shared/games/score-training";
 import { getSession } from "@lib/server/auth/session";
 import { incrementPlayCount } from "@lib/server/data/games";
 import {

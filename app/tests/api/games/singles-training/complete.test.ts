@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "@api/games/singles-training/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { createEmptySinglesTrainingStats } from "@lib/shared/games/singles-training/stats";
-import { buildSinglesTrainingSession } from "@lib/shared/games/singles-training/session-factory";
-import { applyDartToSession } from "@lib/shared/games/singles-training/state";
+import {
+  applyDartToSession,
+  buildSinglesTrainingSession,
+  createEmptySinglesTrainingStats,
+} from "@lib/shared/games/singles-training";
 
 const mockGetSession = vi.fn();
 const mockGetPlayerSinglesTrainingStats = vi.fn();

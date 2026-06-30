@@ -1,7 +1,6 @@
-import { createInitialGameState } from "@lib/shared/games/singles-training/state";
-import type { SinglesTrainingSession } from "@lib/shared/games/singles-training/session";
-import type { SinglesTrainingSettings } from "@lib/shared/games/singles-training/settings";
-import { buildTargetSequence } from "@lib/shared/games/singles-training/target-sequence";
+import { createInitialGameState } from "./state";
+import type { SinglesTrainingSession, SinglesTrainingSettings } from "./types";
+import { buildTargetSequence } from "./target-sequence";
 
 /**
  * Builds an in-memory singles-training session from validated settings.

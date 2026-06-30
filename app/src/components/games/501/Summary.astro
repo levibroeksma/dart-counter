@@ -1,69 +1,27 @@
 ---
-import SummaryStatRow from "../SummaryStatRow.astro";
+import MultiplayerSummary from "./MultiplayerSummary.astro";
+import SinglePlayerSummary from "./SinglePlayerSummary.astro";
+import SummaryActions from "../SummaryActions.astro";
 
 interface Props {
   showSummaryModel?: string;
   summaryModel?: string;
-  persistingModel?: string;
-  hasGuestExpr?: string;
 }
 
 const {
   showSummaryModel = "showSummary && summary",
   summaryModel = "summary",
-  persistingModel = "persisting",
-  hasGuestExpr = "session.settings.players.length === 2",
 } = Astro.props;
 ---
 
-<article class="game-panel p-6 flex flex-col gap-6" x-show={showSummaryModel} x-cloak>
-  <h2 class="text-2xl font-semibold">Game Complete</h2>
+<article class="game-panel p-6 flex flex-col gap-3" x-show={showSummaryModel} x-cloak>
+  <template x-if={`${summaryModel}?.players?.length === 2`}>
+    <MultiplayerSummary summaryModel={summaryModel} />
+  </template>
 
-  <dl class="flex flex-col gap-1">
-    <SummaryStatRow label="Result" value={`${summaryModel}?.resultLabel ?? ''`} />
-    <SummaryStatRow label="Match format" value={`${summaryModel}?.matchFormatLabel ?? ''`} />
-    <SummaryStatRow label="Legs played" value={`String(${summaryModel}?.legsPlayed ?? 0)`} />
-    <SummaryStatRow
-      label="Your 3-dart average"
-      value={`(${summaryModel}?.userThreeDartAverage ?? 0).toFixed(1)`}
-    />
-    <SummaryStatRow label="Your darts thrown" value={`String(${summaryModel}?.userDartsThrown ?? 0)`} />
-    <SummaryStatRow label="Checkouts" value={`String(${summaryModel}?.checkouts ?? 0)`} />
-    <SummaryStatRow
-      label="Guest 3-dart average"
-      value={`(${summaryModel}?.guestThreeDartAverage ?? 0).toFixed(1)`}
-      x-show={hasGuestExpr}
-      x-cloak
-    />
-    <SummaryStatRow
-      label="Guest darts thrown"
-      value={`String(${summaryModel}?.guestDartsThrown ?? 0)`}
-      x-show={hasGuestExpr}
-      x-cloak
-    />
-    <SummaryStatRow
-      label="Guest checkouts"
-      value={`String(${summaryModel}?.guestCheckouts ?? 0)`}
-      x-show={hasGuestExpr}
-      x-cloak
-    />
-  </dl>
+  <template x-if={`${summaryModel}?.players?.length === 1`}>
+    <SinglePlayerSummary summaryModel={summaryModel} />
+  </template>
 
-  <div class="grid grid-cols-2 gap-3">
-    <a
-      href="/games"
-      class="btn-secondary btn-press font-medium flex items-center justify-center"
-      :class={persistingModel + " && 'pointer-events-none opacity-50'"}
-    >
-      Back
-    </a>
-    <button
-      type="button"
-      class="btn-primary btn-press"
-      :disabled={persistingModel}
-      @click="playAgain()"
-    >
-      Play again
-    </button>
-  </div>
+  <SummaryActions variant="back-play" />
 </article>

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import { applyVisit } from "@lib/shared/games/501/state";
 import {
   applyGameCompletionToStats,
+  applyVisit,
+  buildFiveOhOneSession,
   createEmpty501Stats,
-} from "@lib/shared/games/501/stats";
+} from "@lib/shared/games/501";
 
 function buildCompletedSinglePlayerSession() {
   let session = buildFiveOhOneSession({

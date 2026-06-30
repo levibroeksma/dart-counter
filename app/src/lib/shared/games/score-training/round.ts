@@ -1,11 +1,6 @@
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { MAX_VISIT_SCORE, MIN_VISIT_SCORE } from "@lib/shared/games/score-training/constants";
-
-export type ScoreTrainingRoundRecord = {
-  roundNumber: number;
-  visitScore: number;
-  runningTotal: number;
-};
+import { MAX_VISIT_SCORE, MIN_VISIT_SCORE } from "./constants";
+import type { ScoreTrainingRoundRecord } from "./types";
 
 export function buildRoundRecord(
   roundNumber: number,

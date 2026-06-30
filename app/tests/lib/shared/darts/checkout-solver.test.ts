@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { solveCheckoutConstraints } from "@lib/shared/darts/checkout-solver";
+import { solveCheckoutConstraints } from "@lib/shared/darts";
 
 describe("solveCheckoutConstraints", () => {
   it("returns min/max finish dart counts for finishable scores", () => {
