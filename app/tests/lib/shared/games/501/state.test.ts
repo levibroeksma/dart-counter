@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { LEGS_PER_SET, STARTING_SCORE } from "@lib/shared/games/501/constants";
 import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import { applyVisit, revertLastVisit } from "@lib/shared/games/501/state";
+import {
+  applyVisit,
+  revertLastOpponentPair,
+  revertLastVisit,
+} from "@lib/shared/games/501/state";
 
 const onePlayerSettings = {
   matchMode: "first-to" as const,
@@ -85,6 +89,15 @@ describe("applyVisit", () => {
     expect(player.legsWonInSet).toBe(1);
   });
 
+  it("stores botRngBefore on visit record when provided", () => {
+    const session = buildFiveOhOneSession(twoPlayerSettings, "u1");
+
+    const next = applyVisit(session, 60, { botRngBefore: 12345 });
+
+    expect(next.visitHistory).toHaveLength(1);
+    expect(next.visitHistory[0]!.botRngBefore).toBe(12345);
+  });
+
   it("starts new set after winning deciding leg in a set", () => {
     const session = buildFiveOhOneSession({
       ...twoPlayerSettings,
@@ -133,5 +146,45 @@ describe("revertLastVisit", () => {
 
     expect(reverted.state).toEqual(session.state);
     expect(reverted.visitHistory).toHaveLength(0);
+  });
+});
+
+describe("revertLastOpponentPair", () => {
+  it("reverts user then dartbot visits and rewinds bot rng", () => {
+    const session = buildFiveOhOneSession(
+      {
+        matchMode: "first-to",
+        targetCount: 1,
+        unit: "legs",
+        players: [
+          { id: "u1", type: "user", name: "Levi" },
+          { id: "b1", type: "dartbot", name: "DartBot", level: 10 },
+        ],
+      },
+      "u1",
+    );
+    session.state.phase = "play";
+    session.state.currentPlayerId = "u1";
+
+    const userBefore = session.botState!.rngState;
+    const afterUser = applyVisit(session, 60, { botRngBefore: userBefore });
+    const afterBot = applyVisit(afterUser, 45);
+    afterBot.botState!.rngState = userBefore + 99;
+
+    const reverted = revertLastOpponentPair(afterBot);
+
+    expect(reverted.state).toEqual(session.state);
+    expect(reverted.visitHistory).toHaveLength(0);
+    expect(reverted.botState!.rngState).toBe(userBefore);
+  });
+
+  it("does nothing when the last two visits are not user then dartbot", () => {
+    const session = buildFiveOhOneSession(twoPlayerSettings, "u1");
+    const afterUser = applyVisit(session, 60);
+    const afterGuest = applyVisit(afterUser, 45);
+
+    const reverted = revertLastOpponentPair(afterGuest);
+
+    expect(reverted).toEqual(afterGuest);
   });
 });

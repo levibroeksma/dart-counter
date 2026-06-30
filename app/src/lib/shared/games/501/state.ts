@@ -1,5 +1,6 @@
 import { DARTS_PER_VISIT, STARTING_SCORE } from "@lib/shared/games/501/constants";
 import { hasPlayerWonMatch, hasPlayerWonSet } from "@lib/shared/games/501/match";
+import { lastTwoVisitsAreUserThenDartBot } from "@lib/shared/games/501/bot-helpers";
 import type {
   FiveOhOneGameState,
   FiveOhOnePlayerState,
@@ -39,6 +40,7 @@ function resetPlayersForNewLeg(players: FiveOhOnePlayerState[]): void {
 export function applyVisit(
   session: FiveOhOneSession,
   visitScore: number,
+  options?: { botRngBefore?: number },
 ): FiveOhOneSession {
   const sessionBase = deepClone(session);
   const now = new Date().toISOString();
@@ -66,6 +68,7 @@ export function applyVisit(
     legNumber: nextState.currentLeg,
     setNumber: nextState.currentSet,
     stateSnapshot: stateBeforeVisit,
+    botRngBefore: options?.botRngBefore,
   };
 
   const nextHistory = [...sessionBase.visitHistory, visitRecord];
@@ -143,4 +146,36 @@ export function revertLastVisit(session: FiveOhOneSession): FiveOhOneSession {
     visitHistory: nextHistory,
     updatedAt: now,
   };
+}
+
+/**
+ * Reverts the latest user + dartbot visit pair and rewinds bot RNG state.
+ */
+export function revertLastOpponentPair(session: FiveOhOneSession): FiveOhOneSession {
+  const sessionBase = deepClone(session);
+  if (!lastTwoVisitsAreUserThenDartBot(sessionBase)) {
+    return sessionBase;
+  }
+
+  const now = new Date().toISOString();
+  const nextHistory = [...sessionBase.visitHistory];
+  nextHistory.pop();
+  const userVisit = nextHistory.pop();
+
+  if (!userVisit) {
+    return sessionBase;
+  }
+
+  const nextSession: FiveOhOneSession = {
+    ...sessionBase,
+    state: cloneGameState(userVisit.stateSnapshot),
+    visitHistory: nextHistory,
+    updatedAt: now,
+  };
+
+  if (typeof userVisit.botRngBefore === "number" && nextSession.botState) {
+    nextSession.botState.rngState = userVisit.botRngBefore;
+  }
+
+  return nextSession;
 }
