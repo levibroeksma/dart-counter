@@ -50,6 +50,6 @@ COMPLETE_RESP=$(curl -sf -b "$JAR" -X POST "$BASE_URL/api/games/501/complete" \
   -H "Content-Type: application/json" \
   -d "$COMPLETE_BODY")
 assert_contains "$COMPLETE_RESP" '"ok":true' "complete endpoint accepts terminal session"
-assert_contains "$COMPLETE_RESP" '"resultLabel"' "complete returns summary"
+assert_contains "$COMPLETE_RESP" '"players"' "complete returns summary"
 
 echo "All curl checks passed"

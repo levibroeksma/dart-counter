@@ -131,12 +131,18 @@ describe("POST /api/games/501/complete", () => {
     expect(response.status).toBe(200);
     expect(data.ok).toBe(true);
     expect(data.summary).toEqual({
-      resultLabel: "Completed",
-      matchFormatLabel: "First to 1 leg",
-      legsPlayed: 1,
-      userThreeDartAverage: 167,
-      userDartsThrown: 9,
-      checkouts: 1,
+      winnerDisplayName: "Levi",
+      showSetsRow: false,
+      players: [
+        expect.objectContaining({
+          playerId: "u1",
+          displayName: "Levi",
+          isWinner: true,
+          legsWon: 1,
+          threeDartAverage: 167,
+          checkoutsMade: 1,
+        }),
+      ],
     });
     expect(mockSavePlayer501Stats).toHaveBeenCalledTimes(1);
     expect(mockIncrementPlayCount).toHaveBeenCalledWith(
