@@ -26,7 +26,11 @@ export type {
 export { createEmptySetRunningStats } from "./types";
 
 export { simulateVisit } from "./dart-bot";
-export { ANCHOR_LEVELS, getSkillProfile } from "./levels";
+export {
+  ANCHOR_PROFILES,
+  LEVEL_STAT_RANGES,
+  getSkillProfile,
+} from "./levels";
 export {
   formatDartbotLevelPreview,
   type DartbotLevelPreview,
@@ -34,4 +38,5 @@ export {
 export { generateMatchPlan } from "./match-planner";
 export { createRng, hashSeed } from "./rng";
 export { validateMatchStats } from "./statistics-engine";
-export { parseSegment, scoreForSegment } from "./segments";
+export { isWithinStatBand } from "./stat-validation";
+export { boardNeighbors, parseSegment, scoreForSegment } from "./segments";

@@ -2,6 +2,10 @@ import type { Segment } from "./types";
 
 const BOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
+export function boardNeighbors(base: number): number[] {
+  return neighbors(base);
+}
+
 function neighbors(base: number): number[] {
   const idx = BOARD_ORDER.indexOf(base);
   if (idx === -1) return [];
