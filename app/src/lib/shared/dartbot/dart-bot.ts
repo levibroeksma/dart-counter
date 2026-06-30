@@ -1,13 +1,13 @@
-import { chooseScoringTarget } from "./route-engine";
+import { computeConvergenceBias } from "./convergence";
+import { nextCheckoutTarget } from "./checkout-target";
 import { scoreForSegment, parseSegment } from "./segments";
 import { chooseIntent } from "./strategy-engine";
 import { throwDart } from "./throw-engine";
+import { createEmptySetRunningStats } from "./types";
 import {
   createCheckoutKnowledge,
   type CheckoutKnowledge,
 } from "./checkout/CheckoutKnowledge";
-import { SkillCheckoutPolicy } from "./checkout/CheckoutPolicy";
-import { CheckoutPlanner } from "./checkout/CheckoutPlanner";
 import { evaluateSetupRoute } from "./checkout/CheckoutEvaluator";
 import type { BotCheckoutRoute } from "./checkout/bot-checkout-route";
 import type { Rng } from "./rng";
@@ -18,10 +18,6 @@ import type {
 } from "./types";
 
 const checkoutKnowledge = createCheckoutKnowledge();
-const checkoutPlanner = new CheckoutPlanner(
-  checkoutKnowledge,
-  new SkillCheckoutPolicy(),
-);
 
 function isDoubleOrBull(segment: Segment): boolean {
   return segment.ring === "double" || segment.ring === "bull";
@@ -59,15 +55,6 @@ function bestSetupRoute(
   return best;
 }
 
-function coerceFinishingTarget(target: Segment, remaining: number): Segment {
-  if (isDoubleOrBull(target)) return target;
-  if (remaining === 50) return parseSegment("50");
-  if (remaining >= 2 && remaining <= 40 && remaining % 2 === 0) {
-    return parseSegment(`D${remaining / 2}`);
-  }
-  return parseSegment("50");
-}
-
 /**
  * Simulates one 1-3 dart visit by coordinating intent, targeting, throw execution, and finish rules.
  */
@@ -78,8 +65,11 @@ export function simulateVisit(
   const maxDarts = Math.max(1, Math.min(3, ctx.dartsInVisit));
   const darts: SimulatedVisit["darts"] = [];
   let remaining = ctx.remaining;
+  const setStats = ctx.setRunningStats ?? createEmptySetRunningStats();
+  const bias = computeConvergenceBias(setStats, ctx.skill);
 
   for (let index = 0; index < maxDarts; index += 1) {
+    const dartIndexInVisit = (index + 1) as 1 | 2 | 3;
     const dartsLeft = maxDarts - index;
     const intent = chooseIntent({
       remaining,
@@ -88,27 +78,27 @@ export function simulateVisit(
       legTarget: ctx.legTarget,
     });
 
-    let target: Segment;
+    let target: Segment = parseSegment(ctx.skill.scoring.aim);
     if (intent === "score") {
-      target = chooseScoringTarget({
-        skill: ctx.skill,
-        legTarget: ctx.legTarget,
-        rng,
-      });
+      target = parseSegment(ctx.skill.scoring.aim);
     } else {
-      const plannerRoute = checkoutPlanner.route(remaining, ctx.skill);
-      const setupRoute = bestSetupRoute(remaining, checkoutKnowledge);
-      target =
-        intent === "setup" && setupRoute
-          ? setupRoute.darts[0]!
-          : plannerRoute.darts[0]!;
+      const hintTarget = nextCheckoutTarget(remaining);
+      if (intent === "setup" && remaining >= 131 && remaining <= 170) {
+        const setupRoute = bestSetupRoute(remaining, checkoutKnowledge);
+        target = setupRoute?.darts[0] ?? hintTarget ?? target;
+      } else if (hintTarget) {
+        target = hintTarget;
+      }
     }
 
-    if (dartsLeft === 1 || remaining <= 50) {
-      target = coerceFinishingTarget(target, remaining);
-    }
-
-    const actual = throwDart(target, ctx.skill, rng);
+    const actual = throwDart(
+      target,
+      ctx.skill,
+      intent,
+      dartIndexInVisit,
+      bias,
+      rng,
+    );
     const score = scoreForSegment(actual);
     darts.push({ target, actual, score });
     remaining -= score;

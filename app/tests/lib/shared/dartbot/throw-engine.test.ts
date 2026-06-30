@@ -3,34 +3,48 @@ import { createRng, getSkillProfile, parseSegment } from "@lib/shared/dartbot";
 import { throwDart } from "@lib/shared/dartbot/throw-engine";
 
 describe("throwDart", () => {
-  it("hits target when rng below hitAccuracy", () => {
-    const skill = getSkillProfile(15);
-    const rng = createRng(1);
-    const originalNext = rng.next.bind(rng);
-    let call = 0;
-    rng.next = () => {
-      call += 1;
-      if (call === 1) return 0.01;
-      return originalNext();
-    };
-    const result = throwDart(parseSegment("T20"), skill, rng);
-    expect(result.label).toBe("T20");
+  const zeroBias = {
+    scoringHitShift: 0,
+    setupHitShift: 0,
+    checkoutHitShift: 0,
+  } as const;
+
+  it("dispatches score intent to scoring engine", () => {
+    const skill = getSkillProfile(10);
+    const result = throwDart(
+      parseSegment("D20"),
+      skill,
+      "score",
+      1,
+      zeroBias,
+      { next: () => 0, getState: () => 0, setState: () => undefined },
+    );
+    expect(result.label).toBe("20");
   });
 
-  it("resolves miss to adjacent segment", () => {
-    const skill = getSkillProfile(1);
-    const rng = createRng(2);
-    const originalNext = rng.next.bind(rng);
-    let call = 0;
-    rng.next = () => {
-      call += 1;
-      if (call === 1) return 0.99;
-      if (call === 2) return 0;
-      return originalNext();
-    };
-    const target = parseSegment("T20");
-    const result = throwDart(target, skill, rng);
-    expect(result.label).not.toBe("T20");
-    expect(target.adjacent.map((s) => s.label)).toContain(result.label);
+  it("dispatches setup intent to setup engine", () => {
+    const skill = getSkillProfile(10);
+    const result = throwDart(
+      parseSegment("20"),
+      skill,
+      "setup",
+      2,
+      zeroBias,
+      { next: () => 0, getState: () => 0, setState: () => undefined },
+    );
+    expect(result.label).toBe("20");
+  });
+
+  it("dispatches checkout intent on doubles to double engine", () => {
+    const skill = getSkillProfile(10);
+    const result = throwDart(
+      parseSegment("D20"),
+      skill,
+      "checkout",
+      3,
+      zeroBias,
+      createRng(1),
+    );
+    expect(result.label).toBe("D20");
   });
 });

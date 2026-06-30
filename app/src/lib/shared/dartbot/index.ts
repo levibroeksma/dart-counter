@@ -26,6 +26,8 @@ export type {
 export { createEmptySetRunningStats } from "./types";
 
 export { simulateVisit } from "./dart-bot";
+export { computeConvergenceBias } from "./convergence";
+export { nextCheckoutTarget } from "./checkout-target";
 export {
   ANCHOR_PROFILES,
   LEVEL_STAT_RANGES,

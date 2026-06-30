@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createEmptySetRunningStats,
   createRng,
   getSkillProfile,
   simulateVisit,
@@ -30,6 +31,7 @@ describe("simulateVisit", () => {
         skill: getSkillProfile(10),
         legTarget: 72,
         dartsInVisit: 3,
+        setRunningStats: createEmptySetRunningStats(),
       },
       createRng(7),
     );
@@ -47,9 +49,10 @@ describe("simulateVisit", () => {
   it("is deterministic with the same rng seed", () => {
     const ctx = {
       remaining: 170,
-      skill: getSkillProfile(15),
+      skill: getSkillProfile(10),
       legTarget: 72,
       dartsInVisit: 3,
+      setRunningStats: createEmptySetRunningStats(),
     };
     const first = simulateVisit(ctx, createRng(42));
     const second = simulateVisit(ctx, createRng(42));
@@ -64,21 +67,38 @@ describe("simulateVisit", () => {
         skill: getSkillProfile(1),
         legTarget: 40,
         dartsInVisit: 3,
+        setRunningStats: createEmptySetRunningStats(),
       },
-      sequenceRng([0.99, 0]),
+      sequenceRng([0, 0.2]),
     );
 
     expect(result.bust).toBe(true);
     expect(result.checkout).toBe(false);
   });
 
+  it("does not aim at bull on the last dart of a scoring visit", () => {
+    const result = simulateVisit(
+      {
+        remaining: 501,
+        skill: getSkillProfile(2),
+        legTarget: 40,
+        dartsInVisit: 3,
+        setRunningStats: createEmptySetRunningStats(),
+      },
+      createRng(42),
+    );
+
+    expect(result.darts.every((dart) => dart.target.label !== "50")).toBe(true);
+  });
+
   it("produces a scoring visit with fixed seed", () => {
     const result = simulateVisit(
       {
         remaining: 501,
-        skill: getSkillProfile(15),
+        skill: getSkillProfile(10),
         legTarget: 72,
         dartsInVisit: 3,
+        setRunningStats: createEmptySetRunningStats(),
       },
       createRng(123),
     );
@@ -92,9 +112,10 @@ describe("simulateVisit", () => {
     const result = simulateVisit(
       {
         remaining: 40,
-        skill: getSkillProfile(15),
+        skill: getSkillProfile(10),
         legTarget: 72,
         dartsInVisit: 3,
+        setRunningStats: createEmptySetRunningStats(),
       },
       createRng(1),
     );
