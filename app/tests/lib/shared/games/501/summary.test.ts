@@ -220,4 +220,40 @@ describe("buildSummary", () => {
 
     expect(buildSummary(session).showSetsRow).toBe(true);
   });
+
+  it("uses per-visit dartsThrown for threeDartAverage", () => {
+    const session = buildMinimalCompletedSession([
+      { id: "u1", type: "user", name: "Levi" },
+    ]);
+    session.visitHistory = [
+      {
+        visitNumber: 1,
+        playerId: "u1",
+        visitScore: 180,
+        remainingBefore: 501,
+        remainingAfter: 321,
+        bust: false,
+        checkout: false,
+        legNumber: 1,
+        setNumber: 1,
+        dartsThrown: 3,
+        stateSnapshot: structuredClone(session.state),
+      },
+      {
+        visitNumber: 2,
+        playerId: "u1",
+        visitScore: 321,
+        remainingBefore: 321,
+        remainingAfter: 0,
+        bust: false,
+        checkout: true,
+        legNumber: 1,
+        setNumber: 1,
+        dartsThrown: 2,
+        stateSnapshot: structuredClone(session.state),
+      },
+    ];
+
+    expect(buildSummary(session).players[0].threeDartAverage).toBeCloseTo(300.6);
+  });
 });
