@@ -69,6 +69,9 @@ export type FiveOhOneVisitRecord = {
   setNumber: number;
   stateSnapshot: FiveOhOneGameState;
   botRngBefore?: number;
+  dartsThrown: number;
+  dartsOnDouble?: number;
+  dartsForFinish?: number;
 };
 
 export type FiveOhOneSession = {

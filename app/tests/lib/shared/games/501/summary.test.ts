@@ -23,6 +23,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -35,6 +36,7 @@ describe("buildSummary", () => {
         checkout: true,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
     ];
@@ -73,6 +75,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -85,6 +88,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -97,6 +101,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -109,6 +114,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -121,6 +127,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -133,6 +140,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -145,6 +153,7 @@ describe("buildSummary", () => {
         checkout: true,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
     ];
@@ -189,6 +198,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -201,6 +211,7 @@ describe("buildSummary", () => {
         checkout: false,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
       {
@@ -213,6 +224,7 @@ describe("buildSummary", () => {
         checkout: true,
         legNumber: 1,
         setNumber: 1,
+        dartsThrown: 3,
         stateSnapshot: structuredClone(session.state),
       },
     ];

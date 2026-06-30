@@ -66,7 +66,7 @@ describe("applyVisit", () => {
 
     expect(next.state.currentPlayerId).toBe("g1");
     expect(next.state.players[0]!.remaining).toBe(10);
-    expect(next.state.players[0]!.dartsThisLeg).toBe(0);
+    expect(next.state.players[0]!.dartsThisLeg).toBe(3);
     expect(next.state.players[0]!.lastVisitScore).toBeNull();
     expect(next.visitHistory[0]).toMatchObject({
       playerId: "u1",
@@ -88,6 +88,33 @@ describe("applyVisit", () => {
     expect(next.state.phase).toBe("summary");
     expect(player.totalLegsWon).toBe(1);
     expect(player.legsWonInSet).toBe(1);
+  });
+
+  it("records dartsThrown=3 on bust visit", () => {
+    let session = buildFiveOhOneSession(onePlayerSettings);
+    session.state.players[0]!.remaining = 32;
+
+    session = applyVisit(session, 31);
+
+    expect(session.visitHistory[0]!.bust).toBe(true);
+    expect(session.visitHistory[0]!.dartsThrown).toBe(3);
+    expect(session.state.players[0]!.dartsThisLeg).toBe(3);
+  });
+
+  it("uses dartsForFinish as dartsThrown on checkout", () => {
+    let session = buildFiveOhOneSession(onePlayerSettings);
+    session.state.players[0]!.remaining = 40;
+
+    session = applyVisit(session, 40, {
+      dartsThrown: 2,
+      dartsForFinish: 2,
+      dartsOnDouble: 1,
+    });
+
+    expect(session.visitHistory[0]!.dartsThrown).toBe(2);
+    expect(session.visitHistory[0]!.dartsForFinish).toBe(2);
+    expect(session.visitHistory[0]!.dartsOnDouble).toBe(1);
+    expect(session.state.players[0]!.dartsThisLeg).toBe(2);
   });
 
   it("stores botRngBefore on visit record when provided", () => {
@@ -123,11 +150,14 @@ describe("applyVisit", () => {
   });
 
   it("starts new set after winning deciding leg in a set", () => {
-    const session = buildFiveOhOneSession({
-      ...twoPlayerSettings,
-      unit: "sets",
-      targetCount: 2,
-    }, "u1");
+    const session = buildFiveOhOneSession(
+      {
+        ...twoPlayerSettings,
+        unit: "sets",
+        targetCount: 2,
+      },
+      "u1",
+    );
 
     session.state.currentLeg = LEGS_PER_SET;
     session.state.currentSet = 1;
