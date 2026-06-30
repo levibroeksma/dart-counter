@@ -6,10 +6,12 @@ import {
   incrementPlayCount,
 } from "@lib/server/data/games";
 import { getPlayComponent, hasGameComponents } from "@lib/shared/games/components";
-import { parseFiveOhOneSettingsFormData } from "@lib/shared/games/501/form-data";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
-import type { FiveOhOneSession } from "@lib/shared/games/501/session";
-import { validateFiveOhOneSettings } from "@lib/shared/games/501/validation";
+import {
+  buildFiveOhOneSession,
+  parseFiveOhOneSettingsFormData,
+  validateFiveOhOneSettings,
+  type FiveOhOneSession,
+} from "@lib/shared/games/501";
 import { parseScoreTrainingSettingsFormData } from "@lib/shared/games/score-training/form-data";
 import { buildScoreTrainingSession } from "@lib/shared/games/score-training/session-factory";
 import { validateScoreTrainingSettings } from "@lib/shared/games/score-training/validation";

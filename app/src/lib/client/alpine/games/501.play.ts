@@ -6,33 +6,25 @@ import type {
 } from "@lib/shared/api/types";
 import { getCheckoutHint } from "@lib/shared/darts/checkouts";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
-import { buildFiveOhOneSession } from "@lib/shared/games/501/session-factory";
 import {
-  isFiveOhOneSession,
-  type FiveOhOneSession,
-} from "@lib/shared/games/501/session";
-import {
+  applyVisit,
+  buildFiveOhOneSession,
+  buildMatchFormatLabel,
+  buildSummary,
   canUndoDartBotPair,
   isDartBotSession,
   isDartBotTurn,
-} from "@lib/shared/games/501/bot-helpers";
-import type { FiveOhOneSummary } from "@lib/shared/games/501/summary";
-import {
-  buildSummary,
-  buildMatchFormatLabel,
-} from "@lib/shared/games/501/summary";
-import {
+  isFiveOhOneSession,
   isMatchWinningCheckoutPossible,
-  simulateDartBotVisitForSession,
-} from "@lib/shared/games/501/bot-play";
-import { validateMatchStats } from "@lib/shared/dartbot/statistics-engine";
-import { animateDartBotVisit } from "@lib/client/alpine/games/dartbot-turn-modal";
-import {
-  applyVisit,
   revertLastOpponentPair,
   revertLastVisit,
-} from "@lib/shared/games/501/state";
-import { validateVisitScore } from "@lib/shared/games/501/validation";
+  simulateDartBotVisitForSession,
+  validateVisitScore,
+  type FiveOhOneSession,
+  type FiveOhOneSummary,
+} from "@lib/shared/games/501";
+import { validateMatchStats } from "@lib/shared/dartbot/statistics-engine";
+import { animateDartBotVisit } from "@lib/client/alpine/games/dartbot-turn-modal";
 import { t } from "@lib/shared/i18n";
 import * as scoreInput from "@lib/client/alpine/score-input";
 

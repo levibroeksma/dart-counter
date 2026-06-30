@@ -1,12 +1,12 @@
 import Alpine from "alpinejs";
-import type { FiveOhOnePlayer } from "@lib/shared/games/501/types";
-import { createId } from "@lib/shared/utils/id";
 import {
-  MIN_TARGET_COUNT_LEGS,
   MAX_TARGET_COUNT_LEGS,
-  MIN_TARGET_COUNT_SETS,
   MAX_TARGET_COUNT_SETS,
-} from "@lib/shared/games/501/constants";
+  MIN_TARGET_COUNT_LEGS,
+  MIN_TARGET_COUNT_SETS,
+  type FiveOhOnePlayer,
+} from "@lib/shared/games/501";
+import { createId } from "@lib/shared/utils/id";
 const FIVE_OH_ONE_SESSION_KEY = "501-session";
 
 /**
