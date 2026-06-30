@@ -18,6 +18,17 @@ describe("501 play page assembly", () => {
     expect(source).toContain('x-show="session?.state.phase === \'play\'"');
     expect(source).toContain('showSummaryModel="showSummary && summary"');
     expect(source).toContain("NumberInputPad");
+    expect(source).toContain("<OptionModal");
+    expect(source).toContain("formatPlayerName(");
+    expect(source).toContain('submitAction="modalSubmit()"');
+  });
+
+  it("Summary.astro uses backToGames button", () => {
+    const source = readSource("src/components/games/501/Summary.astro");
+    expect(source).toContain('type="button"');
+    expect(source).toContain('@click="backToGames()"');
+    expect(source).toContain("btn-secondary");
+    expect(source).not.toContain('href="/games"');
   });
 
   it("starts 501 via POST form validation", () => {

@@ -20,10 +20,12 @@ import {
   isMatchWinningCheckoutPossible,
   revertLastOpponentPair,
   revertLastVisit,
+  format501PlayerDisplayName,
   resolve501CheckoutModal,
   simulateDartBotVisitForSession,
   validateVisitScore,
   type CheckoutModalKind,
+  type FiveOhOnePlayer,
   type FiveOhOneSession,
   type FiveOhOneSummary,
 } from "@lib/shared/games/501";
@@ -116,6 +118,10 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
     matchFormatLabelDisplay() {
       if (!this.session) return "";
       return buildMatchFormatLabel(this.session.settings);
+    },
+
+    formatPlayerName(player: FiveOhOnePlayer) {
+      return format501PlayerDisplayName(player);
     },
 
     init() {

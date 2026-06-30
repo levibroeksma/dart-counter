@@ -56,13 +56,13 @@ const {
   </dl>
 
   <div class="grid grid-cols-2 gap-3">
-    <a
-      href="/games"
+    <button
+      type="button"
       class="btn-secondary btn-press font-medium flex items-center justify-center"
-      :class={persistingModel + " && 'pointer-events-none opacity-50'"}
+      @click="backToGames()"
     >
       Back
-    </a>
+    </button>
     <button
       type="button"
       class="btn-primary btn-press"
