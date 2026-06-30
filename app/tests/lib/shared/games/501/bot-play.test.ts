@@ -43,4 +43,16 @@ describe("simulateDartBotVisitForSession", () => {
       session.botState.matchPlan.legTargets.length,
     );
   });
+
+  it("updates set running stats after simulating a bot visit", () => {
+    const session = buildDartBotSession();
+
+    const result = simulateDartBotVisitForSession(session);
+    const stats = result.session.botState?.setRunningStats;
+
+    expect(stats).toBeDefined();
+    expect(result.session.botState?.setNumber).toBe(1);
+    expect(stats?.dartsThrown).toBe(result.visit.darts.length);
+    expect(stats?.checkouts).toBe(result.visit.checkout ? 1 : 0);
+  });
 });

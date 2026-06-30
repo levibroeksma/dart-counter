@@ -1,4 +1,4 @@
-import type { MatchPlan } from "@lib/shared/dartbot";
+import type { MatchPlan, SetRunningStats } from "@lib/shared/dartbot";
 
 export type FiveOhOneUserOrGuestPlayer = {
   id: string;
@@ -55,6 +55,8 @@ export type FiveOhOneBotState = {
   matchPlan: MatchPlan;
   rngState: number;
   currentLegIndex: number;
+  setRunningStats: SetRunningStats;
+  setNumber: number;
 };
 
 export type FiveOhOneVisitRecord = {
@@ -91,6 +93,7 @@ export type FiveOhOneSummary = {
   userThreeDartAverage: number;
   userDartsThrown: number;
   checkouts: number;
+  userCheckoutPercentage: number;
   guestThreeDartAverage?: number;
   guestDartsThrown?: number;
   guestCheckouts?: number;

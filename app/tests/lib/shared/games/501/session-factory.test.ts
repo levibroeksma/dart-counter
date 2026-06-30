@@ -43,6 +43,29 @@ describe("buildFiveOhOneSession", () => {
     expect(session.botState!.matchPlan.legTargets.length).toBe(3);
     expect(session.botState!.currentLegIndex).toBe(0);
     expect(typeof session.botState!.rngState).toBe("number");
+    expect(session.botState!.setNumber).toBe(1);
+    expect(session.botState!.setRunningStats).toEqual({
+      dartsThrown: 0,
+      scoringVisitCount: 0,
+      threeDartAverage: 0,
+      scoringAverage: 0,
+      checkoutPercentage: 0,
+      doubleAttempts: 0,
+      checkouts: 0,
+    });
+  });
+
+  it("clamps legacy dartbot levels above 10 when building skill", () => {
+    const session = buildFiveOhOneSession({
+      matchMode: "best-of",
+      targetCount: 3,
+      unit: "legs",
+      players: [
+        { id: "u1", type: "user", name: "Levi" },
+        { id: "b1", type: "dartbot", name: "DartBot", level: 15 },
+      ],
+    });
+    expect(session.botState?.matchPlan.skill.level).toBe(10);
   });
 
   it("omits botState for guest-only 2P", () => {

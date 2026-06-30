@@ -1,7 +1,9 @@
 import {
+  computeSetRunningStats,
   createRng,
   generateMatchPlan,
   simulateVisit,
+  type BotVisitForStats,
   type SimulatedVisit,
 } from "@lib/shared/dartbot";
 import { isFinishableCheckout } from "@lib/shared/darts";
@@ -15,6 +17,32 @@ type SimulateDartBotVisitResult = {
   session: FiveOhOneSession;
   visit: SimulatedVisit;
 };
+
+function isScoringVisit(remainingBefore: number): boolean {
+  return remainingBefore > 170;
+}
+
+function doubleAttemptsFromVisit(visit: SimulatedVisit): number {
+  return visit.darts.filter(
+    (dart) => dart.actual.ring === "double" || dart.actual.ring === "bull",
+  ).length;
+}
+
+function historyVisitToStats(visit: {
+  remainingBefore: number;
+  visitScore: number;
+  dartsThrown: number;
+  dartsOnDouble?: number;
+  checkout: boolean;
+}): BotVisitForStats {
+  return {
+    dartsThrown: visit.dartsThrown,
+    visitScore: visit.visitScore,
+    isScoringVisit: isScoringVisit(visit.remainingBefore),
+    doubleAttempts: visit.dartsOnDouble ?? 0,
+    checkouts: visit.checkout ? 1 : 0,
+  };
+}
 
 function getCurrentPlayerState(session: FiveOhOneSession): FiveOhOnePlayerState {
   const player = session.state.players.find(
@@ -86,10 +114,26 @@ export function simulateDartBotVisitForSession(
       skill: botState.matchPlan.skill,
       legTarget,
       dartsInVisit: DARTS_PER_VISIT,
+      setRunningStats: botState.setRunningStats,
     },
     rng,
   );
   botState.rngState = rng.getState();
+  const botPlayerId = nextSession.state.currentPlayerId;
+  const currentSetVisits = nextSession.visitHistory
+    .filter(
+      (entry) =>
+        entry.playerId === botPlayerId && entry.setNumber === botState.setNumber,
+    )
+    .map(historyVisitToStats);
+  currentSetVisits.push({
+    dartsThrown: visit.darts.length,
+    visitScore: visit.visitScore,
+    isScoringVisit: isScoringVisit(currentPlayer.remaining),
+    doubleAttempts: doubleAttemptsFromVisit(visit),
+    checkouts: visit.checkout ? 1 : 0,
+  });
+  botState.setRunningStats = computeSetRunningStats(currentSetVisits);
 
   return { session: nextSession, visit };
 }

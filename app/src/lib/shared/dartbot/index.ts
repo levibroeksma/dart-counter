@@ -22,10 +22,12 @@ export type {
   StatsValidation,
   ThrowIntent,
 } from "./types";
+export type { BotVisitForStats } from "./set-stats";
 
 export { createEmptySetRunningStats } from "./types";
 
 export { simulateVisit } from "./dart-bot";
+export { computeSetRunningStats } from "./set-stats";
 export { computeConvergenceBias } from "./convergence";
 export { nextCheckoutTarget } from "./checkout-target";
 export {

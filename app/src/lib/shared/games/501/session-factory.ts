@@ -1,4 +1,5 @@
 import {
+  createEmptySetRunningStats,
   createRng,
   generateMatchPlan,
   getSkillProfile,
@@ -58,7 +59,7 @@ export function buildFiveOhOneSession(
   const dartbot = findDartBot(settings);
   if (dartbot && dartbot.type === "dartbot") {
     const seed = hashSeed(now, dartbot.level);
-    const skill = getSkillProfile(dartbot.level);
+    const skill = getSkillProfile(Math.min(10, dartbot.level));
     const legCount = estimateLegCount(settings);
     const matchPlan = generateMatchPlan(skill, legCount, seed);
     const rng = createRng(seed);
@@ -70,6 +71,8 @@ export function buildFiveOhOneSession(
       },
       rngState: rng.getState(),
       currentLegIndex: 0,
+      setRunningStats: createEmptySetRunningStats(),
+      setNumber: 1,
     };
   }
 

@@ -1,6 +1,7 @@
 import { DARTS_PER_VISIT, STARTING_SCORE } from "./constants";
 import { hasPlayerWonMatch, hasPlayerWonSet } from "./match";
 import { lastTwoVisitsAreUserThenDartBot } from "./bot-helpers";
+import { createEmptySetRunningStats } from "@lib/shared/dartbot";
 import type {
   FiveOhOneGameState,
   FiveOhOnePlayerState,
@@ -106,6 +107,10 @@ export function applyVisit(
         player.legsWonInSet = 0;
       }
       nextState.currentSet += 1;
+      if (sessionBase.botState) {
+        sessionBase.botState.setRunningStats = createEmptySetRunningStats();
+        sessionBase.botState.setNumber = nextState.currentSet;
+      }
     }
 
     if (hasPlayerWonMatch(sessionBase.settings, currentPlayer)) {

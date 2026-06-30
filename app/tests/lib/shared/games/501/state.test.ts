@@ -182,6 +182,50 @@ describe("applyVisit", () => {
     expect(winner.remaining).toBe(STARTING_SCORE);
     expect(opponent.remaining).toBe(STARTING_SCORE);
   });
+
+  it("resets bot set running stats when a new set starts", () => {
+    const session = buildFiveOhOneSession(
+      {
+        matchMode: "first-to",
+        targetCount: 2,
+        unit: "sets",
+        players: [
+          { id: "u1", type: "user", name: "Levi" },
+          { id: "b1", type: "dartbot", name: "DartBot", level: 10 },
+        ],
+      },
+      "u1",
+    );
+
+    session.state.currentLeg = LEGS_PER_SET;
+    session.state.currentSet = 1;
+    session.state.players[0]!.remaining = 40;
+    session.state.players[0]!.legsWonInSet = LEGS_PER_SET - 1;
+    session.botState!.setRunningStats = {
+      dartsThrown: 12,
+      scoringVisitCount: 4,
+      threeDartAverage: 60,
+      scoringAverage: 65,
+      checkoutPercentage: 30,
+      doubleAttempts: 10,
+      checkouts: 3,
+    };
+    session.botState!.setNumber = 1;
+
+    const next = applyVisit(session, 40);
+
+    expect(next.state.currentSet).toBe(2);
+    expect(next.botState!.setNumber).toBe(2);
+    expect(next.botState!.setRunningStats).toEqual({
+      dartsThrown: 0,
+      scoringVisitCount: 0,
+      threeDartAverage: 0,
+      scoringAverage: 0,
+      checkoutPercentage: 0,
+      doubleAttempts: 0,
+      checkouts: 0,
+    });
+  });
 });
 
 describe("revertLastVisit", () => {
