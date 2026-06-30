@@ -121,6 +121,25 @@ export function fiveOhOnePlay(serverSession: FiveOhOneSession | null) {
       return buildMatchFormatLabel(this.session.settings);
     },
 
+    formatSummaryAverage(value: number | null | undefined) {
+      return value == null ? "-" : value.toFixed(1);
+    },
+
+    formatSummaryCheckoutRate(value: number | null | undefined) {
+      return value == null ? "-" : `${value.toFixed(2)}%`;
+    },
+
+    formatSummaryCheckouts(
+      made: number | undefined,
+      attempts: number | undefined,
+    ) {
+      return `${made ?? 0}/${attempts ?? 0}`;
+    },
+
+    formatSummaryInteger(value: number | null | undefined) {
+      return value == null ? "-" : String(value);
+    },
+
     formatPlayerName(player: FiveOhOnePlayer) {
       return format501PlayerDisplayName(player);
     },
