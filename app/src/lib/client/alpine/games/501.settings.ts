@@ -1,4 +1,5 @@
 import Alpine from "alpinejs";
+import { formatDartbotLevelPreview } from "@lib/shared/dartbot";
 import {
   MAX_TARGET_COUNT_LEGS,
   MAX_TARGET_COUNT_SETS,
@@ -44,6 +45,14 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
 
     get hasOpponent() {
       return this.players.length > 1;
+    },
+
+    get dartbotLevelPreview() {
+      const level = Math.min(
+        15,
+        Math.max(1, Math.round(Number(this.dartbotLevel) || 1)),
+      );
+      return formatDartbotLevelPreview(level);
     },
 
     init() {

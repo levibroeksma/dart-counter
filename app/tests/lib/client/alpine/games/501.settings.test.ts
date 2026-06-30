@@ -76,6 +76,18 @@ describe("fiveOhOneSettings", () => {
     });
   });
 
+  it("exposes dartbot level preview from shared formatter", () => {
+    const component = fiveOhOneSettings("Levi", "user-1");
+
+    component.dartbotLevel = 10;
+
+    expect(component.dartbotLevelPreview).toEqual({
+      threeDartAverage: "67–77",
+      checkoutAverage: "30",
+      checkoutSuccessRate: "55%",
+    });
+  });
+
   it("serializes DartBot player using current slider level", () => {
     const component = fiveOhOneSettings("Levi", "user-1");
     component.dartbotLevel = 5;

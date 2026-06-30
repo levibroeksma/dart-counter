@@ -1,6 +1,6 @@
 <div class="space-y-2" x-show="players.some((player) => player.type === 'dartbot')" x-cloak>
   <label for="dartbot-level" class="section-label">DartBot level</label>
-  <div class="space-y-1">
+  <div class="space-y-2">
     <input
       id="dartbot-level"
       type="range"
@@ -8,8 +8,17 @@
       max="15"
       step="1"
       x-model.number="dartbotLevel"
-      class="w-full accent-text-primary"
+      class="w-full accent-text-accent"
     />
-    <p class="text-xs text-text-muted">Current level: <span x-text="dartbotLevel"></span>/15</p>
+    <dl class="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border bg-surface-elevated px-3 py-2">
+      <div class="flex justify-between gap-2 text-xs">
+        <dt class="text-text-muted">3-dart avg</dt>
+        <dd class="font-mono font-semibold text-text-primary" x-text="dartbotLevelPreview.threeDartAverage"></dd>
+      </div>
+      <div class="flex justify-between gap-2 text-xs">
+        <dt class="text-text-muted">Checkout rate</dt>
+        <dd class="font-mono font-semibold text-text-primary" x-text="dartbotLevelPreview.checkoutSuccessRate"></dd>
+      </div>
+    </dl>
   </div>
 </div>
