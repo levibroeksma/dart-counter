@@ -26,7 +26,7 @@ const sessionJson = JSON.stringify(gameSession ?? null).replace(/</g, "\\u003c")
 >
   <div class="flex justify-between py-2">
     <button type="button" class="btn-press" @click="leave()">
-      <LeaveIcon class="size-6 text-text-muted rotate-180" />
+      <LeaveIcon class="size-6 text-muted-foreground rotate-180" />
     </button>
     <h2 class="text-xl font-semibold">{displayName}</h2>
     <div class="size-6 transparent"></div>
@@ -65,7 +65,7 @@ const sessionJson = JSON.stringify(gameSession ?? null).replace(/</g, "\\u003c")
                 type="button"
                 class="card-interactive btn-press justify-center text-sm text-center"
                 @click="question.id === 'dartsOnDouble' ? dartsOnDouble = n : question.id === 'dartsForFinish' ? dartsForFinish = n : dartsUsed = n"
-                :class="(question.id === 'dartsOnDouble' ? dartsOnDouble : question.id === 'dartsForFinish' ? dartsForFinish : dartsUsed) === n ? 'bg-accent text-accent-foreground' : ''"
+                :class="(question.id === 'dartsOnDouble' ? dartsOnDouble : question.id === 'dartsForFinish' ? dartsForFinish : dartsUsed) === n ? 'bg-primary text-primary-foreground' : ''"
                 x-text="n"
               ></button>
             </template>

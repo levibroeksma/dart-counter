@@ -14,12 +14,12 @@ const {
   <div class="flex flex-col items-center justify-center gap-2 flex-1 w-full">
     <span class="text-4xl font-bold" x-text={scoreModel}>0</span>
     <span
-      class="text-xs text-text-muted font-mono uppercase tracking-wider bg-slate-600/20 rounded-md px-2 py-1"
+      class="rounded-md bg-muted/60 px-2 py-1 font-mono text-xs uppercase tracking-wider text-muted-foreground"
     >
       Current Score
     </span>
   </div>
-  <div class="flex flex-col text-text-muted font-mono text-xs flex-1 w-full">
+  <div class="flex flex-col text-muted-foreground font-mono text-xs flex-1 w-full">
     <div class="inline-flex justify-between">
       <span>Miss</span>
       <span x-text={`${segmentCountsModel}.miss`}>0</span>

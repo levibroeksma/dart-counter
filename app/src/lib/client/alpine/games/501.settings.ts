@@ -1,14 +1,14 @@
-import Alpine from "alpinejs";
-import { formatDartbotLevelPreview } from "@lib/shared/dartbot";
+import Alpine from 'alpinejs';
+import { formatDartbotLevelPreview } from '@lib/shared/dartbot';
 import {
   MAX_TARGET_COUNT_LEGS,
   MAX_TARGET_COUNT_SETS,
   MIN_TARGET_COUNT_LEGS,
   MIN_TARGET_COUNT_SETS,
   type FiveOhOnePlayer,
-} from "@lib/shared/games/501";
-import { createId } from "@lib/shared/utils/id";
-const FIVE_OH_ONE_SESSION_KEY = "501-session";
+} from '@lib/shared/games/501';
+import { createId } from '@lib/shared/utils/id';
+const FIVE_OH_ONE_SESSION_KEY = '501-session';
 
 /**
  * Alpine state factory for 501 settings and player selection.
@@ -16,29 +16,29 @@ const FIVE_OH_ONE_SESSION_KEY = "501-session";
 export function fiveOhOneSettings(displayName: string, userId: string) {
   const userPlayer: FiveOhOnePlayer = {
     id: userId,
-    type: "user",
+    type: 'user',
     name: displayName,
   };
 
   return {
-    matchMode: "best-of" as "best-of" | "first-to",
-    unit: "legs" as "legs" | "sets",
+    matchMode: 'best-of' as 'best-of' | 'first-to',
+    unit: 'legs' as 'legs' | 'sets',
     players: [userPlayer] as FiveOhOnePlayer[],
     opponentPickerOpen: false,
     guestModalOpen: false,
-    guestNameDraft: "",
-    dartbotLevel: 10,
+    guestNameDraft: '',
+    dartbotLevel: 5,
     inProgressSession: false,
     targetCount: 3,
 
     get targetCountMin() {
-      return this.unit === "legs"
+      return this.unit === 'legs'
         ? MIN_TARGET_COUNT_LEGS
         : MIN_TARGET_COUNT_SETS;
     },
 
     get targetCountMax() {
-      return this.unit === "legs"
+      return this.unit === 'legs'
         ? MAX_TARGET_COUNT_LEGS
         : MAX_TARGET_COUNT_SETS;
     },
@@ -84,7 +84,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
       if (this.hasOpponent) return;
       this.opponentPickerOpen = false;
       this.guestModalOpen = true;
-      this.guestNameDraft = "";
+      this.guestNameDraft = '';
     },
 
     cancelGuestModal() {
@@ -97,12 +97,12 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
 
       const guest: FiveOhOnePlayer = {
         id: createId(),
-        type: "guest",
+        type: 'guest',
         name: guestName,
       };
       this.players = [...this.players, guest];
       this.guestModalOpen = false;
-      this.guestNameDraft = "";
+      this.guestNameDraft = '';
     },
 
     confirmDartBot() {
@@ -115,8 +115,8 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
 
       const dartbot: FiveOhOnePlayer = {
         id: createId(),
-        type: "dartbot",
-        name: "DartBot",
+        type: 'dartbot',
+        name: 'DartBot',
         level,
       };
       this.players = [...this.players, dartbot];
@@ -125,10 +125,10 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
 
     removeOpponent() {
       if (!this.hasOpponent) return;
-      this.players = this.players.filter((player) => player.type === "user");
+      this.players = this.players.filter((player) => player.type === 'user');
       this.opponentPickerOpen = false;
       this.guestModalOpen = false;
-      this.guestNameDraft = "";
+      this.guestNameDraft = '';
     },
 
     serializePlayers(): string {
@@ -137,7 +137,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
         Math.max(1, Math.round(Number(this.dartbotLevel) || 1)),
       );
       const players = this.players.map((player) =>
-        player.type === "dartbot" ? { ...player, level } : player,
+        player.type === 'dartbot' ? { ...player, level } : player,
       );
       return JSON.stringify(players);
     },
@@ -148,7 +148,7 @@ export function fiveOhOneSettings(displayName: string, userId: string) {
     },
 
     resumeGame() {
-      window.location.href = "/games/501";
+      window.location.href = '/games/501';
     },
 
     abandonSession() {

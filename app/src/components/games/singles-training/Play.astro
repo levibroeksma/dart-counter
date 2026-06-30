@@ -25,7 +25,7 @@ const sessionJson = JSON.stringify(gameSession ?? null).replace(/</g, "\\u003c")
 >
   <div class="flex justify-between py-2">
     <button type="button" class="btn-press" @click="leave()">
-      <LeaveIcon class="size-6 text-text-muted rotate-180" />
+      <LeaveIcon class="size-6 text-muted-foreground rotate-180" />
     </button>
     <h2 class="text-xl font-semibold">{displayName}</h2>
     <div class="size-6 transparent"></div>

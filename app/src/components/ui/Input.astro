@@ -36,7 +36,7 @@ const {
 <div class:list={["space-y-1.5 relative", className]} {...props} x-data="{showPassword: false}">
   {
     label ? (
-      <label for={id} class="text-text-muted @sm:text-sm block font-medium">
+      <label for={id} class="text-muted-foreground @sm:text-sm block font-medium">
         {label}
       </label>
     ) : null
@@ -74,8 +74,8 @@ const {
   {
     type === "password" ? (
       <button type="button" class="absolute right-2 top-1/2" x-on:click="showPassword = !showPassword">
-        <ShowIcon x-show="!showPassword" x-cloak class="size-6 text-text-muted" />
-        <HideIcon x-show="showPassword" x-cloak class="size-6 text-text-muted" />
+        <ShowIcon x-show="!showPassword" x-cloak class="size-6 text-muted-foreground" />
+        <HideIcon x-show="showPassword" x-cloak class="size-6 text-muted-foreground" />
       </button>
     ) : null
   }

@@ -17,12 +17,12 @@ const xDataExpression = `displayNameSetting(${JSON.stringify(initialDisplayName)
   x-data={xDataExpression}
   aria-labelledby="display-name-heading"
 >
-  <h2 id="display-name-heading" class="text-text-primary font-semibold">
+  <h2 id="display-name-heading" class="text-foreground font-semibold">
     Display name
   </h2>
 
   <div x-show="mode === 'view'" x-cloak class="flex items-center gap-2">
-    <p class="text-text-primary flex-1 text-base" x-text="displayName"></p>
+    <p class="text-foreground flex-1 text-base" x-text="displayName"></p>
     <IconBtn ariaLabel="Edit display name" type="button" @click="startEdit()">
       <span set:html={editIcon} />
     </IconBtn>
@@ -59,7 +59,7 @@ const xDataExpression = `displayNameSetting(${JSON.stringify(initialDisplayName)
     x-show="error"
     x-text="error"
     x-cloak
-    class="text-error text-sm"
+    class="text-destructive text-sm"
     role="alert"
     aria-live="polite"
   >

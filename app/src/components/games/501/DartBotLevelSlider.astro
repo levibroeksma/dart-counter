@@ -1,5 +1,16 @@
-<div class="space-y-4" x-show="players.some((player) => player.type === 'dartbot')" x-cloak>
-  <label for="dartbot-level" class="section-label">DartBot level <span class="text-sm font-medium text-text-primary" x-text="dartbotLevel"></span></label>
+<div
+  class="space-y-4"
+  x-show="players.some((player) => player.type === 'dartbot')"
+  x-cloak
+>
+  <label
+    for="dartbot-level"
+    class="section-label"
+    >DartBot level <span
+      class="text-foreground text-sm font-medium"
+      x-text="dartbotLevel"
+    ></span></label
+  >
   <div class="space-y-4">
     <input
       id="dartbot-level"
@@ -8,16 +19,26 @@
       max="10"
       step="1"
       x-model.number="dartbotLevel"
-      class="w-full accent-text-accent"
+      class="accent-primary w-full"
     />
-    <dl class="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border bg-surface-elevated px-3 py-2">
+    <dl
+      class="border-border bg-popover grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border px-3 py-2"
+    >
       <div class="flex justify-between gap-2 text-xs">
-        <dt class="text-text-muted">3-dart avg</dt>
-        <dd class="font-mono font-semibold text-text-primary" x-text="dartbotLevelPreview.threeDartAverage"></dd>
+        <dt class="text-muted-foreground">3-dart avg</dt>
+        <dd
+          class="text-foreground font-mono font-semibold"
+          x-text="dartbotLevelPreview.threeDartAverage"
+        >
+        </dd>
       </div>
       <div class="flex justify-between gap-2 text-xs">
-        <dt class="text-text-muted">Checkout rate</dt>
-        <dd class="font-mono font-semibold text-text-primary" x-text="dartbotLevelPreview.checkoutSuccessRate"></dd>
+        <dt class="text-muted-foreground">Checkout rate</dt>
+        <dd
+          class="text-foreground font-mono font-semibold"
+          x-text="dartbotLevelPreview.checkoutSuccessRate"
+        >
+        </dd>
       </div>
     </dl>
   </div>

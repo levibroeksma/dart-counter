@@ -41,7 +41,7 @@ function markerForSegment(label: string, index: number) {
       label,
       x: 0,
       y: 0,
-      markerClass: index === segmentLabels.length - 1 ? "fill-accent" : "fill-accent/70",
+      markerClass: index === segmentLabels.length - 1 ? "fill-primary" : "fill-primary/70",
     };
   }
   const wedgeIndex = boardOrder.indexOf(parsed.base);
@@ -64,7 +64,7 @@ const markers = segmentLabels
 
 <figure class="relative mx-auto w-full max-w-[16rem]" aria-label="Dartboard">
   <svg viewBox="-105 -105 210 210" class="w-full h-auto" role="img" aria-hidden="true">
-    <circle cx="0" cy="0" r="100" class="fill-slate-900 stroke-slate-600 stroke-[2]" />
+    <circle cx="0" cy="0" r="100" class="fill-background stroke-border stroke-[2]" />
     <circle cx="0" cy="0" r="92" class="fill-transparent stroke-amber-100/70 stroke-[8]" />
     <circle cx="0" cy="0" r="58" class="fill-transparent stroke-amber-100/70 stroke-[8]" />
     <circle cx="0" cy="0" r="18" class="fill-green-700/80" />

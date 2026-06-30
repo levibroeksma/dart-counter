@@ -1,132 +1,214 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@plugin 'tailwindcss-animate';
 
-/*
- * Semantic tokens → utilities via @theme inline (Tailwind v4).
- * Runtime light/dark values live on :root — not nested in @theme.
- * @see https://tailwindcss.com/docs/theme#referencing-other-variables
- */
-@theme inline {
-  --color-surface-page: var(--surface-page);
-  --color-surface-card: var(--surface-card);
-  --color-surface-input: var(--surface-input);
-  --color-surface-elevated: var(--surface-elevated);
-  --color-text-primary: var(--text-primary);
-  --color-text-muted: var(--text-muted);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-error: var(--error);
-  --color-border: var(--border);
-  --color-ring: var(--ring);
+@theme {
+  --color-blue-50: #f2f2ff;
+  --color-blue-100: #e7e7ff;
+  --color-blue-200: #d3d3ff;
+  --color-blue-300: #b2b0ff;
+  --color-blue-400: #8c83ff;
+  --color-blue-500: #6751ff;
+  --color-blue-600: #542dfa;
+  --color-blue-700: #4118db;
+  --color-blue-800: #3a16c1;
+  --color-blue-900: #31149e;
+  --color-blue-950: #1b0a6b;
+
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --font-display: 'Bebas Neue', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
   --shadow-card: var(--app-shadow-card);
   --shadow-menu: var(--app-shadow-menu);
-}
 
-/* Static design tokens — override Tailwind defaults where needed */
-@theme {
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-}
 
-/* Runtime theme palette (slate surfaces + sky accents) */
-:root {
-  color-scheme: light;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
 
-  --surface-page: var(--color-slate-50);
-  --surface-card: var(--color-white);
-  --surface-input: var(--color-slate-100);
-  --surface-elevated: var(--color-white);
-  --text-primary: var(--color-slate-900);
-  --text-muted: var(--color-slate-500);
-  --accent: var(--color-sky-600);
-  --accent-hover: var(--color-sky-700);
-  --accent-foreground: var(--color-white);
-  --error: var(--color-red-600);
-  --border: var(--color-slate-200);
-  --ring: color-mix(in srgb, var(--color-sky-500) 40%, transparent);
-  --app-shadow-card: 0 1px 3px
-    color-mix(in srgb, var(--color-slate-900) 10%, transparent);
-  --app-shadow-menu: 0 4px 16px
-    color-mix(in srgb, var(--color-slate-900) 10%, transparent);
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
 
-  --duration-fast: 160ms;
-  --duration-ui: 200ms;
-
-  button,
-  [role="button"] {
-    touch-action: manipulation;
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --surface-page: var(--color-slate-950);
-    --surface-card: var(--color-slate-900);
-    --surface-input: var(--color-slate-800);
-    --surface-elevated: var(--color-slate-900);
-    --text-primary: var(--color-slate-300);
-    --text-muted: var(--color-slate-400);
-    --accent: var(--color-sky-500);
-    --accent-hover: var(--color-sky-400);
-    --accent-foreground: var(--color-white);
-    --error: var(--color-red-400);
-    --border: var(--color-slate-800);
-    --ring: color-mix(in srgb, var(--color-sky-400) 45%, transparent);
-    --app-shadow-card: 0 1px 3px
-      color-mix(in srgb, var(--color-black) 40%, transparent);
-    --app-shadow-menu: 0 4px 16px
-      color-mix(in srgb, var(--color-black) 40%, transparent);
+/*
+  Tailwind v4 border default is currentColor — restore explicit border color.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: hsl(var(--border));
   }
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
-
-  --surface-page: var(--color-slate-50);
-  --surface-card: var(--color-white);
-  --surface-input: var(--color-slate-100);
-  --surface-elevated: var(--color-white);
-  --text-primary: var(--color-slate-900);
-  --text-muted: var(--color-slate-500);
-  --accent: var(--color-sky-600);
-  --accent-hover: var(--color-sky-700);
-  --accent-foreground: var(--color-white);
-  --error: var(--color-red-600);
-  --border: var(--color-slate-200);
-  --ring: color-mix(in srgb, var(--color-sky-500) 40%, transparent);
-  --app-shadow-card: 0 1px 3px
-    color-mix(in srgb, var(--color-slate-900) 10%, transparent);
-  --app-shadow-menu: 0 4px 16px
-    color-mix(in srgb, var(--color-slate-900) 10%, transparent);
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  --surface-page: var(--color-slate-950);
-  --surface-card: var(--color-slate-900);
-  --surface-input: var(--color-slate-800);
-  --surface-elevated: var(--color-slate-900);
-  --text-primary: var(--color-slate-50);
-  --text-muted: var(--color-slate-400);
-  --accent: var(--color-sky-500);
-  --accent-hover: var(--color-sky-400);
-  --accent-foreground: var(--color-white);
-  --error: var(--color-red-400);
-  --border: var(--color-slate-800);
-  --ring: color-mix(in srgb, var(--color-sky-400) 45%, transparent);
-  --app-shadow-card: 0 1px 3px
-    color-mix(in srgb, var(--color-black) 40%, transparent);
-  --app-shadow-menu: 0 4px 16px
-    color-mix(in srgb, var(--color-black) 40%, transparent);
 }
 
 @layer base {
+  :root {
+    color-scheme: dark;
+
+    --background: 224 71% 4%;
+    --foreground: 210 20% 98%;
+    --card: 221 39% 11%;
+    --card-foreground: 220 14% 96%;
+    --popover: 221 39% 11%;
+    --popover-foreground: 220 14% 96%;
+    --primary: 248 100% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 221 39% 11%;
+    --muted-foreground: 218 11% 65%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 248 100% 66%;
+    --radius: 1rem;
+
+    --chart-1: 248 100% 66%;
+    --chart-2: 251 95% 58%;
+    --chart-3: 243 100% 84%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 215 28% 17%;
+
+    --sidebar-background: 224 71% 4%;
+    --sidebar-foreground: 220 14% 96%;
+    --sidebar-primary: 248 100% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 221 39% 11%;
+    --sidebar-accent-foreground: 220 14% 96%;
+    --sidebar-border: 215 28% 17%;
+    --sidebar-ring: 248 100% 66%;
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      var(--color-blue-400) 0%,
+      var(--color-blue-600) 100%
+    );
+    --gradient-background:
+      radial-gradient(
+        ellipse 120% 80% at 50% -30%,
+        color-mix(in srgb, var(--color-blue-950) 85%, transparent) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 70% 50% at 100% 100%,
+        color-mix(in srgb, var(--color-blue-900) 35%, transparent) 0%,
+        transparent 50%
+      ),
+      var(--color-gray-950);
+    --gradient-card: linear-gradient(
+      145deg,
+      var(--color-gray-900) 0%,
+      var(--color-gray-800) 100%
+    );
+    --gradient-card-surface:
+      radial-gradient(
+        circle at 100% 0%,
+        color-mix(in srgb, var(--color-blue-900) 22%, transparent) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at 0% 100%,
+        color-mix(in srgb, var(--color-blue-950) 18%, transparent) 0%,
+        transparent 45%
+      ),
+      var(--gradient-card);
+    --gradient-card-accent: linear-gradient(
+      145deg,
+      var(--color-blue-100) 0%,
+      var(--color-blue-200) 100%
+    );
+    --app-shadow-card: 0 1px 3px color-mix(in srgb, var(--color-gray-950) 60%, transparent);
+    --app-shadow-menu: 0 4px 16px color-mix(in srgb, var(--color-gray-950) 70%, transparent);
+
+    --duration-fast: 160ms;
+    --duration-ui: 200ms;
+
+    button,
+    [role='button'] {
+      touch-action: manipulation;
+    }
+  }
+
   html {
-    color-scheme: light dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     touch-action: manipulation;
@@ -135,16 +217,18 @@
   }
 
   body {
-    @apply bg-surface-page text-text-primary font-sans;
+    @apply text-foreground font-sans;
     min-height: 100dvh;
+    background: var(--gradient-background);
+    background-attachment: fixed;
   }
 
   ::selection {
-    background-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    background-color: hsl(var(--primary) / 0.35);
   }
 
   :focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
 
@@ -163,43 +247,55 @@
   }
 
   .btn-primary {
-    @apply rounded-full bg-accent px-4 py-2.5 font-medium text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-70;
+    @apply text-primary-foreground focus-visible:ring-ring rounded-full px-4 py-2.5 font-medium focus-visible:ring-2 focus-visible:outline-none disabled:opacity-70;
+    background: var(--gradient-primary);
   }
 
   .btn-secondary {
-    @apply rounded-full border border-border px-4 py-2 text-sm;
+    @apply border-border text-foreground rounded-full border px-4 py-2 text-sm;
+    background: var(--gradient-card);
   }
 
   .link-subtle {
-    @apply text-text-muted text-sm;
+    @apply text-muted-foreground text-sm;
   }
 
   .nav-link-inactive {
-    @apply text-text-muted;
+    @apply text-muted-foreground;
   }
 
   .section-label {
-    @apply text-sm text-slate-300 font-mono uppercase tracking-wider;
+    @apply font-display text-muted-foreground text-sm tracking-wider uppercase;
   }
 
   .game-panel {
-    @apply h-fit rounded-lg border border-border bg-surface-card shadow-card;
+    @apply border-border shadow-card h-fit rounded-lg border;
+    background: var(--gradient-card-surface);
   }
 
   .checkout-hint {
-    @apply flex min-h-10 w-2/3 items-center justify-center gap-2 rounded-lg bg-surface-input p-1 font-mono text-sm;
+    @apply flex min-h-10 w-2/3 items-center justify-center gap-2 rounded-lg p-1 font-mono text-sm;
+    background: color-mix(in srgb, var(--color-gray-800) 80%, var(--color-blue-950));
   }
 
   .card {
-    @apply rounded-xl border border-border bg-surface-card shadow-card p-4;
+    @apply border-border shadow-card rounded-xl border;
+    background: var(--gradient-card-surface);
+  }
+
+  .card-accent {
+    @apply border-blue-300/30 shadow-card rounded-xl border text-blue-900;
+    background: var(--gradient-card-accent);
   }
 
   .card-interactive {
-    @apply w-full cursor-pointer rounded-xl border border-border bg-surface-card p-4 shadow-card;
+    @apply border-border shadow-card w-full cursor-pointer rounded-xl border p-4;
+    background: var(--gradient-card-surface);
     transition:
       transform var(--duration-fast) var(--ease-out),
       background-color var(--duration-ui) var(--ease-out),
-      color var(--duration-ui) var(--ease-out);
+      color var(--duration-ui) var(--ease-out),
+      border-color var(--duration-ui) var(--ease-out);
   }
 
   .toast-panel {
@@ -210,11 +306,11 @@
     .btn-primary:not(:disabled) {
       transition:
         transform var(--duration-fast) var(--ease-out),
-        background-color var(--duration-ui) var(--ease-out);
+        filter var(--duration-ui) var(--ease-out);
     }
 
     .btn-primary:not(:disabled):hover {
-      @apply bg-accent-hover;
+      filter: brightness(1.1);
     }
 
     .link-subtle {
@@ -222,7 +318,7 @@
     }
 
     .link-subtle:hover {
-      @apply text-text-primary;
+      @apply text-foreground;
     }
 
     .nav-link-inactive {
@@ -230,7 +326,7 @@
     }
 
     .nav-link-inactive:hover {
-      @apply text-accent;
+      @apply text-primary;
     }
 
     .icon-btn-hover {
@@ -240,7 +336,8 @@
     }
 
     .icon-btn-hover:hover:not(:disabled) {
-      @apply text-accent-hover bg-surface-input;
+      @apply text-primary;
+      background: color-mix(in srgb, var(--color-gray-800) 70%, var(--color-blue-900));
     }
 
     .menu-item-hover {
@@ -248,7 +345,7 @@
     }
 
     .menu-item-hover:hover {
-      @apply bg-surface-input;
+      background: color-mix(in srgb, var(--color-gray-800) 80%, var(--color-blue-950));
     }
 
     .game-card-link {
@@ -256,28 +353,34 @@
     }
 
     .game-card-link:hover {
-      @apply text-accent;
+      @apply text-primary;
+    }
+
+    .card-interactive:hover {
+      border-color: color-mix(in srgb, var(--color-blue-500) 35%, var(--color-gray-800));
     }
   }
 
   .input-field {
-    @apply w-full rounded-md border border-border bg-surface-input px-3 py-2 text-text-primary;
+    @apply border-input text-foreground w-full rounded-md border px-3 py-2;
+    background: color-mix(in srgb, var(--color-gray-900) 90%, var(--color-blue-950));
     transition:
       border-color var(--duration-ui) var(--ease-out),
       box-shadow var(--duration-ui) var(--ease-out);
   }
 
   .input-field:focus {
-    @apply border-accent outline-none;
-    box-shadow: 0 0 0 3px var(--ring);
+    @apply border-primary outline-none;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.4);
   }
 
   .spinner {
-    @apply inline-block h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent;
+    @apply border-primary inline-block h-5 w-5 animate-spin rounded-full border-2 border-t-transparent;
   }
 
   .menu-panel {
     transform-origin: top right;
+    background: var(--gradient-card-surface);
   }
 
   .transition-fade-scale-enter {
@@ -293,7 +396,14 @@
   }
 
   .skeleton {
-    @apply bg-white/10 animate-pulse;
+    @apply animate-pulse;
+    background: linear-gradient(
+      90deg,
+      var(--color-gray-900) 0%,
+      var(--color-gray-800) 50%,
+      var(--color-gray-900) 100%
+    );
+    background-size: 200% 100%;
   }
 
   @media (prefers-reduced-motion: reduce) {
