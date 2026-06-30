@@ -51,6 +51,57 @@ describe("buildSummary", () => {
     });
   });
 
+  it("uses per-visit dartsThrown instead of assuming 3 per visit", () => {
+    const session = buildFiveOhOneSession({
+      matchMode: "first-to",
+      targetCount: 1,
+      unit: "legs",
+      players: [{ id: "u1", type: "user", name: "Levi" }],
+    });
+
+    session.state.status = "completed";
+    session.state.phase = "summary";
+    session.visitHistory = [
+      {
+        visitNumber: 1,
+        playerId: "u1",
+        visitScore: 180,
+        remainingBefore: 501,
+        remainingAfter: 321,
+        bust: false,
+        checkout: false,
+        legNumber: 1,
+        setNumber: 1,
+        dartsThrown: 3,
+        stateSnapshot: structuredClone(session.state),
+      },
+      {
+        visitNumber: 2,
+        playerId: "u1",
+        visitScore: 321,
+        remainingBefore: 321,
+        remainingAfter: 0,
+        bust: false,
+        checkout: true,
+        legNumber: 1,
+        setNumber: 1,
+        dartsThrown: 2,
+        stateSnapshot: structuredClone(session.state),
+      },
+    ];
+
+    const summary = buildSummary(session);
+
+    expect(summary).toMatchObject({
+      resultLabel: "Completed",
+      matchFormatLabel: "First to 1 leg",
+      legsPlayed: 1,
+      userDartsThrown: 5,
+      checkouts: 1,
+    });
+    expect(summary.userThreeDartAverage).toBeCloseTo(300.6);
+  });
+
   it("builds completed 2-player summary and includes guest stats", () => {
     const session = buildFiveOhOneSession({
       matchMode: "first-to",

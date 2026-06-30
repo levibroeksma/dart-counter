@@ -35,7 +35,10 @@ function getPlayerSummaryStats(
   playerId: string,
 ): PlayerSummaryStats {
   const playerVisits = history.filter((visit) => visit.playerId === playerId);
-  const dartsThrown = playerVisits.length * DARTS_PER_VISIT;
+  const dartsThrown = playerVisits.reduce(
+    (sum, v) => sum + v.dartsThrown,
+    0,
+  );
   const pointsScored = playerVisits.reduce((total, visit) => {
     const points = visit.remainingBefore - visit.remainingAfter;
     return total + (points > 0 ? points : 0);
