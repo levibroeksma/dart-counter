@@ -3,7 +3,7 @@
 > Input for `writing-plans` skill. Supersedes level-system sections of `2026-06-29-dartbot-design.md` (levels 1–15, `hitAccuracy`/`missSpread` model).
 
 **Date:** 2026-06-30  
-**Scope:** `lib/shared/dartbot/` — level profiles, throw engines, validation, settings preview  
+**Scope:** `lib/shared/dartbot/`, `lib/shared/darts/checkout-hints.data.ts` (safer-route tuning)  
 **Approach:** Split data + engines (#2) — anchor tables at L1/L5/L10, interpolate L2–4 and L6–9
 
 ---
@@ -18,9 +18,11 @@ Current DartBot simulation does not match desired play feel or stat targets:
 | Checkout % | `checkout.successRate` is display/validation only — not used in throws |
 | Throw model | Single `hitAccuracy` + uniform geometric `adjacent` misses for trebles and doubles alike |
 | Scoring aim | T20-first; beginners should aim **S20** with realistic scatter |
+| Checkout routing | Multi-route JSON selection; does not match player `getCheckoutHint()` |
+| Setup throws | No per-level accuracy when aiming singles/trebles/bull for checkout setup |
 | Checkout rates | L10 configured ~55%; should be 30–50% range; L1 should be 8–30% |
 
-**Goal:** Per-level fixed outcome distributions for scoring and doubles; stat ranges as indications (not guarantees); cap at level 10.
+**Goal:** Per-level fixed outcome distributions for scoring, setup, and doubles; checkout replanning via player hints; stat ranges as indications (not guarantees); cap at level 10.
 
 ---
 
@@ -30,7 +32,7 @@ Current DartBot simulation does not match desired play feel or stat targets:
 | ---- | ------- |
 | **3-dart average** | Expected scoring level over time from current configuration. Indicates strength; actual results vary with checkout situations, target preference, and normal game variance. |
 | **Scoring average** | Expected average points per scoring visit. Indication only — true scores deviate during play. |
-| **Checkout percentage** | How often DartBot successfully finishes when throwing at a double. Higher = more dependable finishes. Formula: `checkouts / dartsOnDouble` (matches 501 summary `checkoutPercentage`). Displayed and validated as a **min–max range** per level. |
+| **Checkout percentage** | How often DartBot successfully finishes when throwing at a double. Formula: `checkouts / dartsOnDouble` (matches 501 summary `checkoutPercentage`). Displayed and validated as a **min–max range** per level. |
 
 ---
 
@@ -59,13 +61,30 @@ Replace `LevelProfile` execution fields (`hitAccuracy`, `missSpread`, `checkoutD
 /** Segment label → weight (%). Must sum to 100. */
 type ScoringOutcomes = Record<string, number>;
 
+type SetupOutcomes = {
+  hit: number;
+  neighborSingle?: number;      // singles setup only
+  neighborTreble?: number;      // trebles setup only
+  wrongRing: number;            // same base, wrong ring (e.g. T12 when aiming S12)
+  neighborWrongRing: number;    // board-neighbor numbers, wrong ring
+  outside: number;
+  other: number;
+};
+
+type BullSetupOutcomes = {
+  hit: number;
+  wrongRing: number;            // 25 when aiming 50, 50 when aiming 25
+  outside: number;
+  other: number;
+};
+
 type DoubleOutcomes = {
   hit: number;
-  inside: number;           // same-number single (e.g. D20 → S20)
-  neighborSingle: number;   // split uniformly among board neighbors
-  neighborDouble: number;   // split uniformly among neighbor doubles
-  outside: number;          // score 0
-  other: number;            // rare off-route segment
+  inside: number;
+  neighborSingle: number;
+  neighborDouble: number;
+  outside: number;
+  other: number;
 };
 
 type LevelProfile = {
@@ -74,23 +93,28 @@ type LevelProfile = {
   scoringAverage: { min: number; max: number };
   checkoutPercentage: { min: number; max: number };
   scoring: {
-    /** UI/metadata: primary scoring intent */
     aim: "S20" | "T20";
     outcomes: ScoringOutcomes;
+  };
+  setup: {
+    singles: SetupOutcomes;
+    trebles: SetupOutcomes;
+    outerBull: BullSetupOutcomes;
+    bull: BullSetupOutcomes;
   };
   doubles: {
     outcomes: DoubleOutcomes;
   };
 };
 
-type SkillProfile = LevelProfile; // level field always set
+type SkillProfile = LevelProfile;
 ```
 
-**Removed from simulation:** `hitAccuracy`, `missSpread`, `checkout.successRate` as throw knobs.
-
-**Optional retention:** `checkoutDiscipline` on `CheckoutPolicy` only (route quality selection). May be derived from level (e.g. `level / 10`) — not a separate user-facing stat.
+**Removed from simulation:** `hitAccuracy`, `missSpread`, `checkout.successRate`, `checkoutDiscipline` as throw/route knobs.
 
 **Level cap:** `getSkillProfile(level)` accepts integers **1–10** only.
+
+**Board neighbors:** All neighbor resolution uses `BOARD_ORDER` in `segments.ts` (e.g. base 12 → neighbors **5 and 14**, not 20).
 
 ---
 
@@ -100,17 +124,17 @@ type SkillProfile = LevelProfile; // level field always set
 lib/shared/dartbot/
 ├── level-profiles.ts       # ANCHOR_PROFILES (L1, L5, L10) + LEVEL_STAT_RANGES
 ├── interpolate-levels.ts   # buildLevelProfile(level) — lerp + normalize
-├── levels.ts               # getSkillProfile() public entry (re-exports)
-├── scoring-throw.ts        # sample scoring outcome from distribution
-├── double-throw.ts         # sample double outcome + resolve to segment
-├── throw-engine.ts         # dispatch: scoring vs double by intent
-├── dart-bot.ts             # simulateVisit (unchanged pipeline, new throws)
-├── miss-resolver.ts        # REMOVE or replace with double-throw resolution
-├── route-engine.ts         # REMOVE scoring target selection (table replaces it)
-└── checkout/               # unchanged planner/policy/knowledge
+├── levels.ts               # getSkillProfile() public entry
+├── scoring-throw.ts        # scoring-visit distribution sampling
+├── setup-throw.ts          # setup singles/trebles/bull distribution sampling
+├── double-throw.ts         # double-finish distribution sampling
+├── throw-engine.ts         # dispatch by intent + target ring
+├── checkout-target.ts      # getCheckoutHint(remaining) → next aim segment
+├── dart-bot.ts             # simulateVisit with per-dart replanning
+├── miss-resolver.ts        # REMOVE
+├── route-engine.ts         # REMOVE
+└── checkout/               # knowledge retained for 131–170 setup zone only
 ```
-
-**Barrel:** `index.ts` continues exporting `getSkillProfile`, `simulateVisit`, etc.
 
 ---
 
@@ -168,17 +192,87 @@ Weights are **landing** percentages per dart during a scoring visit. Sum = 100.
 
 ### `other` (scoring)
 
-Weighted mix of off-bed singles/trebles not in the main table (e.g. S3, T19, S7). Fixed pool in `scoring-throw.ts`; same pool all levels; only weight varies. Avg score ~10–15 for calibration tests.
+Weighted mix of off-bed singles/trebles (e.g. S3, T19, S7). Fixed pool in `scoring-throw.ts`.
 
 ### `outside`
 
-Score 0. Segment label `"outside"` (existing convention in tests/UI if any; else score-0 sentinel).
+Score 0.
 
 ---
 
-## 7. Anchor double distributions (authoritative)
+## 7. Anchor setup distributions (authoritative)
 
-Resolved **relative to aimed double** from checkout planner. Sum = 100.
+Used when `intent === "setup"` or `intent === "checkout"` on a **non-double** target. Sum = 100 per table.
+
+### Setup singles (e.g. aim S12 — neighbors S5, S14)
+
+| Bucket | L1 | L5 | L10 |
+| ------ | -- | -- | --- |
+| hit | 16 | 38 | 58 |
+| neighborSingle | 26 | 22 | 16 |
+| wrongRing | 24 | 18 | 12 |
+| neighborWrongRing | 22 | 14 | 8 |
+| outside | 8 | 5 | 4 |
+| other | 4 | 3 | 2 |
+
+**Resolution (aim S12):**
+
+| Bucket | Lands on |
+| ------ | -------- |
+| hit | S12 |
+| neighborSingle | S5, S14 (uniform) |
+| wrongRing | T12, D12 (uniform) |
+| neighborWrongRing | D5, T5, D14, T14 (uniform) |
+| outside | score 0 |
+| other | off-bed pool |
+
+### Setup trebles (e.g. aim T14 — neighbor trebles T11, T9)
+
+| Bucket | L1 | L5 | L10 |
+| ------ | -- | -- | --- |
+| hit | 12 | 28 | 48 |
+| neighborTreble | 22 | 20 | 18 |
+| wrongRing | 32 | 22 | 14 |
+| neighborWrongRing | 20 | 16 | 10 |
+| outside | 10 | 8 | 6 |
+| other | 4 | 6 | 4 |
+
+**Resolution (aim T14):**
+
+| Bucket | Lands on |
+| ------ | -------- |
+| hit | T14 |
+| neighborTreble | T11, T9 (uniform) |
+| wrongRing | S14, D14 (uniform) |
+| neighborWrongRing | D11, S11, D9, S9 (uniform) |
+| outside | score 0 |
+| other | off-bed pool |
+
+### Outer bull (aim 25)
+
+Low levels rarely miss the board entirely on bull attempts — **`other`** (near-miss on board) is far more common than **`outside`**.
+
+| Bucket | L1 | L5 | L10 |
+| ------ | -- | -- | --- |
+| hit | 14 | 28 | 45 |
+| wrongRing (→ 50) | 8 | 12 | 15 |
+| outside | 6 | 8 | 8 |
+| other | 72 | 52 | 32 |
+
+### Bull (aim 50)
+
+| Bucket | L1 | L5 | L10 |
+| ------ | -- | -- | --- |
+| hit | 14 | 26 | 40 |
+| wrongRing (→ 25) | 36 | 28 | 26 |
+| outside | 8 | 8 | 6 |
+| other | 42 | 38 | 28 |
+
+---
+
+## 8. Anchor double distributions (authoritative)
+
+Resolved relative to aimed double from checkout hint. Sum = 100.
 
 ### Level 1
 
@@ -215,31 +309,27 @@ Resolved **relative to aimed double** from checkout planner. Sum = 100.
 
 ### Double resolution rules
 
-Given target double segment (e.g. `D20`, base 20):
+Given target double (e.g. `D20`, base 20):
 
 | Bucket | Resolution |
 | ------ | ---------- |
 | hit | target double |
-| inside | single same number (`S20` / `20`) |
-| neighborSingle | uniform among board neighbors (`S5`, `S1` for 20) |
-| neighborDouble | uniform among neighbor doubles (`D5`, `D1`) |
+| inside | single same number |
+| neighborSingle | uniform among board neighbors |
+| neighborDouble | uniform among neighbor doubles |
 | outside | score 0 |
-| other | uniform from small off-route pool (e.g. `D10`, `D12`) |
-
-Bull finishes (`50`): only `hit` → bull; `inside` → `25`; `outside` → 0; no neighbor buckets.
+| other | off-route pool |
 
 ---
 
-## 8. Interpolation (levels 2–4, 6–9)
+## 9. Interpolation (levels 2–4, 6–9)
 
 **Algorithm:**
 
-1. For scoring: lerp each outcome weight between adjacent anchors, renormalize to sum 100, round to integers (largest-remainder method so sum = 100).
-2. For doubles: lerp each bucket weight, renormalize to sum 100.
-3. For `aim`: L1–5 → `S20`; L6–10 → `T20` (L6+ shifts intent toward treble scoring).
-4. Stat ranges (3DA, scoring avg, checkout %): **explicit per level** from §3 — not interpolated.
-
-**Anchor pairs:**
+1. Lerp each weight in scoring, setup (all four tables), and doubles between anchors.
+2. Renormalize to sum 100; round via largest-remainder.
+3. `aim`: L1–5 → `S20`; L6–10 → `T20`.
+4. Stat ranges: explicit per level from §3 — not interpolated.
 
 | Levels | Interpolate between |
 | ------ | ------------------- |
@@ -248,158 +338,180 @@ Bull finishes (`50`): only `hit` → bull; `inside` → `25`; `outside` → 0; n
 
 ### Draft interpolated scoring tables
 
-Values below are initial implementation targets; Monte Carlo may require ±1% tweaks.
-
-**Level 2** (t=0.25 L1→L5): S20 39, T20 4, D20 3, S5 13, S1 13, T5 4, D5 3, T1 4, D1 3, outside 6, other 8
-
-**Level 3** (t=0.5): S20 43, T20 6, D20 3, S5 11, S1 11, T5 4, D5 3, T1 4, D1 3, outside 6, other 7
-
-**Level 4** (t=0.75): S20 46, T20 7, D20 2, S5 9, S1 9, T5 5, D5 2, T1 5, D1 2, outside 6, other 6
-
-**Level 6** (t=0.2 L5→L10): S20 48, T20 9, D20 3, S5 7, S1 7, T5 6, D5 2, T1 6, D1 2, outside 5, other 5
-
-**Level 7** (t=0.4): S20 46, T20 11, D20 5, S5 6, S1 6, T5 7, D5 2, T1 7, D1 2, outside 4, other 4
-
-**Level 8** (t=0.6): S20 44, T20 12, D20 6, S5 6, S1 6, T5 8, D5 1, T1 8, D1 1, outside 3, other 3
-
-**Level 9** (t=0.8): S20 42, T20 14, D20 8, S5 5, S1 5, T5 9, D5 1, T1 9, D1 1, outside 2, other 2
+**L2:** S20 39, T20 4, D20 3, S5 13, S1 13, T5 4, D5 3, T1 4, D1 3, outside 6, other 8  
+**L3:** S20 43, T20 6, D20 3, S5 11, S1 11, T5 4, D5 3, T1 4, D1 3, outside 6, other 7  
+**L4:** S20 46, T20 7, D20 2, S5 9, S1 9, T5 5, D5 2, T1 5, D1 2, outside 6, other 6  
+**L6:** S20 48, T20 9, D20 3, S5 7, S1 7, T5 6, D5 2, T1 6, D1 2, outside 5, other 5  
+**L7:** S20 46, T20 11, D20 5, S5 6, S1 6, T5 7, D5 2, T1 7, D1 2, outside 4, other 4  
+**L8:** S20 44, T20 12, D20 6, S5 6, S1 6, T5 8, D5 1, T1 8, D1 1, outside 3, other 3  
+**L9:** S20 42, T20 14, D20 8, S5 5, S1 5, T5 9, D5 1, T1 9, D1 1, outside 2, other 2
 
 ### Draft interpolated double tables
 
-**Level 2:** hit 17, inside 35, neighborSingle 23, neighborDouble 8, outside 13, other 5
+**L2:** hit 17, inside 35, neighborSingle 23, neighborDouble 8, outside 13, other 5  
+**L3:** hit 19, inside 33, neighborSingle 22, neighborDouble 9, outside 12, other 6  
+**L4:** hit 22, inside 31, neighborSingle 21, neighborDouble 9, outside 10, other 7  
+**L6:** hit 27, inside 29, neighborSingle 19, neighborDouble 10, outside 9, other 6  
+**L7:** hit 30, inside 28, neighborSingle 18, neighborDouble 10, outside 8, other 6  
+**L8:** hit 33, inside 27, neighborSingle 16, neighborDouble 10, outside 8, other 6  
+**L9:** hit 36, inside 26, neighborSingle 15, neighborDouble 10, outside 7, other 5
 
-**Level 3:** hit 19, inside 33, neighborSingle 22, neighborDouble 9, outside 12, other 6
+### Draft interpolated setup singles
 
-**Level 4:** hit 22, inside 31, neighborSingle 21, neighborDouble 9, outside 10, other 7
+**L2:** hit 22, neighborSingle 25, wrongRing 23, neighborWrongRing 20, outside 7, other 3  
+**L3:** hit 27, neighborSingle 24, wrongRing 21, neighborWrongRing 18, outside 6, other 4  
+**L4:** hit 33, neighborSingle 23, wrongRing 20, neighborWrongRing 16, outside 5, other 3
 
-**Level 6:** hit 27, inside 29, neighborSingle 19, neighborDouble 10, outside 9, other 6
+### Draft interpolated setup trebles
 
-**Level 7:** hit 30, inside 28, neighborSingle 18, neighborDouble 10, outside 8, other 6
-
-**Level 8:** hit 33, inside 27, neighborSingle 16, neighborDouble 10, outside 8, other 6
-
-**Level 9:** hit 36, inside 26, neighborSingle 15, neighborDouble 10, outside 7, other 5
+**L2:** hit 16, neighborTreble 22, wrongRing 29, neighborWrongRing 19, outside 9, other 5  
+**L3:** hit 20, neighborTreble 21, wrongRing 27, neighborWrongRing 18, outside 9, other 5  
+**L4:** hit 24, neighborTreble 21, wrongRing 25, neighborWrongRing 17, outside 8, other 5
 
 ---
 
-## 9. Throw engines
+## 10. Checkout routing & replanning
+
+### Source of truth: `getCheckoutHint(remaining)`
+
+In checkout range (≤170, finishable), DartBot uses **`getCheckoutHint(remaining)`** from `@lib/shared/darts` — the same route shown to the player. No multi-route JSON selection via `CheckoutPolicy` in checkout range.
+
+**Per-dart replanning:** After every dart, recalculate `remaining` and call `getCheckoutHint(remaining)` again. First segment of the returned route is the next aim.
+
+### Example: 74 with misses
+
+| Dart | Remaining | Hint | Aim | Rationale |
+| ---- | --------- | ---- | --- | --------- |
+| 1 | 74 | T14 → D16 | T14 | Standard hint |
+| Miss S14 | 60 | 20 → D20 | S20 | Replan: leave D20 |
+| Miss S5 | 55 | **S15 → D20** | **S15** | Safer than T15; bigger target; miss inside 20 still leaves D20 |
+
+**Hint data update required:** Change `checkout-hints.data.ts` entry for **55** from `["T15", "D5"]` to `["15", "D20"]`. Audit other hints for similar safer-single preference where a wide single leaves a standard double (implementation task).
+
+### Target selection per intent
+
+```ts
+function nextCheckoutTarget(remaining: number): Segment | null {
+  const hint = getCheckoutHint(remaining);
+  if (!hint?.segments[0]) return null;
+  return parseSegment(hint.segments[0]);
+}
+```
+
+- First segment of current hint = aim for this dart.
+- If segment is a double/bull and bot is on finish dart → `intent === "checkout"` → `double-throw`.
+- If segment is single/treble → `intent === "setup"` → `setup-throw` by ring type.
+
+### 131–170 setup zone
+
+`strategy-engine.ts` unchanged: below level 10 may prefer `setup` over `checkout` in 131–170. Setup targets still from `getCheckoutHint` when finishable, or best setup route evaluator for high leaves (existing `evaluateSetupRoute`).
+
+---
+
+## 11. Throw engines
 
 ### Scoring (`scoring-throw.ts`)
 
-```ts
-function throwScoringDart(profile: SkillProfile, rng: Rng): Segment
-```
+`throwScoringDart(profile, rng)` — sample `profile.scoring.outcomes`.
 
-1. Build cumulative distribution from `profile.scoring.outcomes`.
-2. Sample `rng.next()` → segment label.
-3. `outside` → score-0 segment; `other` → sample from off-bed pool.
-4. Return `parseSegment(label)`.
+### Setup (`setup-throw.ts`)
 
-**No `chooseScoringTarget`** during scoring visits — distribution fully defines landing.
+`throwSetupDart(target, profile, rng)` — pick table by target ring:
+
+| Target ring | Table |
+| ----------- | ----- |
+| single | `profile.setup.singles` |
+| triple | `profile.setup.trebles` |
+| outer (`25`) | `profile.setup.outerBull` |
+| bull (`50`) | `profile.setup.bull` |
+
+Resolve buckets relative to `target` using §7 rules and `segments.ts` neighbors.
 
 ### Doubles (`double-throw.ts`)
 
-```ts
-function throwDoubleDart(target: Segment, profile: SkillProfile, rng: Rng): Segment
-```
-
-1. Sample bucket from `profile.doubles.outcomes`.
-2. Resolve bucket to concrete segment relative to `target` (§7 rules).
-3. Return segment.
+`throwDoubleDart(target, profile, rng)` — sample `profile.doubles.outcomes`; resolve per §8.
 
 ### Dispatch (`throw-engine.ts`)
 
 ```ts
-function throwDart(target: Segment, profile: SkillProfile, intent: ThrowIntent, rng: Rng): Segment
+function throwDart(
+  target: Segment,
+  profile: SkillProfile,
+  intent: ThrowIntent,
+  rng: Rng,
+): Segment;
 ```
 
-- `intent === "score"` → `throwScoringDart` (ignores planner target; always 20-bed distribution)
-- `intent === "checkout"` → `throwDoubleDart(target, ...)` when target is double/bull
-- `intent === "setup"` → `throwSetupDart(target, profile, rng)` — aims planner segment (e.g. `T19`, `S16`):
-  - **hit** → land on `target`
-  - **neighbor** → uniform among `target.adjacent`
-  - **outside** → score 0
-  - Hit rate per level = `scoring.outcomes[target.label]` if present, else sum of same-ring weights for `target.base` (e.g. for `T19` use `T19` weight or interpolate from anchor tables). Remainder splits: 70% neighbor / 30% outside.
+| Intent | Engine |
+| ------ | ------ |
+| `score` | `throwScoringDart` |
+| `setup` | `throwSetupDart(target, ...)` |
+| `checkout` | `throwDoubleDart(target, ...)` |
 
 ### `simulateVisit` changes
 
-- Remove `chooseScoringTarget` call for scoring intent.
-- Pass `intent` into `throwDart`.
-- Keep checkout planner, strategy engine, bust/checkout rules unchanged.
+1. Each dart: `remaining` → `nextCheckoutTarget(remaining)` or scoring distribution if `intent === "score"`.
+2. Pass `intent` into `throwDart`.
+3. After each dart: update `remaining`; if still in visit, replan from hint.
+4. Remove `chooseScoringTarget`, `CheckoutPlanner` for checkout-range targets.
 
 ---
 
-## 10. Strategy & checkout (unchanged)
+## 12. Validation & testing
 
-- `strategy-engine.ts` — intent selection (score / setup / checkout) unchanged.
-- `checkout/` — planner, policy, knowledge unchanged.
-- `CheckoutPolicy` — optionally derive discipline from `level / 10` instead of profile field.
+### Monte Carlo
 
----
-
-## 11. Validation & testing
-
-### Monte Carlo (new / updated tests)
-
-Per level 1–10, simulate ≥500 scoring visits and ≥500 double attempts:
+Per level 1–10: ≥500 scoring visits, ≥500 setup throws (singles + trebles), ≥500 double attempts.
 
 | Assert | Tolerance |
 | ------ | --------- |
-| Scoring average | within level `scoringAverage` range |
-| 3-dart average (full leg sim) | within `threeDartAverage` range |
-| Checkout % (`hits on double / attempts`) | within `checkoutPercentage` range |
-
-Use fixed seeds for deterministic regression subsets; wider seeds for range checks.
+| Scoring average | within `scoringAverage` range |
+| 3-dart average | within `threeDartAverage` range |
+| Checkout % | within `checkoutPercentage` range |
 
 ### Unit tests
 
-- `scoring-throw.test.ts` — distribution sampling sums, outside/other resolution
-- `double-throw.test.ts` — neighbor resolution for D20, bull edge case
-- `interpolate-levels.test.ts` — L2/L4/L6/L9 weights sum to 100; monotonic hit% increases
-- Update `levels.test.ts` — cap at 10, anchor exact match
-- Update `dart-bot.test.ts` — remove L15 references; level 2 expects S20-heavy outcomes
-- Remove / update `throw-engine.test.ts` hitAccuracy tests
+- `setup-throw.test.ts` — S12 neighbors are S5/S14; T14 neighbor trebles; bull other > outside at L1
+- `checkout-target.test.ts` — replan 74→60→55 uses S15 on third dart after hint update
+- `scoring-throw.test.ts`, `double-throw.test.ts`, `interpolate-levels.test.ts`
+- Update `dart-bot.test.ts` — replanning visit on 74 with seeded misses
+- `checkouts.test.ts` — `getCheckoutHint(55)` → `["15", "D20"]`
 
-### Runtime validation (`501.play.ts`)
-
-`validateMatchStats` updated:
-
-- `checkoutRate` → compare against `checkoutPercentage.min/max`
-- `checkoutPercentage` display uses range string `"8–30%"`
-
-### Settings preview (`preview.ts`)
+### Settings preview
 
 ```ts
-checkoutSuccessRate: `${min}–${max}%`
+checkoutSuccessRate: `${min}–${max}%`;
 ```
 
 ---
 
-## 12. Consumer updates
+## 13. Consumer updates
 
 | File | Change |
 | ---- | ------ |
+| `darts/checkout-hints.data.ts` | 55 → `["15", "D20"]`; audit safer singles |
 | `games/501/validation.ts` | `level <= 10` |
-| Settings UI / PlayerPicker | Slider max 10 |
+| Settings UI | Slider max 10 |
 | `statistics-engine.ts` | Range-based checkout validation |
-| `AGENTS.md` | Level cap 10, new file layout note |
+| `AGENTS.md` | Level cap 10, new dartbot file layout |
 
 ---
 
-## 13. Out of scope
+## 14. Out of scope
 
-- Mid-match stat convergence / runtime adjustment
-- New checkout routes
+- Mid-match stat convergence
 - DartBot DB persistence
-- UI animation timing changes
-- User player simulation (human input unchanged)
+- UI animation timing
+- Full checkout-hints audit beyond 55 + obvious safer-single cases
 
 ---
 
-## 14. Success criteria
+## 15. Success criteria
 
-1. Levels 1–10 only; L1/L5/L10 scoring tables match §6 exactly.
-2. Scoring visits sample from per-level fixed distributions (no geometric random scatter).
-3. Double attempts sample from per-level bucket distributions wired to checkout % ranges.
-4. Monte Carlo tests pass for all 10 levels within configured ranges.
-5. Settings preview shows stat ranges including checkout % band.
+1. Levels 1–10 only; L1/L5/L10 scoring, setup, and double tables match §6–8.
+2. Scoring visits use fixed 20-bed distributions.
+3. Setup visits use per-level singles/trebles/bull tables with `neighborWrongRing`.
+4. Checkout range uses `getCheckoutHint` with per-dart replanning (player parity).
+5. `getCheckoutHint(55)` is `S15 → D20`; 74 miss example routes correctly.
+6. Bull setup: `other` >> `outside` at low levels.
+7. Monte Carlo passes for all 10 levels.
