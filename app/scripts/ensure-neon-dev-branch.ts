@@ -5,7 +5,9 @@ import { bootstrapEnv } from "../src/lib/server/bootstrap-env";
 import {
   DEV_AUTH_DEFAULTS,
   ensureNeonAuthUser,
+  resolveDevAuthUserId,
 } from "../src/lib/server/ensure-neon-auth-user";
+import { seedPlayerStatCompletions } from "../src/lib/server/data/seed-player-stat-completions";
 import { resolveNeonDevBranchName } from "../src/lib/server/neon-dev-branch";
 
 const NEONCTL_ARGS = ["-y", "neonctl@latest"];
@@ -151,6 +153,23 @@ export async function ensureNeonDevBranch(): Promise<void> {
       error instanceof Error ? error.message : error,
     );
     process.exit(1);
+  }
+
+  if (process.env.SKIP_STAT_SEED !== "1") {
+    console.log("[neon-dev] Seeding demo profile stats...");
+    try {
+      const userId = await resolveDevAuthUserId();
+      const { completionsInserted } = await seedPlayerStatCompletions(userId);
+      console.log(
+        `[neon-dev] Seeded ${completionsInserted} stat completions for dev login`,
+      );
+    } catch (error) {
+      console.error(
+        "[neon-dev] Stat seed failed:",
+        error instanceof Error ? error.message : error,
+      );
+      process.exit(1);
+    }
   }
 
   console.log(`[neon-dev] Ready (branch: ${branchName})`);
