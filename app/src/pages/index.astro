@@ -1,35 +1,10 @@
 ---
-// Layouts
-import AppLayout from '@layouts/AppLayout.astro';
-
-// Components
-import ProfileStatsSection from '@components/stats/ProfileStatsSection.astro';
-import { getPreferences } from '@lib/server/data/preferences';
-import { getProfileDashboardData } from '@lib/server/data/player-stat-completions';
-import type { ProfileDashboardData } from '@lib/server/data/player-stat-completions';
-
-const session = Astro.locals.session!;
-let displayName = 'You';
-let dashboard: ProfileDashboardData = {
-  metrics: { threeDartAverage: null, scoringAverage: null, checkoutPercentage: null },
-  sparklines: [],
-  gamesPlayed: 0,
-  gamesWon: 0,
-};
-
-if (session.userId) {
-  try {
-    const preferences = await getPreferences(session.userId);
-    displayName = preferences.displayName?.trim() || displayName;
-    dashboard = await getProfileDashboardData(session.userId);
-  } catch {
-    /* graceful fallback — spec §9 */
-  }
-}
+import AppLayout from "@layouts/AppLayout.astro";
+import ProfileStatsSection from "@components/stats/ProfileStatsSection.astro";
 ---
 
 <AppLayout>
   <main class="mx-auto w-full max-w-2xl space-y-6 p-4 @sm:p-6">
-    <ProfileStatsSection displayName={displayName} dashboard={dashboard} />
+    <ProfileStatsSection />
   </main>
 </AppLayout>
