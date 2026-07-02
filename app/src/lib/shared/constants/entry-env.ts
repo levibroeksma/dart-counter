@@ -17,5 +17,7 @@ export function getEntryEnv(): EntryEnv {
   if (override === ENTRY_ENV.DEV || override === ENTRY_ENV.PROD) {
     return override;
   }
-  return import.meta.env.PROD ? ENTRY_ENV.PROD : ENTRY_ENV.DEV;
+  const isProd =
+    typeof import.meta.env !== "undefined" && Boolean(import.meta.env.PROD);
+  return isProd ? ENTRY_ENV.PROD : ENTRY_ENV.DEV;
 }
