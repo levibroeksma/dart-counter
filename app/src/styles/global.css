@@ -289,16 +289,23 @@
   }
 
   .card-metric-liquid {
-    @apply border-border/50 shadow-card relative min-h-28 overflow-hidden rounded-xl border;
+    @apply border-border/50 shadow-card isolate min-h-28 overflow-hidden rounded-xl border;
+    display: grid;
     background: var(--gradient-card-surface);
   }
 
+  .card-metric-liquid-canvas,
+  .card-metric-liquid-scrim,
+  .card-metric-liquid-content {
+    grid-area: 1 / 1;
+  }
+
   .card-metric-liquid-canvas {
-    @apply pointer-events-none absolute inset-0 h-full w-full;
+    @apply pointer-events-none min-h-0 h-full w-full;
   }
 
   .card-metric-liquid-scrim {
-    @apply pointer-events-none absolute inset-0;
+    @apply pointer-events-none min-h-28;
     background: linear-gradient(
       155deg,
       hsl(var(--card) / 0.88) 0%,
@@ -308,7 +315,7 @@
   }
 
   .card-metric-liquid-content {
-    @apply relative z-10 flex h-full min-h-28 flex-col justify-end p-3;
+    @apply relative z-10 flex min-h-28 flex-col justify-end p-3;
   }
 
   .card-interactive {
