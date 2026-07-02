@@ -44,8 +44,12 @@ assert_contains "$GAMES_HTML" "Ten Up One Down" "games page catalog from DB"
 assert_contains "$GAMES_HTML" "Score Training" "games page includes score-training"
 
 HOME_HTML=$(curl -sf -b "$JAR" -L "$BASE_URL/")
-assert_contains "$HOME_HTML" "Quick Start" "home page SSR"
-assert_contains "$HOME_HTML" "Ten Up One Down" "quick start games from DB"
+assert_contains "$HOME_HTML" 'profileDashboard()' "home page profile dashboard alpine"
+assert_contains "$HOME_HTML" 'x-show="isLoading"' "home page stats skeleton"
+
+DASHBOARD_GET=$(curl -sf -b "$JAR" "$BASE_URL/api/profile/dashboard")
+assert_contains "$DASHBOARD_GET" '"ok":true' "profile dashboard GET"
+assert_contains "$DASHBOARD_GET" '"gamesPlayed"' "profile dashboard shape"
 
 ORIGIN_HEADER=(-H "Origin: $BASE_URL")
 CONFIG_PUT=$(curl -sf -b "$JAR" -X PUT "$BASE_URL/api/games/ten-up-one-down/config" \
