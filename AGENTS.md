@@ -121,7 +121,7 @@ Rollout handoff: `docs/superpowers/context/module-barrels-types-handoff.md`
 import {
   buildFiveOhOneSession,
   type FiveOhOneSession,
-} from "@lib/shared/games/501";
+} from '@lib/shared/games/501';
 ```
 
 **Internal files** — relative siblings only (`./`). Never import own barrel or `@lib/shared/<module>/...` self-paths.
@@ -129,7 +129,7 @@ import {
 **Cross-module** — target module's barrel:
 
 ```ts
-import { simulateVisit, type SimulatedVisit } from "@lib/shared/dartbot";
+import { simulateVisit, type SimulatedVisit } from '@lib/shared/dartbot';
 ```
 
 **ESLint:** `no-restricted-imports` blocks `@lib/shared/games/501/*`, `@lib/shared/dartbot/*`, `@lib/shared/darts/*`, `@lib/shared/stats/*`, and pilot game module deep paths. Exceptions: files inside those modules; private-symbol test files listed in `eslint.config.js`. `*.astro` excluded from lint.
@@ -248,11 +248,11 @@ Path helpers: `settingsPath(slug)`, `playPath(slug)` in `lib/shared/games/paths.
 
 **Bootstrap rules:**
 
-| Do | Don't |
-| -- | ----- |
-| Register plugins in `app.factory.ts` via `Alpine.plugin(...)` (e.g. `persist`, `effect`) | `import Alpine from "alpinejs"` in stores, data factories, or helpers |
-| Pass the bootstrapped `Alpine` instance into store/data factories from `app.factory.ts` | `import persist from "@alpinejs/persist"` (or any `@alpinejs/*`) outside `app.factory.ts` |
-| Use `import type { Alpine }` in factories when typing the injected instance | Instantiate or configure Alpine outside `app.factory.ts` |
+| Do                                                                                       | Don't                                                                                     |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Register plugins in `app.factory.ts` via `Alpine.plugin(...)` (e.g. `persist`, `effect`) | `import Alpine from "alpinejs"` in stores, data factories, or helpers                     |
+| Pass the bootstrapped `Alpine` instance into store/data factories from `app.factory.ts`  | `import persist from "@alpinejs/persist"` (or any `@alpinejs/*`) outside `app.factory.ts` |
+| Use `import type { Alpine }` in factories when typing the injected instance              | Instantiate or configure Alpine outside `app.factory.ts`                                  |
 
 **Patterns:**
 
@@ -263,6 +263,25 @@ Path helpers: `settingsPath(slug)`, `playPath(slug)` in `lib/shared/games/paths.
 - **`x-show` + `x-cloak`:** every Astro component or HTML element with `x-show` must also have `x-cloak` on the same element (prevents flash of hidden content before Alpine hydrates)
 
 **Global confirmation modal:** `$store.confirmationModal.open({ title, message, onConfirm })` — mounted in `BaseLayout`.
+
+### Profile stats & Chart.js
+
+Client-fetched dashboard data + Alpine-owned chart lifecycle. Spec: `docs/superpowers/specs/2026-06-30-profile-charts-client-design.md`.
+
+| Do                                                                           | Don't                                                            |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| No SSR dashboard fetch in page frontmatter; static Astro shell               | SSR-fetch `getProfileDashboardData` into page frontmatter        |
+| `prerender = true` only on public routes                                     | `prerender` on auth-protected pages (middleware session skipped) |
+| Alpine `profileDashboard()` fetches `GET /api/profile/dashboard`             | Embed `data-sparklines` JSON on the section                      |
+| `isLoading` + skeleton `x-show`/`x-cloak` until fetch completes              | Mount Chart.js in `init()` before content is visible             |
+| Mount charts after `isLoading=false` → `$nextTick` → `requestAnimationFrame` | Call `new Chart()` synchronously at start of `init()`            |
+| `min-h-0` on `.card-metric-liquid-canvas` (grid child)                       | Omit `min-h-0` — canvas gets zero height in CSS grid             |
+| `mountMetricCharts` + `bindChartResize` from `lib/client/charts/`            | Inline Chart.js in `.astro` components                           |
+| `destroy()` → `destroyMetricCharts` + resize unbind                          | Leave charts/listeners attached on navigation                    |
+
+**Lifecycle:** `init` → fetch API → bind state → `isLoading=false` → `$nextTick` → `rAF` → `mountMetricCharts` → `bindChartResize` → `ready=true`. Teardown in `destroy()`.
+
+**Reuse:** Future `/statistics` uses same API + chart helpers; add `statsDashboard({ range })` when needed.
 
 ---
 
