@@ -1,76 +1,100 @@
 ---
-import StatsSectionHeader from "./StatsSectionHeader.astro";
-import ProfileStatCell from "./ProfileStatCell.astro";
-import ProfileMetricCard from "./ProfileMetricCard.astro";
-import {
-  formatThreeDartAverage,
-  formatScoringAverage,
-  formatCheckoutPercentage,
-} from "@lib/shared/stats";
-import type { ProfileDashboardData } from "@lib/server/data/player-stat-completions";
-
-interface Props {
-  displayName: string;
-  dashboard: ProfileDashboardData;
-}
-
-const { displayName, dashboard } = Astro.props;
-const sparklinesJson = JSON.stringify(dashboard.sparklines).replace(/</g, "\\u003c");
-
-const metricCards = [
-  {
-    label: "3 dart avg.",
-    value: formatThreeDartAverage(dashboard.metrics.threeDartAverage),
-    kind: "threeDartAverage" as const,
-    token: "chart-1" as const,
-    series: dashboard.sparklines.find((s) => s.kind === "threeDartAverage"),
-  },
-  {
-    label: "Scoring avg.",
-    value: formatScoringAverage(dashboard.metrics.scoringAverage),
-    kind: "scoringAverage" as const,
-    token: "chart-2" as const,
-    series: dashboard.sparklines.find((s) => s.kind === "scoringAverage"),
-  },
-  {
-    label: "Checkout rate",
-    value: formatCheckoutPercentage(dashboard.metrics.checkoutPercentage),
-    kind: "checkoutPercentage" as const,
-    token: "chart-3" as const,
-    series: dashboard.sparklines.find((s) => s.kind === "checkoutPercentage"),
-  },
-];
+import ProfileMetricCard from './ProfileMetricCard.astro';
+import Skeleton from '@components/ui/Skeleton.astro';
 ---
+
 <section
   class="grid grid-cols-2 gap-x-4 gap-y-6"
-  x-data="homeStats()"
-  data-sparklines={sparklinesJson}
+  x-data="profileDashboard()"
 >
-  <article class="col-span-2 space-y-2">
-    <StatsSectionHeader title="Statistics" href="/statistics" />
-  </article>
-
   <article class="col-span-2 flex flex-col gap-y-4">
-    <div>
-      <span class="text-muted-foreground shrink-0 text-xs tracking-wider uppercase">Nickname</span>
-      <h3 class="text-foreground font-bold">{displayName}</h3>
-    </div>
-
-    <div class="grid grid-cols-2 gap-4">
-      <ProfileStatCell value={String(dashboard.gamesPlayed)} label="Games Played" />
-      <ProfileStatCell value={String(dashboard.gamesWon)} label="Games won" />
-    </div>
-
-    <div class="grid grid-cols-2 gap-4">
-      {metricCards.map((card) => (
-        <ProfileMetricCard
-          label={card.label}
-          value={card.value}
-          metricKind={card.kind}
-          chartToken={card.token}
-          showChart={(card.series?.points.length ?? 0) >= 2}
+    <div
+      x-show="isLoading"
+      x-cloak
+      class="flex flex-col gap-y-4"
+    >
+      <div>
+        <Skeleton
+          variant="text"
+          class="mb-2 h-3 w-20"
         />
-      ))}
+        <Skeleton
+          variant="bar"
+          class="h-6 w-32"
+        />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <Skeleton class="min-h-20 w-full" />
+        <Skeleton class="min-h-20 w-full" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <ProfileMetricCard variant="skeleton" />
+        <ProfileMetricCard variant="skeleton" />
+        <ProfileMetricCard variant="skeleton" />
+      </div>
+    </div>
+
+    <div
+      x-show="!isLoading"
+      x-cloak
+      class="flex flex-col gap-y-4"
+    >
+      <div class="flex items-center gap-x-6">
+        <h3
+          class="text-foreground text-4xl font-bold"
+          x-text="displayName || 'You'"
+        >
+        </h3>
+        <span class="bg-border/80 h-px w-full text-sm"> </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div
+          class="card-metric-liquid col-span-1 flex w-full flex-col gap-4 p-4"
+        >
+          <div class="flex w-full flex-col items-start justify-center">
+            <span
+              class="text-foreground font-mono text-xl font-bold"
+              x-text="gamesPlayed"
+            >
+            </span>
+            <span
+              class="text-muted-foreground shrink-0 text-xs tracking-wider uppercase"
+            >
+              Games Played
+            </span>
+          </div>
+          <div class="flex w-full flex-col items-start justify-center">
+            <span
+              class="text-foreground font-mono text-xl font-bold"
+              x-text="gamesWon"
+            ></span>
+            <span
+              class="text-muted-foreground shrink-0 text-xs tracking-wider uppercase"
+            >
+              Games won
+            </span>
+          </div>
+        </div>
+        <ProfileMetricCard
+          label="3 dart average"
+          value="formattedThreeDartAverage()"
+          metricKind="threeDartAverage"
+          chartToken="chart-1"
+        />
+        <ProfileMetricCard
+          label="Scoring average"
+          value="formattedScoringAverage()"
+          metricKind="scoringAverage"
+          chartToken="chart-2"
+        />
+        <ProfileMetricCard
+          label="Checkout rate"
+          value="formattedCheckoutPercentage()"
+          metricKind="checkoutPercentage"
+          chartToken="chart-3"
+        />
+      </div>
     </div>
   </article>
 </section>
