@@ -19,6 +19,8 @@ Chart.register(
   Filler,
 );
 
+const SPARKLINE_VERTICAL_PADDING = 12;
+
 export function createSparkline(
   canvas: HTMLCanvasElement,
   points: SparklinePoint[],
@@ -35,7 +37,7 @@ export function createSparkline(
       datasets: [
         {
           data,
-          borderColor: withAlpha(color, 0.65),
+          borderColor: withAlpha(color, 0.85),
           backgroundColor: (ctx) => {
             const { chart } = ctx;
             const g = chart.ctx.createLinearGradient(0, 0, 0, chart.height);
@@ -54,6 +56,12 @@ export function createSparkline(
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
+      layout: {
+        padding: {
+          top: SPARKLINE_VERTICAL_PADDING,
+          bottom: SPARKLINE_VERTICAL_PADDING,
+        },
+      },
       plugins: { legend: { display: false }, tooltip: { enabled: false } },
       scales: {
         x: { display: false },

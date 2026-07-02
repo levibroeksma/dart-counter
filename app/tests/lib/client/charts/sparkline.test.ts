@@ -70,6 +70,18 @@ describe("sparkline chart utils", () => {
     expect(config.data.datasets[0].data).toEqual([]);
   });
 
+  it("applies 12px top and bottom layout padding", () => {
+    const canvas = document.createElement("canvas");
+    createSparkline(canvas, [{ x: "2026-01-01", y: 50 }], "chart-1");
+
+    expect(chartFactory).toHaveBeenCalledTimes(1);
+    const [, config] = chartFactory.mock.calls[0] as [
+      HTMLCanvasElement,
+      { options: { layout: { padding: { top: number; bottom: number } } } },
+    ];
+    expect(config.options.layout.padding).toEqual({ top: 12, bottom: 12 });
+  });
+
   it("destroySparkline safely handles undefined chart", () => {
     expect(() => destroySparkline(undefined)).not.toThrow();
   });
