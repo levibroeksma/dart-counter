@@ -7,8 +7,17 @@ import type {
 } from "@lib/shared/games/score-training";
 import type { SinglesTrainingSummary } from "@lib/shared/games/singles-training";
 import type { TenUpOneDownSummary } from "@lib/shared/games/ten-up-one-down";
+import type { ProfileMetrics, SparklineSeries } from "@lib/shared/stats";
 
 export type PreferencesSuccess = { ok: true; displayName?: string };
+export type ProfileDashboardSuccess = {
+  ok: true;
+  displayName?: string;
+  metrics: ProfileMetrics;
+  sparklines: SparklineSeries[];
+  gamesPlayed: number;
+  gamesWon: number;
+};
 export type GamesCatalogSuccess = { ok: true; games: GameType[] };
 export type GameConfigSuccess = { ok: true; config: GameConfig };
 export type ScoreTrainingSessionSuccess = {
@@ -36,6 +45,7 @@ export type TenUpOneDownCompleteSuccess = {
 export type ApiSuccess =
   | { ok: true }
   | PreferencesSuccess
+  | ProfileDashboardSuccess
   | GamesCatalogSuccess
   | GameConfigSuccess
   | ScoreTrainingSessionSuccess

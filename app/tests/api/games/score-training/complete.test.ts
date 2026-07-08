@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext } from "astro";
 import { POST } from "@api/games/score-training/complete";
 import { MessageCode } from "@lib/shared/constants/errors.constants";
+import { buildScoreTrainingCompletionSnapshot } from "@lib/shared/stats";
 import {
   applyRoundToState,
   buildRoundRecord,
@@ -13,6 +14,7 @@ const mockGetSession = vi.fn();
 const mockGetPlayerScoreTrainingStats = vi.fn();
 const mockSavePlayerScoreTrainingStats = vi.fn();
 const mockIncrementPlayCount = vi.fn();
+const mockInsertPlayerStatCompletion = vi.fn();
 
 vi.mock("@lib/server/auth/session", () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -27,6 +29,11 @@ vi.mock("@lib/server/data/player-score-training-stats", () => ({
 
 vi.mock("@lib/server/data/games", () => ({
   incrementPlayCount: (...args: unknown[]) => mockIncrementPlayCount(...args),
+}));
+
+vi.mock("@lib/server/data/player-stat-completions", () => ({
+  insertPlayerStatCompletion: (...args: unknown[]) =>
+    mockInsertPlayerStatCompletion(...args),
 }));
 
 function buildCompletedRoundsSession() {
@@ -66,6 +73,7 @@ describe("POST /api/games/score-training/complete", () => {
     );
     mockSavePlayerScoreTrainingStats.mockResolvedValue(undefined);
     mockIncrementPlayCount.mockResolvedValue(undefined);
+    mockInsertPlayerStatCompletion.mockResolvedValue(undefined);
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -105,9 +113,23 @@ describe("POST /api/games/score-training/complete", () => {
       dartsThrown: 6,
     });
     expect(mockSavePlayerScoreTrainingStats).toHaveBeenCalledTimes(1);
+    expect(mockInsertPlayerStatCompletion).toHaveBeenCalledWith(
+      "00000000-0000-4000-8000-000000000001",
+      buildScoreTrainingCompletionSnapshot(session),
+    );
     expect(mockIncrementPlayCount).toHaveBeenCalledWith(
       "00000000-0000-4000-8000-000000000001",
       "score-training",
     );
+  });
+
+  it("returns 500 when completion snapshot insert fails", async () => {
+    mockInsertPlayerStatCompletion.mockRejectedValueOnce(new Error("db down"));
+    const response = await POST(createContext({ session: buildCompletedRoundsSession() }));
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      ok: false,
+      code: MessageCode.SERVER_ERROR,
+    });
   });
 });

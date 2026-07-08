@@ -38,7 +38,7 @@ export { validateSinglesTrainingSettings } from "./validation";
 
 // Gameplay
 export { applyDartToSession, revertLastDart } from "./state";
-export { formatDartOutcomeLabel, isValidOutcomeForTarget } from "./dart";
+export { formatDartOutcomeLabel, isHit, isValidOutcomeForTarget } from "./dart";
 
 // Completion & summary
 export { validateCompletedSinglesTrainingSession } from "./completion";

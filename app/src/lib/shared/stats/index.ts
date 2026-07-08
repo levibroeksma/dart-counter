@@ -1,5 +1,14 @@
 // Domain types
-export type { PlayerDartStats } from "./types";
+export type {
+  MetricKind,
+  PlayerDartStats,
+  ProfileMetricValue,
+  ProfileMetrics,
+  SparklinePoint,
+  SparklineSeries,
+  StatCompletionRecord,
+  VisitMilestoneCounts,
+} from "./types";
 
 // Double stats
 export {
@@ -7,3 +16,30 @@ export {
   createEmptyPlayerDartStats,
   revertRoundFromStats,
 } from "./double-stats";
+
+// Visit milestones
+export { countVisitMilestones } from "./milestones";
+
+// Completion snapshots
+export {
+  build501CompletionSnapshot,
+  buildScoreTrainingCompletionSnapshot,
+  buildTenUpOneDownCompletionSnapshot,
+  buildSinglesTrainingCompletionSnapshot,
+  type CompletionSnapshotInsert,
+} from "./completion-snapshot";
+
+// Profile metrics
+export {
+  computeProfileMetrics,
+  computeSparklineSeries,
+  computeMonthDelta,
+  type MonthDelta,
+} from "./profile-metrics";
+
+// Profile display formatting
+export {
+  formatCheckoutPercentage,
+  formatScoringAverage,
+  formatThreeDartAverage,
+} from "./format-profile";

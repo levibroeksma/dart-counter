@@ -6,12 +6,14 @@ import {
   buildSummary,
   validateCompletedTenUpOneDownSession,
 } from "@lib/shared/games/ten-up-one-down";
+import { buildTenUpOneDownCompletionSnapshot } from "@lib/shared/stats";
 import { getSession } from "@lib/server/auth/session";
 import { incrementPlayCount } from "@lib/server/data/games";
 import {
   getPlayerDartStats,
   savePlayerDartStats,
 } from "@lib/server/data/player-dart-stats";
+import { insertPlayerStatCompletion } from "@lib/server/data/player-stat-completions";
 
 function jsonResponse(body: ApiResponse, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -48,6 +50,8 @@ export const POST: APIRoute = async ({ request }) => {
     const stats = await getPlayerDartStats(auth.userId);
     applyGameCompletionToStats(stats, validated.value);
     await savePlayerDartStats(auth.userId, stats);
+    const snapshot = buildTenUpOneDownCompletionSnapshot(validated.value);
+    await insertPlayerStatCompletion(auth.userId, snapshot);
     await incrementPlayCount(auth.userId, "ten-up-one-down");
     return jsonResponse({ ok: true, summary }, 200);
   } catch {

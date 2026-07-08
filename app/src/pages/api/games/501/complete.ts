@@ -7,6 +7,7 @@ import {
   buildSummary,
   validateCompletedFiveOhOneSession,
 } from "@lib/shared/games/501";
+import { build501CompletionSnapshot } from "@lib/shared/stats";
 import { getSession } from "@lib/server/auth/session";
 import { incrementPlayCount } from "@lib/server/data/games";
 import {
@@ -17,6 +18,7 @@ import {
   getPlayerDartStats,
   savePlayerDartStats,
 } from "@lib/server/data/player-dart-stats";
+import { insertPlayerStatCompletion } from "@lib/server/data/player-stat-completions";
 
 function jsonResponse(body: ApiResponse, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -56,6 +58,8 @@ export const POST: APIRoute = async ({ request }) => {
     const dartStats = await getPlayerDartStats(auth.userId);
     applyGameCompletionToDartStats(dartStats, validated.value);
     await savePlayerDartStats(auth.userId, dartStats);
+    const snapshot = build501CompletionSnapshot(validated.value);
+    await insertPlayerStatCompletion(auth.userId, snapshot);
     await incrementPlayCount(auth.userId, "501");
     return jsonResponse({ ok: true, summary }, 200);
   } catch {
